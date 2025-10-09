@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Magic SEO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input[type="file"] {
+            padding: 8px;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-analyze {
+            background: #0066cc;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-analyze:hover {
+            background: #0052a3;
+        }
+        
+        .btn-execute {
+            background: #28a745;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-execute:hover {
+            background: #218838;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .results h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .results pre {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .collapsible {
+            background: #f1f1f1;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .collapsible:hover {
+            background: #e1e1e1;
+        }
+        
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+            background: white;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+        
+        .collapsible-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 WordPress Magic SEO</h1>
+        <p class="subtitle">AI-powered SEO automation for multi-site owners</p>
+        
+        <div class="warning">
+            ⚠️ <strong>Test first!</strong> Use "Analyze Only" before executing. Start with max_actions=1 to test safely.
+        </div>
+        
+        <form id="seoForm">
+            <div class="form-group">
+                <label for="gsc_file">GSC CSV Export (12 months) *</label>
+                <input type="file" id="gsc_file" name="file" accept=".csv" required>
+                <div class="help-text">Export from Google Search Console → Performance → Download CSV</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="site_url">WordPress Site URL *</label>
+                <input type="text" id="site_url" name="site_url" placeholder="https://yoursite.com" required>
+            </div>
+            
+            <div class="row">
+                <div class="form-group">
+                    <label for="username">WordPress Username *</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="app_password">Application Password *</label>
+                    <input type="password" id="app_password" name="application_password" required>
+                    <div class="help-text">Create in WP: Users → Profile → Application Passwords</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="anthropic_key">Anthropic API Key (optional if set in env)</label>
+                <input type="password" id="anthropic_key" name="anthropic_api_key" placeholder="sk-ant-api03-...">
+                <div class="help-text">Get from console.anthropic.com - or set in Vercel env vars</div>
+            </div>
+            
+            <div class="collapsible" onclick="toggleAdvanced()">
+                ⚙️ Advanced Options (click to expand)
+            </div>
+            
+            <div class="collapsible-content" id="advancedOptions">
+                <div class="row">
+                    <div class="form-group">
+                        <label for="schedule_mode">Schedule Mode</label>
+                        <select id="schedule_mode" name="schedule_mode">
+                            <option value="all_at_once">All at once</option>
+                            <option value="daily">Daily batches</option>
+                            <option value="hourly">Hourly batches</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="batch_size">Posts per Batch</label>
+                        <input type="number" id="batch_size" name="batch_size" value="3" min="1" max="20">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label for="delay_hours">Delay Between Batches (hours)</label>
+                        <input type="number" id="delay_hours" name="delay_hours" value="8" min="1" step="0.5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max_actions">Max Actions (leave empty for all)</label>
+                        <input type="number" id="max_actions" name="max_actions" placeholder="e.g., 5 for testing" min="1">
+                        <div class="help-text">Start with 1 to test safely!</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" class="btn-analyze" onclick="analyzeOnly()">
+                    📊 Analyze Only (Safe)
+                </button>
+                <button type="button" class="btn-execute" onclick="executeFullPipeline()">
+                    🚀 Execute Full Pipeline
+                </button>
+            </div>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000' 
+            : '';
+        
+        function toggleAdvanced() {
+            const content = document.getElementById('advancedOptions');
+            content.classList.toggle('show');
+        }
+        
+        function showLoading(message) {
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('results').classList.remove('show');
+            
+            // Disable buttons
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            hideLoading();
+        }
+        
+        function showResults(data, title) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <h2>${title}</h2>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.classList.add('show');
+            hideLoading();
+        }
+        
+        async function analyzeOnly() {
+            const form = document.getElementById('seoForm');
+            const formData = new FormData(form);
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            showLoading('Analyzing GSC data and creating action plan...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+                
+                showResults(data, '📊 Analysis Complete - Action Plan');
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+        
+        async function executeFullPipeline() {
+            const form = document.getElementById('seoForm');
+            const formData = new FormData(form);
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Confirm execution
+            const maxActions = formData.get('max_actions');
+            const confirmMsg = maxActions 
+                ? `Execute pipeline with max ${maxActions} actions?`
+                : 'Execute FULL pipeline? This will modify your WordPress site!';
+            
+            if (!confirm(confirmMsg + '\n\nThis will create/update/delete content. Continue?')) {
+                return;
+            }
+            
+            showLoading('Executing full pipeline... This may take several minutes.');
+            
+            try {
+                const response = await fetch(`${API_BASE}/execute`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Execution failed');
+                }
+                
+                showResults(data, '✅ Execution Complete');
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,12 @@
 {
   "builds": [
+    { "src": "api/index.py", "use": "@vercel/python" },
     { "src": "api/generate.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "api/index.py" },
+    { "src": "/analyze", "dest": "api/generate.py" },
+    { "src": "/execute", "dest": "api/generate.py" },
+    { "src": "/health", "dest": "api/generate.py" }
   ]
 }
