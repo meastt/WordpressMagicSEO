@@ -5,8 +5,8 @@
   ],
   "routes": [
     { "src": "/", "dest": "api/index.py" },
-    { "src": "/analyze", "dest": "api/generate.py" },
-    { "src": "/execute", "dest": "api/generate.py" },
+    { "src": "/analyze", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/execute", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/health", "dest": "api/generate.py" }
   ]
 }
