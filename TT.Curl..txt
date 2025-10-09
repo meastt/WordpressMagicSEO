@@ -1,0 +1,15 @@
+curl -X POST http://127.0.0.1:5000/execute \
+  -F "file=@tigertribe.xlsx" \
+  -F "site_url=https://tigertribe.net" \
+  -F "username=JoeEds" \
+  -F "application_password=m32Gutsp3JW1FQRPSFcjKcve" \
+  -F "anthropic_api_key=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" \
+  -F "max_actions=1" \
+  -F "schedule_mode=all_at_once"
+
+
+
+curl -v -X POST https://tigertribe.net/wp-json/wp/v2/posts/52 \
+  -u "joeedwards:m32Gutsp3JW1FQRPSFcjKcve" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"TEST UPDATE"}'
