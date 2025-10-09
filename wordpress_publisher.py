@@ -1,7 +1,7 @@
 """
 wordpress_publisher.py
 =====================
-Enhanced WordPress publisher with scheduling, 301 redirects, and metadata management.
+Enhanced WordPress publisher - taxonomies disabled due to REST API restrictions.
 """
 
 import requests
@@ -112,23 +112,14 @@ class WordPressPublisher:
         """Create a new post with full metadata."""
         
         try:
-            # Get or create category IDs
-            category_ids = []
-            if categories:
-                category_ids = self._get_or_create_categories(categories)
-            
-            # Get or create tag IDs
-            tag_ids = []
-            if tags:
-                tag_ids = self._get_or_create_tags(tags)
+            # SKIP TAXONOMIES - causing 401 errors
+            print("  ⚠️  Skipping categories/tags due to REST API restrictions")
             
             # Prepare post data
             post_data = {
                 "title": title,
                 "content": content,
-                "status": status,
-                "categories": category_ids,
-                "tags": tag_ids
+                "status": status
             }
             
             # Add Yoast SEO meta if provided
@@ -178,6 +169,9 @@ class WordPressPublisher:
         """Update an existing post."""
         
         try:
+            # SKIP TAXONOMIES - causing 401 errors
+            print("  ⚠️  Skipping categories/tags due to REST API restrictions")
+            
             # Build update data (only include fields that are provided)
             update_data = {}
             
@@ -185,14 +179,6 @@ class WordPressPublisher:
                 update_data["title"] = title
             if content:
                 update_data["content"] = content
-            
-            if categories:
-                category_ids = self._get_or_create_categories(categories)
-                update_data["categories"] = category_ids
-            
-            if tags:
-                tag_ids = self._get_or_create_tags(tags)
-                update_data["tags"] = tag_ids
             
             # Add Yoast SEO meta
             if meta_title or meta_description:
@@ -301,78 +287,6 @@ class WordPressPublisher:
                 url=source_url,
                 error=str(e)
             )
-    
-    def _get_or_create_categories(self, category_names: List[str]) -> List[int]:
-        """Get existing category IDs or create new ones."""
-        category_ids = []
-        
-        for name in category_names:
-            try:
-                # Search for existing category
-                response = requests.get(
-                    f"{self.api_base}/categories",
-                    auth=self.auth,
-                    params={'search': name},
-                    timeout=30
-                )
-                response.raise_for_status()
-                categories = response.json()
-                
-                if categories:
-                    category_ids.append(categories[0]['id'])
-                else:
-                    # Create new category
-                    create_response = requests.post(
-                        f"{self.api_base}/categories",
-                        auth=self.auth,
-                        json={'name': name},
-                        timeout=30
-                    )
-                    create_response.raise_for_status()
-                    category_ids.append(create_response.json()['id'])
-                
-                self._rate_limit()
-                
-            except Exception as e:
-                print(f"Error with category {name}: {e}")
-        
-        return category_ids
-    
-    def _get_or_create_tags(self, tag_names: List[str]) -> List[int]:
-        """Get existing tag IDs or create new ones."""
-        tag_ids = []
-        
-        for name in tag_names:
-            try:
-                # Search for existing tag
-                response = requests.get(
-                    f"{self.api_base}/tags",
-                    auth=self.auth,
-                    params={'search': name},
-                    timeout=30
-                )
-                response.raise_for_status()
-                tags = response.json()
-                
-                if tags:
-                    tag_ids.append(tags[0]['id'])
-                else:
-                    # Create new tag
-                    create_response = requests.post(
-                        f"{self.api_base}/tags",
-                        auth=self.auth,
-                        json={'name': name},
-                        timeout=30
-                    )
-                    create_response.raise_for_status()
-                    tag_ids.append(create_response.json()['id'])
-                
-                self._rate_limit()
-                
-            except Exception as e:
-                print(f"Error with tag {name}: {e}")
-        
-        return tag_ids
     
     def get_internal_link_suggestions(
         self, 
