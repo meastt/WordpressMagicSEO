@@ -2,6 +2,7 @@
 sitemap_analyzer.py
 ==================
 Fetch and analyze WordPress sitemaps, compare with GSC data to find dead content.
+Handles WordPress sitemap indexes and individual sitemaps.
 """
 
 import requests
@@ -25,40 +26,92 @@ class SitemapAnalyzer:
     
     def __init__(self, site_url: str):
         self.site_url = site_url.rstrip("/")
-        self.sitemap_url = f"{self.site_url}/sitemap.xml"
+        self.sitemap_urls = [
+            f"{self.site_url}/sitemap.xml",
+            f"{self.site_url}/sitemap_index.xml",
+            f"{self.site_url}/wp-sitemap.xml",
+            f"{self.site_url}/post-sitemap.xml",
+        ]
     
     def fetch_sitemap(self) -> List[SitemapURL]:
-        """Fetch and parse the sitemap XML."""
-        try:
-            response = requests.get(self.sitemap_url, timeout=30)
-            response.raise_for_status()
-            
-            root = ET.fromstring(response.content)
-            
-            # Handle namespace
-            namespace = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
-            
-            urls = []
-            for url_element in root.findall('.//ns:url', namespace):
-                loc = url_element.find('ns:loc', namespace)
-                lastmod = url_element.find('ns:lastmod', namespace)
-                priority = url_element.find('ns:priority', namespace)
-                changefreq = url_element.find('ns:changefreq', namespace)
-                
-                if loc is not None:
-                    sitemap_url = SitemapURL(
-                        url=loc.text,
-                        lastmod=lastmod.text if lastmod is not None else "",
-                        priority=float(priority.text) if priority is not None else 0.5,
-                        changefreq=changefreq.text if changefreq is not None else ""
-                    )
-                    urls.append(sitemap_url)
-            
-            return urls
+        """Fetch and parse the sitemap XML, handling WordPress sitemap indexes."""
         
-        except Exception as e:
-            print(f"Error fetching sitemap: {e}")
+        # Try different sitemap URLs
+        root = None
+        for sitemap_url in self.sitemap_urls:
+            try:
+                print(f"  Trying sitemap: {sitemap_url}")
+                response = requests.get(sitemap_url, timeout=30)
+                if response.status_code == 200:
+                    root = ET.fromstring(response.content)
+                    print(f"  ✓ Found sitemap at: {sitemap_url}")
+                    break
+            except Exception as e:
+                continue
+        
+        if root is None:
+            print(f"  ⚠️  Could not fetch any sitemap")
             return []
+        
+        namespace = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        
+        # Check if this is a sitemap index (contains other sitemaps)
+        sitemap_elements = root.findall('.//ns:sitemap', namespace)
+        
+        if sitemap_elements:
+            # This is a sitemap index - fetch all child sitemaps
+            print(f"  Found sitemap index with {len(sitemap_elements)} child sitemaps")
+            return self._fetch_from_sitemap_index(root, namespace)
+        else:
+            # This is a regular sitemap
+            return self._parse_sitemap_urls(root, namespace)
+    
+    def _fetch_from_sitemap_index(self, root: ET.Element, namespace: dict) -> List[SitemapURL]:
+        """Fetch URLs from all sitemaps in a sitemap index."""
+        all_urls = []
+        
+        sitemap_elements = root.findall('.//ns:sitemap', namespace)
+        
+        for sitemap_elem in sitemap_elements:
+            loc = sitemap_elem.find('ns:loc', namespace)
+            if loc is not None:
+                sitemap_url = loc.text
+                print(f"  Fetching child sitemap: {sitemap_url}")
+                
+                try:
+                    response = requests.get(sitemap_url, timeout=30)
+                    response.raise_for_status()
+                    
+                    child_root = ET.fromstring(response.content)
+                    urls = self._parse_sitemap_urls(child_root, namespace)
+                    all_urls.extend(urls)
+                    print(f"    ✓ Got {len(urls)} URLs")
+                    
+                except Exception as e:
+                    print(f"    ⚠️  Failed to fetch {sitemap_url}: {e}")
+        
+        return all_urls
+    
+    def _parse_sitemap_urls(self, root: ET.Element, namespace: dict) -> List[SitemapURL]:
+        """Parse URLs from a sitemap XML."""
+        urls = []
+        
+        for url_element in root.findall('.//ns:url', namespace):
+            loc = url_element.find('ns:loc', namespace)
+            lastmod = url_element.find('ns:lastmod', namespace)
+            priority = url_element.find('ns:priority', namespace)
+            changefreq = url_element.find('ns:changefreq', namespace)
+            
+            if loc is not None:
+                sitemap_url = SitemapURL(
+                    url=loc.text,
+                    lastmod=lastmod.text if lastmod is not None else "",
+                    priority=float(priority.text) if priority is not None else 0.5,
+                    changefreq=changefreq.text if changefreq is not None else ""
+                )
+                urls.append(sitemap_url)
+        
+        return urls
     
     def compare_with_gsc(
         self, 

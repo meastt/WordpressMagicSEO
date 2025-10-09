@@ -153,11 +153,10 @@ class SEOAutomationPipeline:
             print(f"  ⚠️  Limited to first {max_actions} actions (for testing)")
         
         # Confirm before execution
-        if schedule_mode != "all_at_once" or len(self.action_plan) > 10:
-            response = input("\n  Continue with execution? (yes/no): ")
-            if response.lower() != 'yes':
-                print("\n  ⏸️  Execution cancelled by user")
-                return {'status': 'cancelled'}
+        if max_actions is None and len(self.action_plan) > 50:
+            print(f"\n  ⚠️  Warning: About to execute {len(self.action_plan)} actions!")
+            print("  This will modify your WordPress site.")
+            print("  Continuing automatically (set max_actions to limit)...")
         
         schedule_config = ScheduleConfig(
             mode=schedule_mode,
