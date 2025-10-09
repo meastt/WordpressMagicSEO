@@ -97,19 +97,40 @@ class GSCProcessor:
         self.df: pd.DataFrame | None = None
 
     def load(self) -> pd.DataFrame:
-        """Load the CSV into a DataFrame and normalise column names."""
-        df = pd.read_csv(self.csv_path)
-        # Normalise column names to lowercase and replace spaces with underscores
+        """Load the CSV or Excel file into a DataFrame and normalize column names."""
+        
+        # Check file extension
+        if self.csv_path.endswith('.xlsx') or self.csv_path.endswith('.xls'):
+            # Read Excel file - we want the "Pages" sheet
+            try:
+                df = pd.read_excel(self.csv_path, sheet_name='Pages')
+            except Exception as e:
+                print(f"Could not find 'Pages' sheet, trying first sheet: {e}")
+                df = pd.read_excel(self.csv_path, sheet_name=0)
+        else:
+            df = pd.read_csv(self.csv_path)
+        
+        # Normalize column names
         df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
-        # Ensure numeric columns are of correct type
+        
+        # GSC calls it "top_pages" - rename to "page"
+        if 'top_pages' in df.columns:
+            df.rename(columns={'top_pages': 'page'}, inplace=True)
+        
+        # Add a dummy "query" column since we only have pages
+        if 'query' not in df.columns and 'page' in df.columns:
+            df['query'] = ''  # Empty query column
+        
+        # Ensure numeric columns are correct type
         numeric_cols = ["clicks", "impressions", "ctr", "position"]
         for col in numeric_cols:
             if col in df.columns:
-                # Remove percentage signs from CTR if present
                 if col == "ctr":
-                    df[col] = df[col].astype(str).str.replace("%", "").astype(float) / 100
+                    if df[col].dtype == 'object':
+                        df[col] = df[col].astype(str).str.replace("%", "").astype(float) / 100
                 else:
                     df[col] = pd.to_numeric(df[col], errors="coerce")
+        
         self.df = df
         return df
 

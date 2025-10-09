@@ -56,9 +56,10 @@ def analyze_only():
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
     
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    file = request.files["file"]  # <-- ADD THIS LINE
+    
+    if file.filename == "" or not file.filename.endswith(('.csv', '.xlsx', '.xls')):
+        return jsonify({"error": "Please upload a CSV or Excel file"}), 400
     
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -163,8 +164,8 @@ def execute_full_pipeline():
         return jsonify({"error": "No file part"}), 400
     
     file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+    if file.filename == "" or not file.filename.endswith(('.csv', '.xlsx', '.xls')):
+        return jsonify({"error": "Please upload a CSV or Excel file"}), 400
     
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
