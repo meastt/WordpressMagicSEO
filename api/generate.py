@@ -7,6 +7,7 @@ Enhanced version with full sitemap analysis, strategic planning, and Claude-powe
 import os
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
+from datetime import datetime
 from seo_automation_main import SEOAutomationPipeline
 
 app = Flask(__name__)
