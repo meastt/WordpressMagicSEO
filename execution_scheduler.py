@@ -207,7 +207,7 @@ class ExecutionScheduler:
         
         print(f"  ✍️  Generating updated content...")
         
-        # Generate updated content
+        # Generate updated content with fresh title, content, and taxonomies
         self._check_rate_limit()
         article_data = self.content_generator.generate_article(
             topic_title=post['title']['rendered'],
@@ -217,10 +217,15 @@ class ExecutionScheduler:
             existing_content=post['content']['rendered'],
             internal_links=internal_links
         )
-        
-        # Update the post
+
+        print(f"  📝 New title: {article_data.get('title', 'N/A')[:60]}...")
+        print(f"  🏷️  Categories: {', '.join(article_data.get('categories', []))}")
+        print(f"  🔖 Tags: {', '.join(article_data.get('tags', [])[:5])}...")
+
+        # Update the post with new title, content, meta, and taxonomies
         return self.wp_publisher.update_post(
             post_id=post['id'],
+            title=article_data.get('title'),  # NEW: Update the title
             content=article_data['content'],
             meta_title=article_data.get('meta_title'),
             meta_description=article_data.get('meta_description'),

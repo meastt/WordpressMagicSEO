@@ -91,11 +91,15 @@ ARTICLE STRUCTURE:
 
 LENGTH: 1500-2500 words
 
-META DATA NEEDED:
-- SEO Title (under 60 chars, include primary keyword)
-- Meta Description: {meta_description}
-- 3-5 category tags
-- 5-8 relevant tags
+META DATA & TAXONOMIES:
+- Create a NEW, SEO-optimized title (under 60 chars, include primary keyword, must be different from old title)
+- Meta Title: Similar to title but optimized for SERP click-through
+- Meta Description: Compelling 150-155 char description that drives clicks
+- Categories: 3-5 relevant, broad categories (e.g., "Photography Tips", "Camera Reviews")
+- Tags: 5-8 specific, relevant tags (e.g., "astrophotography", "ZWO cameras", "planetary imaging")
+  * Tags should be highly specific to the content
+  * Include product names, techniques, or specific topics mentioned
+  * Help users discover related content
 
 OUTPUT FORMAT:
 Return ONLY valid JSON:
