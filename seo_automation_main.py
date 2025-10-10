@@ -240,7 +240,38 @@ class SEOAutomationPipeline:
         for i, action in enumerate(self.action_plan[:5], 1):
             print(f"    {i}. [{action.action_type.value.upper()}] "
                   f"Priority: {action.priority_score:.1f} - {action.reasoning[:60]}...")
-        
+
+        # If view_plan mode, return here without executing
+        if execution_mode == "view_plan":
+            print("\n" + "=" * 80)
+            print("✅ ANALYSIS COMPLETE (View Plan Mode)")
+            print("=" * 80)
+            print("Use execution_mode='execute_all' or 'execute_top_n' to run actions.")
+            print("=" * 80)
+
+            # Return the analysis results
+            return {
+                'site': self.site_url,
+                'summary': plan_summary,
+                'action_plan': [
+                    {
+                        'action_type': a.action_type.value,
+                        'url': a.url,
+                        'title': a.title,
+                        'priority_score': a.priority_score,
+                        'reasoning': a.reasoning,
+                        'estimated_impact': a.estimated_impact
+                    }
+                    for a in self.action_plan
+                ],
+                'stats': {
+                    'total_actions': len(self.action_plan),
+                    'pending': len(self.action_plan),
+                    'completed': 0
+                },
+                'niche_insights': self.niche_report
+            }
+
         # STEP 5: Initialize execution components
         print("\n⚙️  STEP 5: Initializing execution components...")
         
