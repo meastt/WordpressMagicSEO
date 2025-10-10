@@ -243,6 +243,7 @@ def execute_full_pipeline():
             "site": result.get('site'),
             "summary": result.get('summary', {}),
             "stats": result.get('stats', {}),
+            "completed_actions": result.get('completed_actions', []),
             "actions_executed": limit if limit else "all",
             "note": "Check WordPress site for updated content"
         }

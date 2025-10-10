@@ -10,19 +10,24 @@ import json
 
 # Hardcoded site configurations (fallback if SITES_CONFIG env var not set)
 HARDCODED_SITES = {
+    "griddleking.com": {
+        "url": "https://griddleking.com",
+        "wp_username": "meastt09",
+        "wp_app_password": "6MVb4gZoOJ2BcWQAe1XKVMN6",
+        "niche": "outdoor cooking"
+    },
     "phototipsguy.com": {
         "url": "https://phototipsguy.com",
-        "wp_username": "YOUR_USERNAME_HERE",
-        "wp_app_password": "YOUR_APP_PASSWORD_HERE",
-        "niche": "Photography tips, camera reviews, astrophotography"
+        "wp_username": "meastt09@gmail.com",
+        "wp_app_password": "BHxWFZhbJh8oziKEzHMA4Bpp",
+        "niche": "photography"
     },
-    # Add more sites here:
-    # "example.com": {
-    #     "url": "https://example.com",
-    #     "wp_username": "username",
-    #     "wp_app_password": "xxxx xxxx xxxx xxxx",
-    #     "niche": "Your niche description"
-    # },
+    "tigertribe.net": {
+        "url": "https://tigertribe.net",
+        "wp_username": "joeedwards",
+        "wp_app_password": "m32Gutsp3JW1FQRPSFcjKcve",
+        "niche": "wild cats"
+    }
 }
 
 
