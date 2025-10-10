@@ -110,37 +110,52 @@ class DataProcessor:
         
         # Check file extension
         if self.gsc_path.endswith('.xlsx') or self.gsc_path.endswith('.xls'):
-            # Read Excel file - get both Queries and Pages sheets
+            # Read Excel file
             try:
-                # Load Queries sheet
-                self.queries_df = pd.read_excel(self.gsc_path, sheet_name='Queries')
-                self.queries_df.columns = [col.strip().lower().replace(" ", "_") for col in self.queries_df.columns]
-                
-                # Rename "top_queries" to "query" if needed
-                if 'top_queries' in self.queries_df.columns:
-                    self.queries_df.rename(columns={'top_queries': 'query'}, inplace=True)
-                
-                # Load Pages sheet
-                self.pages_df = pd.read_excel(self.gsc_path, sheet_name='Pages')
-                self.pages_df.columns = [col.strip().lower().replace(" ", "_") for col in self.pages_df.columns]
-                
-                # Rename "top_pages" to "page" if needed
-                if 'top_pages' in self.pages_df.columns:
-                    self.pages_df.rename(columns={'top_pages': 'page'}, inplace=True)
-                
-                # Create combined dataframe by cross-joining top queries with pages
-                # This simulates query+page combinations
-                df = self._create_combined_data()
-                
-            except Exception as e:
-                print(f"Error reading Excel sheets: {e}")
-                # Fallback to first sheet only
+                # First, try to read the first sheet (most common GSC export format)
                 df = pd.read_excel(self.gsc_path, sheet_name=0)
                 df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
-                if 'top_pages' in df.columns:
-                    df.rename(columns={'top_pages': 'page'}, inplace=True)
+
+                # Handle various GSC export column name formats
+                column_renames = {
+                    'top_pages': 'page',
+                    'url': 'page',
+                    'landing_page': 'page',
+                    'top_queries': 'query',
+                    'search_query': 'query',
+                }
+
+                for old_name, new_name in column_renames.items():
+                    if old_name in df.columns and new_name not in df.columns:
+                        df.rename(columns={old_name: new_name}, inplace=True)
+
+                # Ensure we have required columns
+                if 'page' not in df.columns:
+                    df['page'] = ''
                 if 'query' not in df.columns:
                     df['query'] = ''
+
+                # Check if this is a multi-sheet export (has separate Queries and Pages sheets)
+                excel_file = pd.ExcelFile(self.gsc_path)
+                if 'Queries' in excel_file.sheet_names and 'Pages' in excel_file.sheet_names:
+                    # Load both sheets
+                    self.queries_df = pd.read_excel(self.gsc_path, sheet_name='Queries')
+                    self.queries_df.columns = [col.strip().lower().replace(" ", "_") for col in self.queries_df.columns]
+
+                    if 'top_queries' in self.queries_df.columns:
+                        self.queries_df.rename(columns={'top_queries': 'query'}, inplace=True)
+
+                    self.pages_df = pd.read_excel(self.gsc_path, sheet_name='Pages')
+                    self.pages_df.columns = [col.strip().lower().replace(" ", "_") for col in self.pages_df.columns]
+
+                    if 'top_pages' in self.pages_df.columns:
+                        self.pages_df.rename(columns={'top_pages': 'page'}, inplace=True)
+
+                    df = self._create_combined_data()
+
+            except Exception as e:
+                print(f"Error reading Excel file: {e}")
+                raise ValueError(f"Could not read Excel file. Please ensure it's a valid GSC export. Error: {str(e)}")
         else:
             # Read CSV file with encoding detection
             try:
@@ -193,17 +208,22 @@ class DataProcessor:
         if not self.ga4_path:
             return pd.DataFrame()
 
-        # Read CSV file with encoding detection
-        try:
-            # Try UTF-8 first (most common)
-            df = pd.read_csv(self.ga4_path, encoding='utf-8')
-        except UnicodeDecodeError:
-            # Fall back to latin-1 (handles most other encodings)
+        # Read Excel or CSV file
+        if self.ga4_path.endswith('.xlsx') or self.ga4_path.endswith('.xls'):
+            # Read Excel file (first sheet)
+            df = pd.read_excel(self.ga4_path, sheet_name=0)
+        else:
+            # Read CSV file with encoding detection
             try:
-                df = pd.read_csv(self.ga4_path, encoding='latin-1')
-            except Exception:
-                # Last resort: ignore errors
-                df = pd.read_csv(self.ga4_path, encoding='utf-8', errors='ignore')
+                # Try UTF-8 first (most common)
+                df = pd.read_csv(self.ga4_path, encoding='utf-8')
+            except UnicodeDecodeError:
+                # Fall back to latin-1 (handles most other encodings)
+                try:
+                    df = pd.read_csv(self.ga4_path, encoding='latin-1')
+                except Exception:
+                    # Last resort: ignore errors
+                    df = pd.read_csv(self.ga4_path, encoding='utf-8', errors='ignore')
         
         # Normalize column names
         df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
