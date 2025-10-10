@@ -849,22 +849,37 @@
             const form = document.getElementById('seoForm');
             const formData = new FormData(form);
 
-            // Add site_name: either from selector or extracted from manual URL
             const siteSelector = document.getElementById('site_selector');
+
+            // Check which mode we're in
             if (siteSelector.value) {
+                // Pre-configured site mode - just use site_name
                 formData.set('site_name', siteSelector.value);
+                // Remove manual fields (not needed)
+                formData.delete('site_url');
+                formData.delete('username');
+                formData.delete('application_password');
             } else {
-                // Extract site name from the manually entered URL
+                // Manual mode - must have all manual fields
                 const siteUrl = formData.get('site_url');
-                if (siteUrl) {
-                    const siteName = extractSiteName(siteUrl);
-                    formData.set('site_name', siteName);
-                    console.log(`Extracted site name: ${siteName} from URL: ${siteUrl}`);
+                const username = formData.get('username');
+                const appPassword = formData.get('application_password');
+
+                if (!siteUrl || !username || !appPassword) {
+                    alert('Please fill in all required fields (Site URL, Username, Password)');
+                    return;
                 }
+
+                // Extract site name from URL for state tracking
+                const siteName = extractSiteName(siteUrl);
+                formData.set('site_name', siteName);
+                console.log(`Extracted site name: ${siteName} from URL: ${siteUrl}`);
             }
 
-            if (!form.checkValidity()) {
-                form.reportValidity();
+            // Check GSC file
+            const gscFile = document.getElementById('gsc_file');
+            if (!gscFile.files.length) {
+                alert('Please upload a GSC data file');
                 return;
             }
 
