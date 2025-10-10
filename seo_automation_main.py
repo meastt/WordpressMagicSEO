@@ -326,7 +326,7 @@ class SEOAutomationPipeline:
         # STEP 7: Save results and summary
         print("\n📊 STEP 7: Saving results...")
         self.scheduler.save_results_to_csv(output_csv)
-        
+
         summary = self.scheduler.get_summary()
 
         print("\n" + "=" * 80)
@@ -336,7 +336,20 @@ class SEOAutomationPipeline:
         print(f"Successful: {summary['successful']}")
         print(f"Failed: {summary['failed']}")
         print(f"Success rate: {summary['success_rate']}")
-        print(f"\nResults saved to: {output_csv}")
+
+        # Show detailed results
+        if results:
+            print(f"\n📋 DETAILED RESULTS:")
+            for i, result in enumerate(results, 1):
+                status_icon = "✅" if result.success else "❌"
+                print(f"\n{i}. {status_icon} {result.action.upper()}")
+                print(f"   URL: {result.url}")
+                if result.post_id:
+                    print(f"   Post ID: {result.post_id}")
+                if result.error:
+                    print(f"   Error: {result.error}")
+
+        print(f"\n💾 Results saved to: {output_csv}")
         print("=" * 80)
 
         # Collect error details from failed actions
