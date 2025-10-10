@@ -339,6 +339,16 @@ class SEOAutomationPipeline:
         print(f"\nResults saved to: {output_csv}")
         print("=" * 80)
 
+        # Collect error details from failed actions
+        error_details = []
+        for result in results:
+            if not result.success and result.error:
+                error_details.append({
+                    'action': result.action,
+                    'url': result.url,
+                    'error': result.error
+                })
+
         # Return comprehensive results
         return {
             'site': self.site_url,
@@ -350,6 +360,7 @@ class SEOAutomationPipeline:
                 'failed': summary['failed'],
                 'success_rate': summary['success_rate']
             },
+            'errors': error_details,
             'niche_insights': self.niche_report
         }
 

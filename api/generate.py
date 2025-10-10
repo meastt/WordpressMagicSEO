@@ -232,8 +232,11 @@ def execute_full_pipeline():
             output_csv=output_csv,
             use_ai_planner=use_ai
         )
-        
-        return jsonify({
+
+        # Get error details from result
+        error_details = result.get('errors', [])
+
+        response_data = {
             "status": "execution_complete",
             "mode": "ai_powered" if use_ai else "rule_based",
             "execution_mode": execution_mode,
@@ -242,7 +245,14 @@ def execute_full_pipeline():
             "stats": result.get('stats', {}),
             "actions_executed": limit if limit else "all",
             "note": "Check WordPress site for updated content"
-        })
+        }
+
+        # Add errors if any
+        if error_details:
+            response_data['errors'] = error_details
+            response_data['note'] = f"{len(error_details)} action(s) failed - check errors for details"
+
+        return jsonify(response_data)
     
     except Exception as e:
         return jsonify({
