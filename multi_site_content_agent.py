@@ -142,8 +142,18 @@ class DataProcessor:
                 if 'query' not in df.columns:
                     df['query'] = ''
         else:
-            # Read CSV file
-            df = pd.read_csv(self.gsc_path)
+            # Read CSV file with encoding detection
+            try:
+                # Try UTF-8 first (most common)
+                df = pd.read_csv(self.gsc_path, encoding='utf-8')
+            except UnicodeDecodeError:
+                # Fall back to latin-1 (handles most other encodings)
+                try:
+                    df = pd.read_csv(self.gsc_path, encoding='latin-1')
+                except Exception:
+                    # Last resort: ignore errors
+                    df = pd.read_csv(self.gsc_path, encoding='utf-8', errors='ignore')
+
             df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
         
         # Ensure numeric columns are of correct type
@@ -182,9 +192,18 @@ class DataProcessor:
         """
         if not self.ga4_path:
             return pd.DataFrame()
-        
-        # Read CSV file
-        df = pd.read_csv(self.ga4_path)
+
+        # Read CSV file with encoding detection
+        try:
+            # Try UTF-8 first (most common)
+            df = pd.read_csv(self.ga4_path, encoding='utf-8')
+        except UnicodeDecodeError:
+            # Fall back to latin-1 (handles most other encodings)
+            try:
+                df = pd.read_csv(self.ga4_path, encoding='latin-1')
+            except Exception:
+                # Last resort: ignore errors
+                df = pd.read_csv(self.ga4_path, encoding='utf-8', errors='ignore')
         
         # Normalize column names
         df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
