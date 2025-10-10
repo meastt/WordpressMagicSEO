@@ -83,31 +83,17 @@ def analyze_only():
             ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
             ga4_file.save(ga4_path)
     
-    # Check for site_name (multi-site mode) or individual params (legacy mode)
+    # Get all parameters
+    site_url = request.form.get("site_url")
+    username = request.form.get("username")
+    application_password = request.form.get("application_password")
     site_name = request.form.get("site_name")
     anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
-    
+
     try:
-        # Initialize pipeline (multi-site or legacy mode)
-        if site_name:
-            # Multi-site mode
-            pipeline = SEOAutomationPipeline(
-                site_name=site_name,
-                gsc_csv_path=gsc_path,
-                ga4_csv_path=ga4_path,
-                anthropic_api_key=anthropic_key
-            )
-        else:
-            # Legacy mode - need individual params
-            site_url = request.form.get("site_url")
-            username = request.form.get("username")
-            application_password = request.form.get("application_password")
-            
-            if not all([site_url, username, application_password]):
-                return jsonify({
-                    "error": "Must provide either 'site_name' OR (site_url, username, application_password)"
-                }), 400
-            
+        # Check if manual config is provided (takes priority)
+        if site_url and username and application_password:
+            # Manual/legacy mode - use individual params
             pipeline = SEOAutomationPipeline(
                 gsc_csv_path=gsc_path,
                 ga4_csv_path=ga4_path,
@@ -116,6 +102,18 @@ def analyze_only():
                 wp_app_password=application_password,
                 anthropic_api_key=anthropic_key
             )
+        elif site_name:
+            # Multi-site mode - load from config
+            pipeline = SEOAutomationPipeline(
+                site_name=site_name,
+                gsc_csv_path=gsc_path,
+                ga4_csv_path=ga4_path,
+                anthropic_api_key=anthropic_key
+            )
+        else:
+            return jsonify({
+                "error": "Must provide either (site_url, username, application_password) OR site_name"
+            }), 400
         
         # Run analysis with AI planner
         use_ai = request.form.get("use_ai_planner", "true").lower() == "true"
@@ -172,7 +170,10 @@ def execute_full_pipeline():
             ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
             ga4_file.save(ga4_path)
     
-    # Get execution parameters
+    # Get all parameters
+    site_url = request.form.get("site_url")
+    username = request.form.get("username")
+    application_password = request.form.get("application_password")
     site_name = request.form.get("site_name")
     execution_mode = request.form.get("execution_mode", "execute_all")
     schedule_mode = request.form.get("schedule_mode", "all_at_once")
@@ -181,35 +182,19 @@ def execute_full_pipeline():
     limit = request.form.get("limit")
     if limit:
         limit = int(limit)
-    
+
     use_ai = request.form.get("use_ai_planner", "true").lower() == "true"
     anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
-    
+
     if not anthropic_key:
         return jsonify({
             "error": "ANTHROPIC_API_KEY required for AI-powered execution"
         }), 400
-    
+
     try:
-        # Initialize pipeline (multi-site or legacy mode)
-        if site_name:
-            pipeline = SEOAutomationPipeline(
-                site_name=site_name,
-                gsc_csv_path=gsc_path,
-                ga4_csv_path=ga4_path,
-                anthropic_api_key=anthropic_key
-            )
-        else:
-            # Legacy mode
-            site_url = request.form.get("site_url")
-            username = request.form.get("username")
-            application_password = request.form.get("application_password")
-            
-            if not all([site_url, username, application_password]):
-                return jsonify({
-                    "error": "Must provide either 'site_name' OR (site_url, username, application_password)"
-                }), 400
-            
+        # Check if manual config is provided (takes priority)
+        if site_url and username and application_password:
+            # Manual/legacy mode - use individual params
             pipeline = SEOAutomationPipeline(
                 gsc_csv_path=gsc_path,
                 ga4_csv_path=ga4_path,
@@ -218,6 +203,18 @@ def execute_full_pipeline():
                 wp_app_password=application_password,
                 anthropic_api_key=anthropic_key
             )
+        elif site_name:
+            # Multi-site mode - load from config
+            pipeline = SEOAutomationPipeline(
+                site_name=site_name,
+                gsc_csv_path=gsc_path,
+                ga4_csv_path=ga4_path,
+                anthropic_api_key=anthropic_key
+            )
+        else:
+            return jsonify({
+                "error": "Must provide either (site_url, username, application_password) OR site_name"
+            }), 400
         
         # Generate output filename
         output_csv = os.path.join(
