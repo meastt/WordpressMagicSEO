@@ -264,15 +264,15 @@ class SEOAutomationPipeline:
         else:
             print(f"  Batch size: {posts_per_batch} posts")
             print(f"  Delay between batches: {delay_hours} hours")
-        
-        if max_actions:
-            print(f"  ⚠️  Limited to first {max_actions} actions (for testing)")
-        
+
+        if limit:
+            print(f"  ⚠️  Limited to first {limit} actions (for testing)")
+
         # Confirm before execution
-        if max_actions is None and len(self.action_plan) > 50:
+        if limit is None and len(self.action_plan) > 50:
             print(f"\n  ⚠️  Warning: About to execute {len(self.action_plan)} actions!")
             print("  This will modify your WordPress site.")
-            print("  Continuing automatically (set max_actions to limit)...")
+            print("  Continuing automatically (set limit to restrict)...")
         
         schedule_config = ScheduleConfig(
             mode=schedule_mode,
@@ -290,7 +290,7 @@ class SEOAutomationPipeline:
         )
         
         # Execute!
-        results = self.scheduler.execute_plan(max_actions=max_actions)
+        results = self.scheduler.execute_plan(max_actions=limit)
         
         # STEP 7: Save results and summary
         print("\n📊 STEP 7: Saving results...")
