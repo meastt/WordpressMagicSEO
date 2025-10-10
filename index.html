@@ -741,6 +741,22 @@
                 `;
             }
             
+            // Completed Actions
+            if (data.completed_actions && data.completed_actions.length > 0) {
+                html += `
+                    <div style="background: #e8f5e9; border-left: 4px solid #388e3c; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+                        <h3 style="color: #388e3c; margin-bottom: 15px;">✅ Completed Actions</h3>
+                        ${data.completed_actions.map((action, idx) => `
+                            <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+                                <strong>${idx + 1}. ${action.action.toUpperCase()}</strong><br>
+                                <strong>URL:</strong> <a href="${action.url}" target="_blank" style="color: #1976d2;">${action.url}</a><br>
+                                ${action.post_id ? `<strong>Post ID:</strong> ${action.post_id}<br>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
             // Errors
             if (data.errors && data.errors.length > 0) {
                 html += `

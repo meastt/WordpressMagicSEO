@@ -25,20 +25,22 @@ class ScheduleConfig:
 
 class ExecutionScheduler:
     """Orchestrates the execution of the entire content plan."""
-    
+
     def __init__(
         self,
         action_plan: List[ActionItem],
         wp_publisher: WordPressPublisher,
         content_generator: ClaudeContentGenerator,
         schedule_config: ScheduleConfig,
-        planner=None
+        planner=None,
+        state_manager=None
     ):
         self.action_plan = action_plan
         self.wp_publisher = wp_publisher
         self.content_generator = content_generator
         self.config = schedule_config
         self.planner = planner
+        self.state_manager = state_manager
         self.results: List[PublishResult] = []
         self.api_call_count = 0
         self.api_call_reset_time = time.time() + 60
@@ -71,13 +73,18 @@ class ExecutionScheduler:
             result = self._execute_action(action)
             self.results.append(result)
 
-            # Mark as completed in state tracker
-            if result.success and self.planner:
-                self.planner.mark_completed(
-                    url=action.url or result.url,
-                    action_type=action.action_type.value,
-                    post_id=result.post_id
-                )
+            # Mark as completed in state tracker (use StateManager if available)
+            if result.success:
+                if self.state_manager and hasattr(action, 'id'):
+                    # Use StateManager for persistent tracking
+                    self.state_manager.mark_completed(action.id, result.post_id)
+                elif self.planner:
+                    # Fallback to legacy planner
+                    self.planner.mark_completed(
+                        url=action.url or result.url,
+                        action_type=action.action_type.value,
+                        post_id=result.post_id
+                    )
 
             # Detailed status update
             if result.success:
@@ -85,6 +92,8 @@ class ExecutionScheduler:
                 print(f"   URL: {result.url}")
                 if result.post_id:
                     print(f"   Post ID: {result.post_id}")
+                if hasattr(action, 'id'):
+                    print(f"   Action ID: {action.id} (marked complete)")
             else:
                 print(f"\n❌ FAILED - {action.action_type.value.upper()}")
                 print(f"   URL: {action.url}")
@@ -107,15 +116,20 @@ class ExecutionScheduler:
             for action in batch:
                 result = self._execute_action(action)
                 self.results.append(result)
-                
-                # Mark as completed in state tracker
-                if result.success and self.planner:
-                    self.planner.mark_completed(
-                        url=action.url or result.url,
-                        action_type=action.action_type.value,
-                        post_id=result.post_id
-                    )
-                
+
+                # Mark as completed in state tracker (use StateManager if available)
+                if result.success:
+                    if self.state_manager and hasattr(action, 'id'):
+                        # Use StateManager for persistent tracking
+                        self.state_manager.mark_completed(action.id, result.post_id)
+                    elif self.planner:
+                        # Fallback to legacy planner
+                        self.planner.mark_completed(
+                            url=action.url or result.url,
+                            action_type=action.action_type.value,
+                            post_id=result.post_id
+                        )
+
                 status = "✅" if result.success else "❌"
                 print(f"  {status} {action.action_type.value}: {result.url or action.url}")
             

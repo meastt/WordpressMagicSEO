@@ -217,14 +217,76 @@ class SEOAutomationPipeline:
         )
         print(f"  ✓ Found {len(self.duplicate_analysis)} potential duplicate groups")
 
-        # STEP 4: Create strategic plan
+        # STEP 4: Create strategic action plan
         print("\n🎯 STEP 4: Creating strategic action plan...")
-        self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
-        self.action_plan = self.strategic_planner.create_master_plan(
-            self.duplicate_analysis
-        )
-        
-        plan_summary = self.strategic_planner.get_plan_summary()
+
+        # Check if we have a saved plan with pending actions
+        pending_actions_data = self.state_mgr.get_pending_actions()
+
+        if pending_actions_data:
+            print(f"  ✓ Found existing plan with {len(pending_actions_data)} pending actions")
+            # Convert stored actions back to ActionItem objects
+            from strategic_planner import ActionItem, ActionType
+            self.action_plan = []
+            for action_data in pending_actions_data:
+                action = ActionItem(
+                    action_type=ActionType(action_data['action_type']),
+                    url=action_data.get('url', ''),
+                    title=action_data.get('title', ''),
+                    keywords=action_data.get('keywords', []),
+                    priority_score=action_data.get('priority_score', 0),
+                    reasoning=action_data.get('reasoning', ''),
+                    redirect_target=action_data.get('redirect_target', ''),
+                    estimated_impact=action_data.get('estimated_impact', '')
+                )
+                # Store the ID for later tracking
+                action.id = action_data['id']
+                self.action_plan.append(action)
+        else:
+            print(f"  ✓ Creating new action plan...")
+            self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
+            self.action_plan = self.strategic_planner.create_master_plan(
+                self.duplicate_analysis
+            )
+
+            # Save the plan to state manager with unique IDs
+            import hashlib
+            plan_data = []
+            for i, action in enumerate(self.action_plan):
+                # Create unique ID from action details
+                action_id = hashlib.md5(
+                    f"{action.action_type.value}_{action.url or action.title}_{i}".encode()
+                ).hexdigest()[:12]
+
+                action.id = action_id  # Store ID on the action object
+
+                plan_data.append({
+                    'id': action_id,
+                    'action_type': action.action_type.value,
+                    'url': action.url,
+                    'title': action.title,
+                    'keywords': action.keywords,
+                    'priority_score': action.priority_score,
+                    'reasoning': action.reasoning,
+                    'redirect_target': action.redirect_target,
+                    'estimated_impact': action.estimated_impact,
+                    'status': 'pending'
+                })
+
+            self.state_mgr.update_plan(plan_data)
+
+        # Get summary from current plan
+        plan_summary = {
+            'total_actions': len(self.action_plan),
+            'deletes': len([a for a in self.action_plan if a.action_type.value == 'delete']),
+            'redirects': len([a for a in self.action_plan if a.action_type.value == 'redirect_301']),
+            'updates': len([a for a in self.action_plan if a.action_type.value == 'update']),
+            'creates': len([a for a in self.action_plan if a.action_type.value == 'create']),
+            'high_priority': len([a for a in self.action_plan if a.priority_score >= 7]),
+            'medium_priority': len([a for a in self.action_plan if 3 <= a.priority_score < 7]),
+            'low_priority': len([a for a in self.action_plan if a.priority_score < 3]),
+        }
+
         print(f"  ✓ Total actions planned: {plan_summary['total_actions']}")
         print(f"    - Delete: {plan_summary['deletes']}")
         print(f"    - Redirect (301): {plan_summary['redirects']}")
@@ -234,11 +296,12 @@ class SEOAutomationPipeline:
         print(f"    - High: {plan_summary['high_priority']}")
         print(f"    - Medium: {plan_summary['medium_priority']}")
         print(f"    - Low: {plan_summary['low_priority']}")
-        
+
         # Show top 5 actions
         print("\n  📋 Top 5 Priority Actions:")
         for i, action in enumerate(self.action_plan[:5], 1):
-            print(f"    {i}. [{action.action_type.value.upper()}] "
+            status = "✅" if hasattr(action, 'id') else "📋"
+            print(f"    {i}. {status} [{action.action_type.value.upper()}] "
                   f"Priority: {action.priority_score:.1f} - {action.reasoning[:60]}...")
 
         # If view_plan mode, return here without executing
@@ -317,7 +380,8 @@ class SEOAutomationPipeline:
             self.wp_publisher,
             self.content_generator,
             schedule_config,
-            planner=self.strategic_planner
+            planner=self.strategic_planner,
+            state_manager=self.state_mgr
         )
         
         # Execute!
@@ -352,14 +416,22 @@ class SEOAutomationPipeline:
         print(f"\n💾 Results saved to: {output_csv}")
         print("=" * 80)
 
-        # Collect error details from failed actions
+        # Collect error details and success details from actions
         error_details = []
+        completed_actions = []
+
         for result in results:
             if not result.success and result.error:
                 error_details.append({
                     'action': result.action,
                     'url': result.url,
                     'error': result.error
+                })
+            elif result.success:
+                completed_actions.append({
+                    'action': result.action,
+                    'url': result.url,
+                    'post_id': result.post_id
                 })
 
         # Return comprehensive results
@@ -374,6 +446,7 @@ class SEOAutomationPipeline:
                 'success_rate': summary['success_rate']
             },
             'errors': error_details,
+            'completed_actions': completed_actions,
             'niche_insights': self.niche_report
         }
 
