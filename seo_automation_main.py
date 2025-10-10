@@ -146,8 +146,12 @@ class SEOAutomationPipeline:
         # STEP 6: Execute the plan
         print("\n🚀 STEP 6: Executing action plan...")
         print(f"  Schedule: {schedule_mode}")
-        print(f"  Batch size: {posts_per_batch} posts")
-        print(f"  Delay between batches: {delay_hours} hours")
+        
+        if schedule_mode == "all_at_once":
+            print(f"  ⚡ All actions processed continuously (no batching)")
+        else:
+            print(f"  Batch size: {posts_per_batch} posts")
+            print(f"  Delay between batches: {delay_hours} hours")
         
         if max_actions:
             print(f"  ⚠️  Limited to first {max_actions} actions (for testing)")
@@ -169,7 +173,8 @@ class SEOAutomationPipeline:
             self.action_plan,
             self.wp_publisher,
             self.content_generator,
-            schedule_config
+            schedule_config,
+            planner=self.strategic_planner
         )
         
         # Execute!

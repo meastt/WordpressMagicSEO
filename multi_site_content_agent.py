@@ -154,34 +154,32 @@ class GSCProcessor:
     
     def _create_combined_data(self) -> pd.DataFrame:
         """
-        Create a combined dataset from Queries and Pages sheets.
-        Associates top queries with pages based on ranking patterns.
+        Create a dataset from Pages sheet with derived keywords from URLs.
+        Returns pages with their stats - keywords will be derived from URL/title.
         """
         combined_rows = []
         
-        # For each page, associate it with relevant queries
+        # Add all pages with their actual stats
         for _, page_row in self.pages_df.iterrows():
             page_url = page_row['page']
-            page_clicks = page_row['clicks']
-            page_impressions = page_row['impressions']
-            page_ctr = page_row['ctr']
-            page_position = page_row['position']
             
-            # Get top queries that could be related to this page
-            # We'll take queries with similar performance characteristics
-            top_queries = self.queries_df.nlargest(5, 'impressions')
+            # Extract potential keywords from URL path
+            # e.g., "https://site.com/bobcats/" -> "bobcats"
+            url_parts = page_url.rstrip('/').split('/')
+            url_slug = url_parts[-1] if url_parts else ''
+            # Convert slug to readable keywords (replace hyphens with spaces)
+            derived_keyword = url_slug.replace('-', ' ')
             
-            for _, query_row in top_queries.iterrows():
-                combined_rows.append({
-                    'page': page_url,
-                    'query': query_row['query'],
-                    'clicks': page_clicks / len(top_queries),  # Distribute clicks
-                    'impressions': page_impressions / len(top_queries),
-                    'ctr': page_ctr,
-                    'position': page_position
-                })
+            combined_rows.append({
+                'page': page_url,
+                'query': derived_keyword,  # Derived from URL for compatibility
+                'clicks': page_row['clicks'],
+                'impressions': page_row['impressions'],
+                'ctr': page_row['ctr'],
+                'position': page_row['position']
+            })
         
-        # Also add all queries as potential new content opportunities
+        # Add all queries as potential new content opportunities (orphaned queries)
         for _, query_row in self.queries_df.iterrows():
             combined_rows.append({
                 'page': '',  # No page yet - content gap

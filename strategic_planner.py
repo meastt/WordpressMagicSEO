@@ -5,9 +5,12 @@ AI-powered strategic planner that analyzes all data and creates a prioritized ac
 """
 
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 from enum import Enum
+from datetime import datetime, timedelta
 import pandas as pd
+import json
+import os
 
 
 class ActionType(Enum):
@@ -38,13 +41,62 @@ class ActionItem:
 class StrategicPlanner:
     """Create prioritized action plans based on comprehensive data analysis."""
     
-    def __init__(self, gsc_df: pd.DataFrame, sitemap_data: Dict):
+    def __init__(
+        self, 
+        gsc_df: pd.DataFrame, 
+        sitemap_data: Dict,
+        state_file: str = "seo_automation_state.json",
+        skip_recent_days: int = 7
+    ):
         self.gsc_df = gsc_df
         self.sitemap_data = sitemap_data
         self.action_plan: List[ActionItem] = []
+        self.state_file = state_file
+        self.skip_recent_days = skip_recent_days
+        self.completed_actions = self._load_state()
+    
+    def _load_state(self) -> Dict:
+        """Load previously completed actions from state file."""
+        if os.path.exists(self.state_file):
+            try:
+                with open(self.state_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"  ⚠️  Could not load state file: {e}")
+                return {'completed': []}
+        return {'completed': []}
+    
+    def _is_recently_processed(self, url: str) -> bool:
+        """Check if URL was processed within skip_recent_days."""
+        for action in self.completed_actions.get('completed', []):
+            if action['url'] == url:
+                action_date = datetime.fromisoformat(action['timestamp'])
+                days_ago = (datetime.now() - action_date).days
+                if days_ago < self.skip_recent_days:
+                    return True
+        return False
+    
+    def mark_completed(self, url: str, action_type: str, post_id: Optional[int] = None):
+        """Mark an action as completed in the state file."""
+        if 'completed' not in self.completed_actions:
+            self.completed_actions['completed'] = []
+        
+        self.completed_actions['completed'].append({
+            'url': url,
+            'action': action_type,
+            'post_id': post_id,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Save to file
+        try:
+            with open(self.state_file, 'w') as f:
+                json.dump(self.completed_actions, f, indent=2)
+        except Exception as e:
+            print(f"  ⚠️  Could not save state file: {e}")
     
     def analyze_dead_content(self, duplicate_analysis: List[Dict]) -> List[ActionItem]:
-        """Decide what to do with dead content (no GSC data)."""
+        """Decide what to do with dead content (no GSC data) - UPDATE with fresh content."""
         actions = []
         
         dead_urls = self.sitemap_data.get('dead_content', [])
@@ -57,6 +109,14 @@ class StrategicPlanner:
                 duplicate_map[loser['url']] = winner_url
         
         for url in dead_urls:
+            # Skip taxonomy pages (categories, tags, archives)
+            if any(x in url for x in ['/category/', '/tag/', '/page/', '/author/', '/date/']):
+                continue
+            
+            # Skip if recently processed
+            if self._is_recently_processed(url):
+                continue
+            
             if url in duplicate_map:
                 # This dead URL has a better performing duplicate - redirect it
                 action = ActionItem(
@@ -68,13 +128,18 @@ class StrategicPlanner:
                     estimated_impact="Medium"
                 )
             else:
-                # No duplicate - just delete
+                # No duplicate - UPDATE with fresh content to try to get it ranking
+                # Extract keywords from URL slug
+                url_slug = url.rstrip('/').split('/')[-1]
+                keywords = [url_slug.replace('-', ' ')]
+                
                 action = ActionItem(
-                    action_type=ActionType.DELETE,
+                    action_type=ActionType.UPDATE,
                     url=url,
-                    priority_score=1.0,  # Low priority
-                    reasoning="No traffic and no duplicate content to redirect to",
-                    estimated_impact="Low"
+                    keywords=keywords,
+                    priority_score=2.0,  # Low-medium priority
+                    reasoning="Zero impressions - refresh content to improve ranking potential",
+                    estimated_impact="Medium"
                 )
             
             actions.append(action)
@@ -102,9 +167,27 @@ class StrategicPlanner:
         for _, row in candidates.iterrows():
             url = row['page']
             
-            # Get top keywords for this URL
-            url_queries = self.gsc_df[self.gsc_df['page'] == url].nlargest(5, 'impressions')
-            keywords = url_queries['query'].tolist()
+            # Skip if no URL
+            if not url or url.strip() == '':
+                continue
+            
+            # Skip taxonomy pages (categories, tags, archives)
+            if any(x in url for x in ['/category/', '/tag/', '/page/', '/author/', '/date/']):
+                continue
+            
+            # Skip if recently processed
+            if self._is_recently_processed(url):
+                continue
+            
+            # Get keywords for this URL from GSC data
+            # Note: With Excel exports, we may only have URL-derived keywords
+            url_queries = self.gsc_df[self.gsc_df['page'] == url]
+            keywords = url_queries['query'].unique().tolist()
+            
+            # If no keywords found, derive from URL
+            if not keywords or keywords == ['']:
+                url_slug = url.rstrip('/').split('/')[-1]
+                keywords = [url_slug.replace('-', ' ')]
             
             # Calculate priority score based on potential impact
             # High impressions = high potential impact
@@ -129,13 +212,21 @@ class StrategicPlanner:
         """Find high-opportunity keywords we're not ranking for."""
         actions = []
         
+        # Get all existing pages from GSC data (pages that have any traffic)
+        existing_pages = set(self.gsc_df['page'].unique())
+        
+        # Also get all performing pages from sitemap data
+        performing_urls = set(self.sitemap_data.get('performing_content', []))
+        all_existing_pages = existing_pages | performing_urls
+        
         # Get queries with high impressions where we rank poorly (position > 20)
         poor_ranking = self.gsc_df[self.gsc_df['position'] > 20].copy()
         
         # Group by query to find opportunities
         query_stats = poor_ranking.groupby('query').agg({
             'impressions': 'sum',
-            'position': 'mean'
+            'position': 'mean',
+            'page': 'first'  # Get one example page for this query
         }).reset_index()
         
         # Sort by impressions (highest opportunity first)
@@ -143,6 +234,12 @@ class StrategicPlanner:
         
         for _, row in opportunities.iterrows():
             query = row['query']
+            example_page = row['page']
+            
+            # Skip if this query already has a page (even if ranking poorly)
+            # Those should be handled by UPDATE actions, not CREATE
+            if example_page and example_page in all_existing_pages:
+                continue
             
             # Calculate priority based on search volume
             priority = (row['impressions'] / 100) * (row['position'] / 10)
@@ -170,7 +267,39 @@ class StrategicPlanner:
         update_actions = self.analyze_update_opportunities()
         create_actions = self.identify_content_gaps()
         
-        all_actions = delete_actions + update_actions + create_actions
+        # Remove CREATE actions that duplicate existing content
+        # Get ALL performing content URLs (not just ones being updated)
+        performing_urls = self.sitemap_data.get('performing_content', [])
+        existing_slugs = set()
+        for url in performing_urls:
+            if url:
+                slug = url.rstrip('/').split('/')[-1]
+                slug_norm = slug.lower().replace('-', ' ')
+                existing_slugs.add(slug_norm)
+        
+        filtered_creates = []
+        for action in create_actions:
+            # Normalize the create title
+            title_norm = action.title.lower()
+            # Remove common suffixes
+            for suffix in [': what you need to know', ': complete guide', ' guide', ' review']:
+                title_norm = title_norm.replace(suffix, '')
+            title_norm = title_norm.strip().replace('-', ' ')
+            
+            # Check if this title matches any existing content slug
+            is_duplicate = False
+            for existing_slug in existing_slugs:
+                # Check if either contains the other (allows for variations)
+                # Only match if substantial overlap (>4 chars to avoid false positives)
+                if len(title_norm) > 4 and len(existing_slug) > 4:
+                    if title_norm in existing_slug or existing_slug in title_norm:
+                        is_duplicate = True
+                        break
+            
+            if not is_duplicate:
+                filtered_creates.append(action)
+        
+        all_actions = delete_actions + update_actions + filtered_creates
         
         # Sort by priority score (highest first)
         all_actions.sort(key=lambda x: x.priority_score, reverse=True)
