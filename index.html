@@ -655,34 +655,67 @@
         
         function showResults(data) {
             const resultsDiv = document.getElementById('results');
-            
+
+            const isExecution = data.status === 'execution_complete';
+            const headerText = isExecution
+                ? `${data.mode === 'ai_powered' ? 'AI-Powered' : 'Rule-Based'} Execution Complete`
+                : `${data.mode === 'ai_powered' ? 'AI-Powered' : 'Rule-Based'} Analysis Complete`;
+
             let html = `
                 <div class="results-header">
-                    <h2>✨ ${data.mode === 'ai_powered' ? 'AI-Powered' : 'Rule-Based'} Analysis Complete</h2>
+                    <h2>✨ ${headerText}</h2>
                     <p>Site: ${data.site}</p>
                 </div>
                 <div class="results-body">
             `;
-            
-            // Stats
+
+            // Execution Stats (if execution mode)
+            if (isExecution && data.stats) {
+                html += `
+                    <div style="background: ${data.stats.failed > 0 ? '#fff3e0' : '#e8f5e9'}; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid ${data.stats.failed > 0 ? '#ef6c00' : '#388e3c'};">
+                        <h3 style="color: ${data.stats.failed > 0 ? '#ef6c00' : '#388e3c'}; margin-bottom: 10px;">
+                            ${data.stats.failed > 0 ? '⚠️' : '✅'} Execution Results
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; font-size: 14px;">
+                            <div>
+                                <strong>Total:</strong> ${data.stats.total_actions}
+                            </div>
+                            <div style="color: #388e3c;">
+                                <strong>✓ Successful:</strong> ${data.stats.successful}
+                            </div>
+                            <div style="color: #d32f2f;">
+                                <strong>✗ Failed:</strong> ${data.stats.failed}
+                            </div>
+                            <div>
+                                <strong>Success Rate:</strong> ${data.stats.success_rate}
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 6px;">
+                            <strong>${data.note}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Plan Summary Stats (always show if available)
             if (data.summary) {
                 html += `
                     <div class="stat-grid">
                         <div class="stat-card">
-                            <div class="stat-label">Total Actions</div>
+                            <div class="stat-label">Total Actions Planned</div>
                             <div class="stat-value">${data.summary.total_actions || 0}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Pending</div>
-                            <div class="stat-value">${data.stats?.pending || 0}</div>
+                            <div class="stat-label">Updates</div>
+                            <div class="stat-value">${data.summary.updates || 0}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Completed</div>
-                            <div class="stat-value">${data.stats?.completed || 0}</div>
+                            <div class="stat-label">New Posts</div>
+                            <div class="stat-value">${data.summary.creates || 0}</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Has GA4 Data</div>
-                            <div class="stat-value">${data.has_ga4 ? '✓' : '✗'}</div>
+                            <div class="stat-label">High Priority</div>
+                            <div class="stat-value">${data.summary.high_priority || 0}</div>
                         </div>
                     </div>
                 `;
