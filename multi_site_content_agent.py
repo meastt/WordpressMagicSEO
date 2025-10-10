@@ -211,7 +211,29 @@ class DataProcessor:
         # Read Excel or CSV file
         if self.ga4_path.endswith('.xlsx') or self.ga4_path.endswith('.xls'):
             # Read Excel file (first sheet)
-            df = pd.read_excel(self.ga4_path, sheet_name=0)
+            # GA4 exports often have metadata rows at the top - try to detect them
+            try:
+                # Try reading with default (no skip)
+                df_test = pd.read_excel(self.ga4_path, sheet_name=0, nrows=20, header=None)
+
+                # Look for the row that contains actual column headers
+                # GA4 typically has headers like "Page", "Views", "Sessions", etc.
+                header_row = None
+                for idx, row in df_test.iterrows():
+                    row_str = ' '.join([str(x).lower() for x in row if pd.notna(x)])
+                    # Check if this looks like a header row
+                    if any(keyword in row_str for keyword in ['page', 'view', 'session', 'user', 'bounce']):
+                        header_row = idx
+                        break
+
+                if header_row is not None and header_row > 0:
+                    print(f"GA4: Detected header row at line {header_row + 1}, skipping {header_row} rows")
+                    df = pd.read_excel(self.ga4_path, sheet_name=0, skiprows=header_row)
+                else:
+                    df = pd.read_excel(self.ga4_path, sheet_name=0)
+            except Exception as e:
+                print(f"GA4 read error: {e}, trying default read")
+                df = pd.read_excel(self.ga4_path, sheet_name=0)
         else:
             # Read CSV file with encoding detection
             try:
@@ -237,11 +259,15 @@ class DataProcessor:
             'page_path': 'page',
             'page_location': 'page',
             'page_path_and_screen_class': 'page',
+            'page_title_and_screen_class': 'page',  # GA4 export format
             'url': 'page',
+            'views': 'sessions',  # GA4 uses "Views" instead of "Sessions"
             'average_engagement_time': 'avg_engagement_time',
             'average_engagement_time_per_session': 'avg_engagement_time',
             'engaged_sessions_per_user': 'engagement_rate',
             'engagement_rate': 'engagement_rate',
+            'active_users': 'users',  # Keep active users as a metric
+            'event_count': 'events',  # Keep event count
         }
 
         for old_col, new_col in column_mapping.items():
@@ -250,11 +276,18 @@ class DataProcessor:
 
         # If still no 'page' column, try to find any URL-like column
         if 'page' not in df.columns:
-            # Look for any column that might contain URLs
-            url_candidates = [col for col in df.columns if any(x in col for x in ['page', 'url', 'path', 'landing'])]
+            # Look for any column that might contain URLs or page identifiers
+            url_candidates = [col for col in df.columns if any(x in col for x in ['page', 'url', 'path', 'landing', 'title'])]
             if url_candidates:
-                print(f"Using column '{url_candidates[0]}' as 'page'")
+                print(f"⚠️  Using column '{url_candidates[0]}' as 'page' identifier")
                 df.rename(columns={url_candidates[0]: 'page'}, inplace=True)
+                # Check if this column contains page titles vs URLs
+                sample = df['page'].iloc[0] if len(df) > 0 else ''
+                if sample and not sample.startswith('http') and '/' not in str(sample):
+                    print(f"⚠️  Warning: GA4 'page' column contains page titles, not URLs.")
+                    print(f"   This data won't merge with GSC data. For better results,")
+                    print(f"   export GA4 with 'Page path' or 'Full page URL' dimension.")
+                    print(f"   Continuing with GA4 data as supplementary metrics only...")
             else:
                 # GA4 data is optional, so return empty instead of error
                 print(f"Warning: GA4 file has no recognizable page/URL column. Columns: {list(df.columns)}")
