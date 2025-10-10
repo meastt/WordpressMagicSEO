@@ -227,23 +227,39 @@ class DataProcessor:
         
         # Normalize column names
         df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
-        
-        # Map common variations to standard names
+
+        # Debug: print available columns
+        print(f"GA4 columns found: {list(df.columns)}")
+
+        # Map common variations to standard names (including more variations)
         column_mapping = {
             'landing_page': 'page',
             'page_path': 'page',
+            'page_location': 'page',
+            'page_path_and_screen_class': 'page',
+            'url': 'page',
             'average_engagement_time': 'avg_engagement_time',
             'average_engagement_time_per_session': 'avg_engagement_time',
             'engaged_sessions_per_user': 'engagement_rate',
+            'engagement_rate': 'engagement_rate',
         }
-        
+
         for old_col, new_col in column_mapping.items():
             if old_col in df.columns and new_col not in df.columns:
                 df.rename(columns={old_col: new_col}, inplace=True)
-        
-        # Ensure we have a 'page' column
+
+        # If still no 'page' column, try to find any URL-like column
         if 'page' not in df.columns:
-            raise ValueError("GA4 data must have a 'page', 'landing_page', or 'page_path' column")
+            # Look for any column that might contain URLs
+            url_candidates = [col for col in df.columns if any(x in col for x in ['page', 'url', 'path', 'landing'])]
+            if url_candidates:
+                print(f"Using column '{url_candidates[0]}' as 'page'")
+                df.rename(columns={url_candidates[0]: 'page'}, inplace=True)
+            else:
+                # GA4 data is optional, so return empty instead of error
+                print(f"Warning: GA4 file has no recognizable page/URL column. Columns: {list(df.columns)}")
+                print("Skipping GA4 data - only GSC data will be used.")
+                return pd.DataFrame()
         
         # Normalize numeric columns
         numeric_cols = ['sessions', 'engagement_rate', 'avg_engagement_time', 'bounce_rate', 'conversions']
