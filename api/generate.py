@@ -21,7 +21,8 @@ UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-@app.route("/", methods=["GET"])
+@app.route("/api", methods=["GET"])
+@app.route("/api/", methods=["GET"])
 def home():
     """API information endpoint."""
     return jsonify({
@@ -52,7 +53,7 @@ def home():
     })
 
 
-@app.route("/analyze", methods=["POST"])
+@app.route("/api/analyze", methods=["POST"])
 def analyze_only():
     """
     Enhanced: Analyze GSC + GA4 data with AI-powered niche intelligence.
@@ -143,7 +144,7 @@ def analyze_only():
         }), 500
 
 
-@app.route("/execute", methods=["POST"])
+@app.route("/api/execute", methods=["POST"])
 def execute_full_pipeline():
     """
     Enhanced: Execute AI-powered SEO automation with flexible execution modes.
@@ -253,7 +254,7 @@ def execute_full_pipeline():
         }), 500
 
 
-@app.route("/sites", methods=["GET"])
+@app.route("/api/sites", methods=["GET"])
 def list_sites_endpoint():
     """
     List all configured sites with their current status.
@@ -288,7 +289,7 @@ def list_sites_endpoint():
         }), 500
 
 
-@app.route("/niche/<site_name>", methods=["GET"])
+@app.route("/api/niche/<site_name>", methods=["GET"])
 def get_niche_research(site_name):
     """
     Get cached niche research for a site.
@@ -322,7 +323,7 @@ def get_niche_research(site_name):
         }), 500
 
 
-@app.route("/plan/<site_name>", methods=["GET"])
+@app.route("/api/plan/<site_name>", methods=["GET"])
 def get_action_plan(site_name):
     """
     Get current action plan for a site.
@@ -353,7 +354,7 @@ def get_action_plan(site_name):
         }), 500
 
 
-@app.route("/health", methods=["GET"])
+@app.route("/api/health", methods=["GET"])
 def health_check():
     """Health check endpoint for Vercel."""
     return jsonify({

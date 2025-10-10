@@ -5,8 +5,12 @@
   ],
   "routes": [
     { "src": "/", "dest": "api/index.py" },
-    { "src": "/analyze", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/execute", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/health", "dest": "api/generate.py" }
+    { "src": "/api/sites", "dest": "api/generate.py" },
+    { "src": "/api/analyze", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/execute", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/niche/(.*)", "dest": "api/generate.py" },
+    { "src": "/api/plan/(.*)", "dest": "api/generate.py" },
+    { "src": "/api/health", "dest": "api/generate.py" },
+    { "src": "/api/(.*)", "dest": "api/generate.py" }
   ]
 }
