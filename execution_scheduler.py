@@ -31,12 +31,14 @@ class ExecutionScheduler:
         action_plan: List[ActionItem],
         wp_publisher: WordPressPublisher,
         content_generator: ClaudeContentGenerator,
-        schedule_config: ScheduleConfig
+        schedule_config: ScheduleConfig,
+        planner=None
     ):
         self.action_plan = action_plan
         self.wp_publisher = wp_publisher
         self.content_generator = content_generator
         self.config = schedule_config
+        self.planner = planner
         self.results: List[PublishResult] = []
         self.api_call_count = 0
         self.api_call_reset_time = time.time() + 60
@@ -50,11 +52,13 @@ class ExecutionScheduler:
         
         print(f"\n🚀 Starting execution of {len(actions_to_execute)} actions")
         print(f"Schedule mode: {self.config.mode}")
-        print(f"Posts per batch: {self.config.posts_per_batch}\n")
         
         if self.config.mode == "all_at_once":
+            print("⚡ All actions will be processed continuously (no batching)\n")
             return self._execute_all_at_once(actions_to_execute)
         else:
+            print(f"Posts per batch: {self.config.posts_per_batch}")
+            print(f"Delay between batches: {self.config.delay_between_batches/3600:.1f} hours\n")
             return self._execute_batched(actions_to_execute)
     
     def _execute_all_at_once(self, actions: List[ActionItem]) -> List[PublishResult]:
@@ -63,6 +67,14 @@ class ExecutionScheduler:
             print(f"\n[{i}/{len(actions)}] Processing: {action.action_type.value}")
             result = self._execute_action(action)
             self.results.append(result)
+            
+            # Mark as completed in state tracker
+            if result.success and self.planner:
+                self.planner.mark_completed(
+                    url=action.url or result.url,
+                    action_type=action.action_type.value,
+                    post_id=result.post_id
+                )
             
             # Status update
             status = "✅ SUCCESS" if result.success else "❌ FAILED"
@@ -85,6 +97,14 @@ class ExecutionScheduler:
             for action in batch:
                 result = self._execute_action(action)
                 self.results.append(result)
+                
+                # Mark as completed in state tracker
+                if result.success and self.planner:
+                    self.planner.mark_completed(
+                        url=action.url or result.url,
+                        action_type=action.action_type.value,
+                        post_id=result.post_id
+                    )
                 
                 status = "✅" if result.success else "❌"
                 print(f"  {status} {action.action_type.value}: {result.url or action.url}")

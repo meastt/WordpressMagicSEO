@@ -44,7 +44,7 @@ into a user interface (e.g. a Flask/Streamlit app or a WordPress plugin).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import pandas as pd
 import requests
 import datetime
@@ -89,24 +89,31 @@ class Topic:
         self.meta_description = summary
 
 
-class GSCProcessor:
-    """Utility for parsing and analysing Google Search Console CSV/Excel exports."""
+class DataProcessor:
+    """
+    Unified data processor for Google Search Console (GSC) and Google Analytics 4 (GA4).
+    
+    Handles loading, cleaning, and merging data from both sources to provide
+    comprehensive insights combining search performance (GSC) with user behavior (GA4).
+    """
 
-    def __init__(self, csv_path: str) -> None:
-        self.csv_path = csv_path
+    def __init__(self, gsc_path: str, ga4_path: Optional[str] = None) -> None:
+        self.gsc_path = gsc_path
+        self.ga4_path = ga4_path
         self.df: pd.DataFrame | None = None
         self.pages_df: pd.DataFrame | None = None
         self.queries_df: pd.DataFrame | None = None
+        self.ga4_df: pd.DataFrame | None = None
 
-    def load(self) -> pd.DataFrame:
-        """Load the CSV or Excel file and combine Queries + Pages data."""
+    def load_gsc(self) -> pd.DataFrame:
+        """Load Google Search Console CSV or Excel file and combine Queries + Pages data."""
         
         # Check file extension
-        if self.csv_path.endswith('.xlsx') or self.csv_path.endswith('.xls'):
+        if self.gsc_path.endswith('.xlsx') or self.gsc_path.endswith('.xls'):
             # Read Excel file - get both Queries and Pages sheets
             try:
                 # Load Queries sheet
-                self.queries_df = pd.read_excel(self.csv_path, sheet_name='Queries')
+                self.queries_df = pd.read_excel(self.gsc_path, sheet_name='Queries')
                 self.queries_df.columns = [col.strip().lower().replace(" ", "_") for col in self.queries_df.columns]
                 
                 # Rename "top_queries" to "query" if needed
@@ -114,7 +121,7 @@ class GSCProcessor:
                     self.queries_df.rename(columns={'top_queries': 'query'}, inplace=True)
                 
                 # Load Pages sheet
-                self.pages_df = pd.read_excel(self.csv_path, sheet_name='Pages')
+                self.pages_df = pd.read_excel(self.gsc_path, sheet_name='Pages')
                 self.pages_df.columns = [col.strip().lower().replace(" ", "_") for col in self.pages_df.columns]
                 
                 # Rename "top_pages" to "page" if needed
@@ -128,7 +135,7 @@ class GSCProcessor:
             except Exception as e:
                 print(f"Error reading Excel sheets: {e}")
                 # Fallback to first sheet only
-                df = pd.read_excel(self.csv_path, sheet_name=0)
+                df = pd.read_excel(self.gsc_path, sheet_name=0)
                 df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
                 if 'top_pages' in df.columns:
                     df.rename(columns={'top_pages': 'page'}, inplace=True)
@@ -136,7 +143,7 @@ class GSCProcessor:
                     df['query'] = ''
         else:
             # Read CSV file
-            df = pd.read_csv(self.csv_path)
+            df = pd.read_csv(self.gsc_path)
             df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
         
         # Ensure numeric columns are of correct type
@@ -152,36 +159,162 @@ class GSCProcessor:
         self.df = df
         return df
     
+    def load_ga4(self) -> pd.DataFrame:
+        """
+        Load Google Analytics 4 CSV export.
+        
+        Expected columns (flexible, will normalize):
+        - page / landing_page / page_path
+        - sessions
+        - engagement_rate
+        - avg_engagement_time / average_engagement_time
+        - bounce_rate
+        - conversions (optional)
+        
+        Returns:
+            pd.DataFrame: Normalized GA4 data with columns:
+                - page (URL)
+                - sessions
+                - engagement_rate (decimal)
+                - avg_engagement_time (seconds)
+                - bounce_rate (decimal)
+                - conversions (if available)
+        """
+        if not self.ga4_path:
+            return pd.DataFrame()
+        
+        # Read CSV file
+        df = pd.read_csv(self.ga4_path)
+        
+        # Normalize column names
+        df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
+        
+        # Map common variations to standard names
+        column_mapping = {
+            'landing_page': 'page',
+            'page_path': 'page',
+            'average_engagement_time': 'avg_engagement_time',
+            'average_engagement_time_per_session': 'avg_engagement_time',
+            'engaged_sessions_per_user': 'engagement_rate',
+        }
+        
+        for old_col, new_col in column_mapping.items():
+            if old_col in df.columns and new_col not in df.columns:
+                df.rename(columns={old_col: new_col}, inplace=True)
+        
+        # Ensure we have a 'page' column
+        if 'page' not in df.columns:
+            raise ValueError("GA4 data must have a 'page', 'landing_page', or 'page_path' column")
+        
+        # Normalize numeric columns
+        numeric_cols = ['sessions', 'engagement_rate', 'avg_engagement_time', 'bounce_rate', 'conversions']
+        
+        for col in numeric_cols:
+            if col in df.columns:
+                # Remove % signs and convert to decimal
+                if df[col].dtype == 'object':
+                    df[col] = df[col].astype(str).str.replace('%', '').str.replace(',', '')
+                
+                # Convert to numeric
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                
+                # Convert percentages to decimals if needed (rates > 1 are likely percentages)
+                if col in ['engagement_rate', 'bounce_rate']:
+                    if df[col].max() > 1:
+                        df[col] = df[col] / 100
+        
+        self.ga4_df = df
+        return df
+    
+    def merge_data(self) -> pd.DataFrame:
+        """
+        Merge GSC and GA4 data on the 'page' column.
+        
+        Returns a DataFrame with both search performance (GSC) and user behavior (GA4) metrics.
+        If GA4 data is not available, returns GSC data only.
+        
+        Returns:
+            pd.DataFrame: Merged data with columns from both sources
+        """
+        # Load GSC data
+        gsc_df = self.load_gsc()
+        
+        # Load GA4 data if available
+        ga4_df = self.load_ga4()
+        
+        # If no GA4 data, return GSC only
+        if ga4_df.empty:
+            return gsc_df
+        
+        # Normalize URLs for matching (remove trailing slashes, query params)
+        def normalize_url(url):
+            if pd.isna(url) or url == '':
+                return url
+            # Remove query parameters
+            url = str(url).split('?')[0]
+            # Remove trailing slash
+            url = url.rstrip('/')
+            return url
+        
+        gsc_df['page_normalized'] = gsc_df['page'].apply(normalize_url)
+        ga4_df['page_normalized'] = ga4_df['page'].apply(normalize_url)
+        
+        # Merge on normalized page URLs
+        merged_df = pd.merge(
+            gsc_df,
+            ga4_df,
+            on='page_normalized',
+            how='left',
+            suffixes=('', '_ga4')
+        )
+        
+        # Use GSC page URL as the primary one
+        if 'page_ga4' in merged_df.columns:
+            merged_df.drop(columns=['page_ga4'], inplace=True)
+        
+        # Drop the normalized column used for matching
+        merged_df.drop(columns=['page_normalized'], inplace=True)
+        
+        # Store merged data
+        self.df = merged_df
+        
+        return merged_df
+    
+    def load(self) -> pd.DataFrame:
+        """
+        Convenience method for backward compatibility.
+        Loads and merges GSC + GA4 data if available.
+        """
+        return self.merge_data()
+    
     def _create_combined_data(self) -> pd.DataFrame:
         """
-        Create a combined dataset from Queries and Pages sheets.
-        Associates top queries with pages based on ranking patterns.
+        Create a dataset from Pages sheet with derived keywords from URLs.
+        Returns pages with their stats - keywords will be derived from URL/title.
         """
         combined_rows = []
         
-        # For each page, associate it with relevant queries
+        # Add all pages with their actual stats
         for _, page_row in self.pages_df.iterrows():
             page_url = page_row['page']
-            page_clicks = page_row['clicks']
-            page_impressions = page_row['impressions']
-            page_ctr = page_row['ctr']
-            page_position = page_row['position']
             
-            # Get top queries that could be related to this page
-            # We'll take queries with similar performance characteristics
-            top_queries = self.queries_df.nlargest(5, 'impressions')
+            # Extract potential keywords from URL path
+            # e.g., "https://site.com/bobcats/" -> "bobcats"
+            url_parts = page_url.rstrip('/').split('/')
+            url_slug = url_parts[-1] if url_parts else ''
+            # Convert slug to readable keywords (replace hyphens with spaces)
+            derived_keyword = url_slug.replace('-', ' ')
             
-            for _, query_row in top_queries.iterrows():
-                combined_rows.append({
-                    'page': page_url,
-                    'query': query_row['query'],
-                    'clicks': page_clicks / len(top_queries),  # Distribute clicks
-                    'impressions': page_impressions / len(top_queries),
-                    'ctr': page_ctr,
-                    'position': page_position
-                })
+            combined_rows.append({
+                'page': page_url,
+                'query': derived_keyword,  # Derived from URL for compatibility
+                'clicks': page_row['clicks'],
+                'impressions': page_row['impressions'],
+                'ctr': page_row['ctr'],
+                'position': page_row['position']
+            })
         
-        # Also add all queries as potential new content opportunities
+        # Add all queries as potential new content opportunities (orphaned queries)
         for _, query_row in self.queries_df.iterrows():
             combined_rows.append({
                 'page': '',  # No page yet - content gap
@@ -353,6 +486,10 @@ class WordPressPublisher:
         return resp.json()
 
 
+# Backward compatibility alias
+GSCProcessor = DataProcessor
+
+
 def run_pipeline_for_site(csv_path: str, site_url: str | None = None, credentials: Tuple[str, str] | None = None) -> List[Topic]:
     """
     High‑level function to run the analysis and content generation pipeline for a single site.
@@ -364,7 +501,7 @@ def run_pipeline_for_site(csv_path: str, site_url: str | None = None, credential
 
     Returns a list of Topic objects with generated content.
     """
-    processor = GSCProcessor(csv_path)
+    processor = DataProcessor(csv_path)
     df = processor.load()
     refresh_candidates = processor.identify_refresh_candidates()
     # Extract new query opportunities (for demonstration we take top 5 queries)

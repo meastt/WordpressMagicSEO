@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WordPress Magic SEO</title>
+    <title>WordPress Magic SEO - AI Portfolio Manager</title>
     <style>
         * {
             margin: 0;
@@ -13,28 +13,69 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             line-height: 1.6;
+            min-height: 100vh;
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
         
         h1 {
             color: #333;
+            font-size: 32px;
             margin-bottom: 10px;
+        }
+        
+        h1 .emoji {
+            font-size: 36px;
         }
         
         .subtitle {
             color: #666;
-            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .form-section {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .form-group {
@@ -44,8 +85,9 @@
         label {
             display: block;
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #333;
+            font-size: 14px;
         }
         
         input[type="text"],
@@ -54,74 +96,144 @@
         input[type="file"],
         select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .file-upload {
+            position: relative;
+            border: 2px dashed #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+        
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        
+        .file-label {
+            color: #666;
             font-size: 14px;
         }
         
-        input[type="file"] {
-            padding: 8px;
+        .file-name {
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 5px;
         }
         
         .row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 20px;
         }
         
         .help-text {
             font-size: 12px;
-            color: #666;
+            color: #888;
             margin-top: 5px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .radio-option {
+            flex: 1;
+        }
+        
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+        
+        .radio-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #f5f7ff;
+            color: #667eea;
         }
         
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             margin-top: 30px;
         }
         
         button {
-            padding: 12px 24px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
+            flex: 1;
         }
         
         .btn-analyze {
-            background: #0066cc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            flex: 1;
         }
         
         .btn-analyze:hover {
-            background: #0052a3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
         
         .btn-execute {
-            background: #28a745;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            flex: 1;
         }
         
         .btn-execute:hover {
-            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
         }
         
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
         
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
-            color: #666;
+            padding: 40px;
         }
         
         .loading.show {
@@ -129,13 +241,13 @@
         }
         
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #0066cc;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 20px;
         }
         
         @keyframes spin {
@@ -145,9 +257,6 @@
         
         .results {
             margin-top: 30px;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 4px;
             display: none;
         }
         
@@ -155,25 +264,143 @@
             display: block;
         }
         
-        .results h2 {
-            margin-bottom: 15px;
+        .results-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .results-body {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
             color: #333;
         }
         
-        .results pre {
+        .niche-insights {
             background: white;
-            padding: 15px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-size: 12px;
-            line-height: 1.4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
         }
         
-        .error {
-            background: #f8d7da;
-            color: #721c24;
+        .niche-insights h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .insight-list {
+            list-style: none;
+        }
+        
+        .insight-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .insight-list li:before {
+            content: "✨";
+            margin-right: 10px;
+        }
+        
+        .action-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
             padding: 15px;
-            border-radius: 4px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #f5f7ff;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .priority-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .action-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .action-update { background: #e3f2fd; color: #1976d2; }
+        .action-create { background: #e8f5e9; color: #388e3c; }
+        .action-delete { background: #ffebee; color: #d32f2f; }
+        .action-redirect { background: #fff3e0; color: #f57c00; }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
             margin-top: 20px;
             display: none;
         }
@@ -182,135 +409,153 @@
             display: block;
         }
         
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-        
         .warning {
-            background: #fff3cd;
-            color: #856404;
+            background: #fff3e0;
+            color: #ef6c00;
             padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        
-        .collapsible {
-            background: #f1f1f1;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        
-        .collapsible:hover {
-            background: #e1e1e1;
-        }
-        
-        .collapsible-content {
-            display: none;
-            padding: 15px;
-            background: white;
-            margin-top: 5px;
-            border-radius: 4px;
-        }
-        
-        .collapsible-content.show {
-            display: block;
+            border-radius: 8px;
+            border-left: 4px solid #ef6c00;
+            margin-bottom: 25px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 WordPress Magic SEO</h1>
-        <p class="subtitle">AI-powered SEO automation for multi-site owners</p>
+        <header>
+            <h1><span class="emoji">🎯</span> WordPress Magic SEO <span class="badge">v3.0 AI</span></h1>
+            <p class="subtitle">AI-Powered Multi-Site Portfolio Manager with Niche Intelligence</p>
+        </header>
         
         <div class="warning">
-            ⚠️ <strong>Test first!</strong> Use "Analyze Only" before executing. Start with max_actions=1 to test safely.
+            ⚠️ <strong>Test Mode:</strong> Start with "Analyze Only" to review the AI-generated plan before execution. Use limit=1 for safe testing.
         </div>
         
         <form id="seoForm">
-            <div class="form-group">
-                <label for="gsc_file">GSC CSV Export (12 months) *</label>
-                <input type="file" id="gsc_file" name="file" accept=".csv,.xlsx,.xls" required>
-                <div class="help-text">Export from Google Search Console → Performance → Download CSV or Excel</div>
-            </div>
-            
-            <div class="form-group">
-                <label for="site_url">WordPress Site URL *</label>
-                <input type="text" id="site_url" name="site_url" placeholder="https://yoursite.com" required>
-            </div>
-            
-            <div class="row">
-                <div class="form-group">
-                    <label for="username">WordPress Username *</label>
-                    <input type="text" id="username" name="username" required>
+            <!-- Site Selection -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🏢</span> Site Configuration
                 </div>
                 
                 <div class="form-group">
-                    <label for="app_password">Application Password *</label>
-                    <input type="password" id="app_password" name="application_password" required>
-                    <div class="help-text">Create in WP: Users → Profile → Application Passwords</div>
+                    <label for="site_selector">Select Pre-Configured Site (Optional)</label>
+                    <select id="site_selector" onchange="handleSiteSelect()">
+                        <option value="">-- Manual Configuration --</option>
+                    </select>
+                    <div class="help-text">Or configure manually below</div>
+                </div>
+                
+                <div id="manualConfig">
+                    <div class="form-group">
+                        <label for="site_url">WordPress Site URL *</label>
+                        <input type="text" id="site_url" name="site_url" placeholder="https://yoursite.com">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="username">WordPress Username *</label>
+                            <input type="text" id="username" name="username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="app_password">Application Password *</label>
+                            <input type="password" id="app_password" name="application_password">
+                            <div class="help-text">WP: Users → Profile → Application Passwords</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="form-group">
-                <label for="anthropic_key">Anthropic API Key (optional if set in env)</label>
-                <input type="password" id="anthropic_key" name="anthropic_api_key" placeholder="sk-ant-api03-...">
-                <div class="help-text">Get from console.anthropic.com - or set in Vercel env vars</div>
-            </div>
-            
-            <div class="collapsible" onclick="toggleAdvanced()">
-                ⚙️ Advanced Options (click to expand)
-            </div>
-            
-            <div class="collapsible-content" id="advancedOptions">
-                <div class="row">
-                    <div class="form-group">
-                        <label for="schedule_mode">Schedule Mode</label>
-                        <select id="schedule_mode" name="schedule_mode">
-                            <option value="all_at_once">All at once</option>
-                            <option value="daily">Daily batches</option>
-                            <option value="hourly">Hourly batches</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="batch_size">Posts per Batch</label>
-                        <input type="number" id="batch_size" name="batch_size" value="3" min="1" max="20">
-                    </div>
+            <!-- Data Upload -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📊</span> Data Input (GSC + GA4)
                 </div>
                 
                 <div class="row">
                     <div class="form-group">
-                        <label for="delay_hours">Delay Between Batches (hours)</label>
-                        <input type="number" id="delay_hours" name="delay_hours" value="8" min="1" step="0.5">
+                        <label>Google Search Console Data *</label>
+                        <div class="file-upload">
+                            <input type="file" id="gsc_file" name="gsc_file" accept=".csv,.xlsx,.xls" required onchange="updateFileName('gsc_file')">
+                            <div class="file-label">📁 Click to upload GSC CSV/Excel</div>
+                            <div class="file-name" id="gsc_file_name"></div>
+                        </div>
+                        <div class="help-text">GSC → Performance → Export (12 months)</div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="max_actions">Max Actions (leave empty for all)</label>
-                        <input type="number" id="max_actions" name="max_actions" placeholder="e.g., 5 for testing" min="1">
-                        <div class="help-text">Start with 1 to test safely!</div>
+                        <label>Google Analytics 4 Data (Optional)</label>
+                        <div class="file-upload">
+                            <input type="file" id="ga4_file" name="ga4_file" accept=".csv,.xlsx,.xls" onchange="updateFileName('ga4_file')">
+                            <div class="file-label">📁 Click to upload GA4 CSV/Excel</div>
+                            <div class="file-name" id="ga4_file_name"></div>
+                        </div>
+                        <div class="help-text">GA4 → Engagement → Export</div>
                     </div>
+                </div>
+            </div>
+            
+            <!-- Execution Mode -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>⚙️</span> Execution Mode
+                </div>
+                
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="mode_view" name="execution_mode" value="view_plan" checked>
+                        <label for="mode_view">
+                            <strong>📋 View Plan</strong><br>
+                            <small>Analyze only (safe)</small>
+                        </label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="mode_top_n" name="execution_mode" value="execute_top_n">
+                        <label for="mode_top_n">
+                            <strong>🎯 Execute Top N</strong><br>
+                            <small>Run limited actions</small>
+                        </label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="mode_all" name="execution_mode" value="execute_all">
+                        <label for="mode_all">
+                            <strong>🚀 Execute All</strong><br>
+                            <small>Full pipeline</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="limit_field" style="margin-top: 15px; display: none;">
+                    <label for="limit">Number of Actions to Execute</label>
+                    <input type="number" id="limit" name="limit" value="5" min="1" placeholder="e.g., 5">
+                </div>
+            </div>
+            
+            <!-- API Key -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🔑</span> AI Configuration
+                </div>
+                
+                <div class="form-group">
+                    <label for="anthropic_key">Anthropic API Key</label>
+                    <input type="password" id="anthropic_key" name="anthropic_api_key" placeholder="sk-ant-api03-... (optional if set in Vercel)">
+                    <div class="help-text">Get from console.anthropic.com - or set ANTHROPIC_API_KEY in Vercel</div>
                 </div>
             </div>
             
             <div class="button-group">
-                <button type="button" class="btn-analyze" onclick="analyzeOnly()">
-                    📊 Analyze Only (Safe)
-                </button>
-                <button type="button" class="btn-execute" onclick="executeFullPipeline()">
-                    🚀 Execute Full Pipeline
+                <button type="button" class="btn-analyze" onclick="runPipeline()">
+                    <span id="btn_text">🤖 Start AI Analysis</span>
                 </button>
             </div>
         </form>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p id="loadingText">Processing...</p>
+            <p id="loadingText" style="color: #666; font-size: 16px;">Processing...</p>
         </div>
         
         <div class="error" id="error"></div>
@@ -319,11 +564,73 @@
     </div>
     
     <script>
-    const API_BASE = window.location.origin.replace('-8000.', '-5000.');
+        const API_BASE = '/api';
         
-        function toggleAdvanced() {
-            const content = document.getElementById('advancedOptions');
-            content.classList.toggle('show');
+        // Load sites on page load
+        window.addEventListener('DOMContentLoaded', loadSites);
+        
+        // Show/hide limit field based on execution mode
+        document.querySelectorAll('input[name="execution_mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const limitField = document.getElementById('limit_field');
+                limitField.style.display = this.value === 'execute_top_n' ? 'block' : 'none';
+                
+                // Update button text
+                const btnText = document.getElementById('btn_text');
+                if (this.value === 'view_plan') {
+                    btnText.textContent = '🤖 Start AI Analysis';
+                } else if (this.value === 'execute_top_n') {
+                    btnText.textContent = '🎯 Execute Top N Actions';
+                } else {
+                    btnText.textContent = '🚀 Execute Full Pipeline';
+                }
+            });
+        });
+        
+        async function loadSites() {
+            try {
+                const response = await fetch(`${API_BASE}/sites`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const selector = document.getElementById('site_selector');
+                    
+                    data.sites.forEach(site => {
+                        const option = document.createElement('option');
+                        option.value = site.name;
+                        option.textContent = `${site.name} (${site.pending_actions} pending)`;
+                        selector.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.log('Could not load sites:', e);
+            }
+        }
+        
+        function handleSiteSelect() {
+            const selector = document.getElementById('site_selector');
+            const manualConfig = document.getElementById('manualConfig');
+            
+            if (selector.value) {
+                // Pre-configured site selected - hide manual config
+                manualConfig.style.display = 'none';
+                document.getElementById('site_url').removeAttribute('required');
+                document.getElementById('username').removeAttribute('required');
+                document.getElementById('app_password').removeAttribute('required');
+            } else {
+                // Manual config
+                manualConfig.style.display = 'block';
+                document.getElementById('site_url').setAttribute('required', '');
+                document.getElementById('username').setAttribute('required', '');
+                document.getElementById('app_password').setAttribute('required', '');
+            }
+        }
+        
+        function updateFileName(inputId) {
+            const input = document.getElementById(inputId);
+            const nameDisplay = document.getElementById(inputId + '_name');
+            if (input.files.length > 0) {
+                nameDisplay.textContent = '✓ ' + input.files[0].name;
+            }
         }
         
         function showLoading(message) {
@@ -331,8 +638,6 @@
             document.getElementById('loading').classList.add('show');
             document.getElementById('error').classList.remove('show');
             document.getElementById('results').classList.remove('show');
-            
-            // Disable buttons
             document.querySelectorAll('button').forEach(btn => btn.disabled = true);
         }
         
@@ -343,73 +648,157 @@
         
         function showError(message) {
             const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
+            errorDiv.textContent = '❌ ' + message;
             errorDiv.classList.add('show');
             hideLoading();
         }
         
-        function showResults(data, title) {
+        function showResults(data) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `
-                <h2>${title}</h2>
-                <pre>${JSON.stringify(data, null, 2)}</pre>
+            
+            let html = `
+                <div class="results-header">
+                    <h2>✨ ${data.mode === 'ai_powered' ? 'AI-Powered' : 'Rule-Based'} Analysis Complete</h2>
+                    <p>Site: ${data.site}</p>
+                </div>
+                <div class="results-body">
             `;
+            
+            // Stats
+            if (data.summary) {
+                html += `
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Actions</div>
+                            <div class="stat-value">${data.summary.total_actions || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value">${data.stats?.pending || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Completed</div>
+                            <div class="stat-value">${data.stats?.completed || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Has GA4 Data</div>
+                            <div class="stat-value">${data.has_ga4 ? '✓' : '✗'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Niche Insights
+            if (data.niche_insights) {
+                html += `
+                    <div class="niche-insights">
+                        <h3>🔍 Niche Intelligence</h3>
+                        <p style="margin-bottom: 15px;"><strong>Summary:</strong> ${data.niche_insights.summary}</p>
+                        
+                        <h4 style="margin-top: 15px; color: #667eea;">📈 Top Trends</h4>
+                        <ul class="insight-list">
+                            ${data.niche_insights.trends.slice(0, 3).map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+                        
+                        <h4 style="margin-top: 15px; color: #667eea;">💡 Top Opportunities</h4>
+                        <ul class="insight-list">
+                            ${data.niche_insights.opportunities.slice(0, 3).map(o => `<li>${o}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Action Plan
+            if (data.action_plan && data.action_plan.length > 0) {
+                html += `
+                    <div class="action-table">
+                        <h3 style="padding: 15px; background: white;">🎯 Top Priority Actions</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Type</th>
+                                    <th>Title / URL</th>
+                                    <th>Reasoning</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.action_plan.slice(0, 10).map(action => `
+                                    <tr>
+                                        <td>
+                                            <span class="priority-badge ${getPriorityClass(action.priority_score)}">
+                                                ${action.priority_score.toFixed(1)}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="action-badge action-${action.action_type}">
+                                                ${action.action_type}
+                                            </span>
+                                        </td>
+                                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                                            <strong>${action.title || 'N/A'}</strong><br>
+                                            <small style="color: #888;">${action.url || 'New content'}</small>
+                                        </td>
+                                        <td style="font-size: 13px;">${action.reasoning.substring(0, 150)}...</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            
+            resultsDiv.innerHTML = html;
             resultsDiv.classList.add('show');
             hideLoading();
         }
         
-        async function analyzeOnly() {
-            const form = document.getElementById('seoForm');
-            const formData = new FormData(form);
-            
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            
-            showLoading('Analyzing GSC data and creating action plan...');
-            
-            try {
-                const response = await fetch(`${API_BASE}/analyze`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Analysis failed');
-                }
-                
-                showResults(data, '📊 Analysis Complete - Action Plan');
-            } catch (error) {
-                showError('Error: ' + error.message);
-            }
+        function getPriorityClass(score) {
+            if (score >= 8) return 'priority-high';
+            if (score >= 5) return 'priority-medium';
+            return 'priority-low';
         }
         
-        async function executeFullPipeline() {
+        async function runPipeline() {
             const form = document.getElementById('seoForm');
             const formData = new FormData(form);
+            
+            // Add site_name if pre-configured site is selected
+            const siteSelector = document.getElementById('site_selector');
+            if (siteSelector.value) {
+                formData.set('site_name', siteSelector.value);
+            }
             
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
             
-            // Confirm execution
-            const maxActions = formData.get('max_actions');
-            const confirmMsg = maxActions 
-                ? `Execute pipeline with max ${maxActions} actions?`
-                : 'Execute FULL pipeline? This will modify your WordPress site!';
+            const executionMode = formData.get('execution_mode');
+            const isExecution = executionMode !== 'view_plan';
             
-            if (!confirm(confirmMsg + '\n\nThis will create/update/delete content. Continue?')) {
-                return;
+            // Confirm execution
+            if (isExecution) {
+                const confirmMsg = executionMode === 'execute_top_n'
+                    ? `Execute top ${formData.get('limit') || 'N'} actions? This will modify your WordPress site!`
+                    : 'Execute FULL pipeline? This will create/update/delete content on your WordPress site!';
+                    
+                if (!confirm(confirmMsg + '\n\nContinue?')) {
+                    return;
+                }
             }
             
-            showLoading('Executing full pipeline... This may take several minutes.');
+            const endpoint = isExecution ? '/execute' : '/analyze';
+            const loadingMsg = isExecution 
+                ? 'Executing AI-powered pipeline... This may take several minutes.'
+                : 'Running AI analysis with niche intelligence...';
+            
+            showLoading(loadingMsg);
             
             try {
-                const response = await fetch(`${API_BASE}/execute`, {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
                     method: 'POST',
                     body: formData
                 });
@@ -417,12 +806,12 @@
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Execution failed');
+                    throw new Error(data.details || data.error || 'Request failed');
                 }
                 
-                showResults(data, '✅ Execution Complete');
+                showResults(data);
             } catch (error) {
-                showError('Error: ' + error.message);
+                showError(error.message);
             }
         }
     </script>
