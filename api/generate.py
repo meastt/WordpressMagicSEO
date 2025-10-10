@@ -25,25 +25,30 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def home():
     """API information endpoint."""
     return jsonify({
-        "name": "WordPress Magic SEO - Complete Automation",
-        "version": "2.0",
+        "name": "WordPress Magic SEO - Multi-Site Portfolio Manager",
+        "version": "3.0",
+        "description": "AI-powered SEO automation for multiple WordPress sites",
         "endpoints": {
+            "/sites": "GET - List all configured sites with status",
             "/analyze": "POST - Analyze GSC data and create action plan (no execution)",
-            "/execute": "POST - Full pipeline: analyze + execute content plan"
+            "/execute": "POST - Full pipeline: analyze + execute content plan",
+            "/health": "GET - Health check"
         },
         "required_fields": {
             "file": "GSC CSV export (12 months)",
-            "site_url": "WordPress site URL",
+            "site_url": "WordPress site URL (or use site_name with SITES_CONFIG)",
             "username": "WordPress username",
             "application_password": "WordPress application password"
         },
         "optional_fields": {
+            "site_name": "Pre-configured site name (e.g., griddleking.com)",
             "schedule_mode": "all_at_once (default), daily, hourly",
             "batch_size": "Posts per batch (default: 3)",
             "delay_hours": "Hours between batches (default: 8)",
             "max_actions": "Limit actions for testing (default: None)",
             "anthropic_api_key": "Claude API key (or set ANTHROPIC_API_KEY env)"
-        }
+        },
+        "multi_site_support": "Configure sites via SITES_CONFIG environment variable"
     })
 
 
@@ -243,6 +248,41 @@ def execute_full_pipeline():
     except Exception as e:
         return jsonify({
             "error": "Execution failed",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/sites", methods=["GET"])
+def list_sites_endpoint():
+    """
+    List all configured sites with their current status.
+    Returns site names and pending action counts.
+    """
+    try:
+        from config import list_sites
+        from state_manager import StateManager
+        
+        sites = list_sites()
+        site_status = []
+        
+        for site_name in sites:
+            state_mgr = StateManager(site_name)
+            stats = state_mgr.get_stats()
+            site_status.append({
+                'name': site_name,
+                'pending_actions': stats['pending'],
+                'completed_actions': stats['completed'],
+                'total_actions': stats['total_actions']
+            })
+        
+        return jsonify({
+            "sites": site_status,
+            "total_sites": len(sites)
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to load sites",
             "details": str(e)
         }), 500
 
