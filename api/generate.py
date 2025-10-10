@@ -99,8 +99,8 @@ def analyze_only():
         from sitemap_analyzer import SitemapAnalyzer
         from strategic_planner import StrategicPlanner
         
-        # Step 1: Load GSC data
-        gsc_processor = GSCProcessor(file_path)
+        # Step 1: Load GSC data (DataProcessor supports GSC + GA4)
+        gsc_processor = GSCProcessor(file_path)  # Using alias for backward compatibility
         gsc_df = gsc_processor.load()
         
         # Step 2: Fetch sitemap

@@ -11,7 +11,7 @@ import pandas as pd
 from datetime import datetime
 
 # Import all our modules
-from multi_site_content_agent import GSCProcessor
+from multi_site_content_agent import DataProcessor  # Renamed from GSCProcessor (GA4 support added)
 from sitemap_analyzer import SitemapAnalyzer
 from strategic_planner import StrategicPlanner
 from claude_content_generator import ClaudeContentGenerator
@@ -78,7 +78,7 @@ class SEOAutomationPipeline:
         
         # STEP 1: Load and analyze GSC data
         print("\n📊 STEP 1: Analyzing Google Search Console data...")
-        self.gsc_processor = GSCProcessor(self.gsc_csv_path)
+        self.gsc_processor = DataProcessor(self.gsc_csv_path)
         self.gsc_df = self.gsc_processor.load()
         print(f"  ✓ Loaded {len(self.gsc_df)} GSC rows")
         
