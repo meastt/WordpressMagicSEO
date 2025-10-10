@@ -609,10 +609,13 @@
         function handleSiteSelect() {
             const selector = document.getElementById('site_selector');
             const manualConfig = document.getElementById('manualConfig');
-            
+
             if (selector.value) {
-                // Pre-configured site selected - hide manual config
+                // Pre-configured site selected - hide manual config and clear values
                 manualConfig.style.display = 'none';
+                document.getElementById('site_url').value = '';
+                document.getElementById('username').value = '';
+                document.getElementById('app_password').value = '';
                 document.getElementById('site_url').removeAttribute('required');
                 document.getElementById('username').removeAttribute('required');
                 document.getElementById('app_password').removeAttribute('required');
