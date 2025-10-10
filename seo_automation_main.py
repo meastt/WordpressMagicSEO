@@ -328,7 +328,7 @@ class SEOAutomationPipeline:
         self.scheduler.save_results_to_csv(output_csv)
         
         summary = self.scheduler.get_summary()
-        
+
         print("\n" + "=" * 80)
         print("✅ EXECUTION COMPLETE")
         print("=" * 80)
@@ -338,8 +338,20 @@ class SEOAutomationPipeline:
         print(f"Success rate: {summary['success_rate']}")
         print(f"\nResults saved to: {output_csv}")
         print("=" * 80)
-        
-        return summary
+
+        # Return comprehensive results
+        return {
+            'site': self.site_url,
+            'summary': plan_summary,
+            'execution_summary': summary,
+            'stats': {
+                'total_actions': summary['total_actions'],
+                'successful': summary['successful'],
+                'failed': summary['failed'],
+                'success_rate': summary['success_rate']
+            },
+            'niche_insights': self.niche_report
+        }
 
 
 def main():
