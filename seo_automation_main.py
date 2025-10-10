@@ -213,13 +213,13 @@ class SEOAutomationPipeline:
         # STEP 3: Find duplicate content
         print("\n🔍 STEP 3: Identifying duplicate content...")
         self.duplicate_analysis = self.sitemap_analyzer.find_duplicate_content_candidates(
-            self.gsc_df
+            self.merged_df
         )
         print(f"  ✓ Found {len(self.duplicate_analysis)} potential duplicate groups")
-        
+
         # STEP 4: Create strategic plan
         print("\n🎯 STEP 4: Creating strategic action plan...")
-        self.strategic_planner = StrategicPlanner(self.gsc_df, self.sitemap_data)
+        self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
         self.action_plan = self.strategic_planner.create_master_plan(
             self.duplicate_analysis
         )
