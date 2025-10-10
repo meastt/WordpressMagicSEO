@@ -2,88 +2,200 @@
 seo_automation_main.py
 =====================
 Main orchestrator for the complete SEO automation system.
+
+Phase 5: Enhanced Pipeline with AI Intelligence
+- Multi-site support via config.py
+- Dual data input (GSC + GA4) via DataProcessor
+- AI niche intelligence via NicheAnalyzer
+- AI strategic planning via AIStrategicPlanner
+- State tracking via StateManager
 """
 
 import os
 import sys
-from typing import Dict
+import json
+from typing import Dict, Optional
 import pandas as pd
 from datetime import datetime
 
 # Import all our modules
-from multi_site_content_agent import DataProcessor  # Renamed from GSCProcessor (GA4 support added)
+from multi_site_content_agent import DataProcessor  # Phase 2: GSC + GA4 support
 from sitemap_analyzer import SitemapAnalyzer
-from strategic_planner import StrategicPlanner
+from strategic_planner import StrategicPlanner  # Legacy planner (will be deprecated)
 from claude_content_generator import ClaudeContentGenerator
 from wordpress_publisher import WordPressPublisher
 from execution_scheduler import ExecutionScheduler, ScheduleConfig
 
+# Phase 1-4: New AI-powered modules
+from config import get_site, list_sites
+from state_manager import StateManager
+from niche_analyzer import NicheAnalyzer
+from ai_strategic_planner import AIStrategicPlanner
+
 
 class SEOAutomationPipeline:
-    """Complete SEO automation pipeline orchestrator."""
+    """
+    Complete SEO automation pipeline orchestrator.
+    
+    Enhanced in Phase 5 with:
+    - Multi-site configuration support
+    - GA4 + GSC dual data input
+    - AI-powered niche research
+    - AI-powered strategic planning
+    - State tracking and caching
+    """
     
     def __init__(
         self,
-        gsc_csv_path: str,
-        site_url: str,
-        wp_username: str,
-        wp_app_password: str,
+        site_name: str = None,
+        gsc_csv_path: str = None,
+        ga4_csv_path: str = None,
+        site_url: str = None,
+        wp_username: str = None,
+        wp_app_password: str = None,
         anthropic_api_key: str = None
     ):
-        self.gsc_csv_path = gsc_csv_path
-        self.site_url = site_url
-        self.wp_username = wp_username
-        self.wp_app_password = wp_app_password
+        """
+        Initialize pipeline with either:
+        - site_name (loads from config) OR
+        - individual parameters (legacy mode)
+        
+        Args:
+            site_name: Configured site name (e.g., "griddleking.com")
+            gsc_csv_path: Path to GSC CSV export
+            ga4_csv_path: Path to GA4 CSV export (optional)
+            site_url: WordPress site URL
+            wp_username: WordPress username
+            wp_app_password: WordPress application password
+            anthropic_api_key: Anthropic API key
+        """
+        
+        # Mode 1: Multi-site mode (use config)
+        if site_name:
+            try:
+                site_config = get_site(site_name)
+                self.site_name = site_name
+                self.site_url = site_config['url']
+                self.wp_username = site_config['wp_username']
+                self.wp_app_password = site_config['wp_app_password']
+                self.niche = site_config['niche']
+                self.gsc_csv_path = gsc_csv_path  # Still need to provide data files
+                self.ga4_csv_path = ga4_csv_path
+            except Exception as e:
+                raise ValueError(f"Failed to load site config for '{site_name}': {e}")
+        
+        # Mode 2: Legacy mode (individual parameters)
+        else:
+            if not all([gsc_csv_path, site_url, wp_username, wp_app_password]):
+                raise ValueError("Must provide either site_name OR all individual parameters")
+            
+            self.site_name = site_url  # Use URL as identifier
+            self.gsc_csv_path = gsc_csv_path
+            self.ga4_csv_path = ga4_csv_path
+            self.site_url = site_url
+            self.wp_username = wp_username
+            self.wp_app_password = wp_app_password
+            self.niche = None  # Will skip niche research if not set
+        
         self.anthropic_api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
         
+        # Initialize state manager
+        self.state_mgr = StateManager(self.site_name)
+        
         # Initialize components
-        self.gsc_processor = None
+        self.data_processor = None
         self.sitemap_analyzer = None
-        self.strategic_planner = None
+        self.niche_analyzer = None
+        self.ai_planner = None  # New AI planner
+        self.legacy_planner = None  # Old rule-based planner
         self.content_generator = None
         self.wp_publisher = None
         self.scheduler = None
         
         # Data storage
-        self.gsc_df = None
+        self.merged_df = None
         self.sitemap_data = None
         self.duplicate_analysis = None
+        self.niche_report = None
         self.action_plan = None
     
     def run(
-        self, 
+        self,
+        execution_mode: str = "view_plan",
         schedule_mode: str = "all_at_once",
         posts_per_batch: int = 3,
         delay_hours: float = 8,
-        max_actions: int = None,
-        output_csv: str = "seo_automation_results.csv"
+        limit: int = None,
+        output_csv: str = "seo_automation_results.csv",
+        use_ai_planner: bool = True
     ) -> Dict:
         """
-        Run the complete pipeline.
+        Run the complete enhanced pipeline.
         
         Args:
+            execution_mode: "view_plan" (analyze only), "execute_all", "execute_top_n", "continue"
             schedule_mode: "all_at_once", "daily", "hourly", "custom"
             posts_per_batch: Number of posts to process per batch
             delay_hours: Hours to wait between batches
-            max_actions: Maximum number of actions to execute (None = all)
+            limit: Maximum number of actions to execute (for execute_top_n mode)
             output_csv: Path to save results CSV
+            use_ai_planner: Use AI planner (True) or legacy rule-based planner (False)
         
         Returns:
-            Dictionary with execution summary
+            Dictionary with execution summary and action plan
         """
         
         print("=" * 80)
-        print("🎯 SEO AUTOMATION PIPELINE")
+        print(f"🎯 SEO AUTOMATION PIPELINE - {self.site_name}")
         print("=" * 80)
+        print(f"Mode: {'AI-Powered' if use_ai_planner else 'Legacy Rule-Based'}")
+        print(f"Execution: {execution_mode}")
         
-        # STEP 1: Load and analyze GSC data
-        print("\n📊 STEP 1: Analyzing Google Search Console data...")
-        self.gsc_processor = DataProcessor(self.gsc_csv_path)
-        self.gsc_df = self.gsc_processor.load()
-        print(f"  ✓ Loaded {len(self.gsc_df)} GSC rows")
+        # STEP 1: Load and analyze GSC + GA4 data
+        print("\n📊 STEP 1: Loading data (GSC + GA4)...")
+        self.data_processor = DataProcessor(self.gsc_csv_path, self.ga4_csv_path)
+        self.merged_df = self.data_processor.merge_data()
         
-        # STEP 2: Fetch and analyze sitemap
-        print("\n🗺️  STEP 2: Fetching and analyzing sitemap...")
+        # Check if GA4 data was loaded
+        has_ga4 = 'engagement_rate' in self.merged_df.columns
+        print(f"  ✓ Loaded {len(self.merged_df)} GSC rows")
+        if has_ga4:
+            ga4_count = self.merged_df['engagement_rate'].notna().sum()
+            print(f"  ✓ Merged with GA4 data ({ga4_count} pages with engagement metrics)")
+        else:
+            print(f"  ℹ No GA4 data available (GSC only)")
+        
+        # STEP 2: Niche Intelligence (if AI mode and niche is set)
+        if use_ai_planner and self.niche and self.anthropic_api_key:
+            print("\n🔍 STEP 2: AI Niche Intelligence...")
+            
+            # Check for cached research
+            cached_research = self.state_mgr.get_niche_research()
+            if cached_research:
+                print("  ✓ Using cached niche research (30-day cache)")
+                self.niche_report = json.loads(cached_research)
+            else:
+                print(f"  🌐 Researching '{self.niche}' niche with AI...")
+                self.niche_analyzer = NicheAnalyzer(self.anthropic_api_key)
+                self.niche_report = self.niche_analyzer.research_niche(self.niche, self.site_url)
+                
+                # Cache the research
+                self.state_mgr.cache_niche_research(json.dumps(self.niche_report), cache_days=30)
+                print("  ✓ Niche research complete (cached for 30 days)")
+            
+            # Show key insights
+            print(f"\n  📈 Key Trends:")
+            for trend in self.niche_report.get('trends', [])[:3]:
+                print(f"     • {trend}")
+            print(f"\n  💡 Top Opportunities:")
+            for opp in self.niche_report.get('opportunities', [])[:3]:
+                print(f"     • {opp}")
+        else:
+            print("\n⏭️  STEP 2: Skipping niche intelligence (not in AI mode or no niche set)")
+            self.niche_report = None
+        
+        # STEP 3: Fetch and analyze sitemap
+        print("\n🗺️  STEP 3: Fetching and analyzing sitemap...")
         self.sitemap_analyzer = SitemapAnalyzer(self.site_url)
         sitemap_urls = self.sitemap_analyzer.fetch_sitemap()
         print(f"  ✓ Found {len(sitemap_urls)} URLs in sitemap")
@@ -91,7 +203,7 @@ class SEOAutomationPipeline:
         # Compare sitemap with GSC data
         self.sitemap_data = self.sitemap_analyzer.compare_with_gsc(
             sitemap_urls,
-            self.gsc_df
+            self.merged_df
         )
         
         print(f"  ✓ Dead content: {len(self.sitemap_data['dead_content'])} URLs")
