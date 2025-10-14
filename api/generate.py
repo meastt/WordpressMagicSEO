@@ -29,12 +29,14 @@ def home():
     """API information endpoint."""
     return jsonify({
         "name": "WordPress Magic SEO - Multi-Site Portfolio Manager",
-        "version": "3.0",
+        "version": "3.1",
         "description": "AI-powered SEO automation for multiple WordPress sites",
         "endpoints": {
             "/sites": "GET - List all configured sites with status",
             "/analyze": "POST - Analyze GSC data and create action plan (no execution)",
-            "/execute": "POST - Full pipeline: analyze + execute content plan",
+            "/execute": "POST - Full pipeline: analyze + execute content plan (may timeout on Vercel)",
+            "/execute-next": "POST - Execute ONE action (serverless-safe, recommended)",
+            "/export/pdf/<site_name>": "GET - Export analysis as PDF",
             "/health": "GET - Health check"
         },
         "required_fields": {
@@ -51,7 +53,8 @@ def home():
             "max_actions": "Limit actions for testing (default: None)",
             "anthropic_api_key": "Claude API key (or set ANTHROPIC_API_KEY env)"
         },
-        "multi_site_support": "Configure sites via SITES_CONFIG environment variable"
+        "multi_site_support": "Configure sites via SITES_CONFIG environment variable",
+        "recommended_workflow": "Use /analyze first, then call /execute-next repeatedly until all actions complete"
     })
 
 
@@ -297,6 +300,164 @@ def execute_full_pipeline():
         }), 500
 
 
+@app.route("/api/execute-next", methods=["POST"])
+def execute_next_action():
+    """
+    Execute the next pending action for a site (timeout-safe, processes 1 action only).
+    Designed for Vercel serverless - stays within timeout limits.
+
+    JSON body: {site_name}
+    Returns: Action result + remaining count
+    """
+    data = request.get_json()
+    site_name = data.get('site_name')
+
+    if not site_name:
+        return jsonify({"error": "site_name required"}), 400
+
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_key:
+        return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+
+    try:
+        from config import get_site
+        from state_manager import StateManager
+        from wordpress_publisher import WordPressPublisher
+        from claude_content_generator import ClaudeContentGenerator
+        from strategic_planner import ActionType
+        from affiliate_link_manager import AffiliateLinkManager
+
+        # Get site config
+        site_config = get_site(site_name)
+        state_mgr = StateManager(site_name)
+
+        # Get next pending action
+        pending = state_mgr.get_pending_actions(limit=1)
+        if not pending:
+            return jsonify({
+                "status": "complete",
+                "message": "No pending actions",
+                "stats": state_mgr.get_stats()
+            })
+
+        action_data = pending[0]
+
+        # Initialize WordPress and content generator
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password'],
+            rate_limit_delay=1.0
+        )
+        content_gen = ClaudeContentGenerator(anthropic_key)
+
+        # Get affiliate manager if available
+        affiliate_mgr = None
+        try:
+            affiliate_mgr = AffiliateLinkManager(site_name)
+            if not affiliate_mgr.get_all_links():
+                affiliate_mgr = None
+        except:
+            pass
+
+        # Execute the action
+        result = {
+            "action_id": action_data['id'],
+            "action_type": action_data['action_type'],
+            "url": action_data.get('url'),
+            "title": action_data.get('title'),
+            "success": False,
+            "error": None
+        }
+
+        try:
+            if action_data['action_type'] == 'create':
+                # Generate and publish new content
+                content = content_gen.generate_seo_content(
+                    title=action_data['title'],
+                    keywords=action_data.get('keywords', []),
+                    target_word_count=1500
+                )
+
+                # Add affiliate links if available
+                if affiliate_mgr:
+                    from affiliate_link_updater import AffiliateLinkUpdater
+                    updater = AffiliateLinkUpdater(anthropic_key)
+                    result_aff = updater.update_content_with_affiliate_links(
+                        content=content,
+                        title=action_data['title'],
+                        available_links=affiliate_mgr.get_all_links(),
+                        keywords=action_data.get('keywords', [])
+                    )
+                    if result_aff.get('success'):
+                        content = result_aff['updated_content']
+                        for link in result_aff.get('links_added', []):
+                            affiliate_mgr.increment_usage(link.get('link_id'))
+
+                post_id = wp.create_post(action_data['title'], content)
+                result['post_id'] = post_id
+                result['success'] = True
+                state_mgr.mark_completed(action_data['id'], post_id)
+
+            elif action_data['action_type'] == 'update':
+                # Fetch and update existing content
+                post = wp.find_post_by_url(action_data['url'])
+                if not post:
+                    raise Exception(f"Post not found: {action_data['url']}")
+
+                post_id = post['id']
+                existing_content = post.get('content', {}).get('rendered', '')
+
+                # Generate improved content
+                improved_content = content_gen.improve_existing_content(
+                    existing_content=existing_content,
+                    title=action_data.get('title', ''),
+                    keywords=action_data.get('keywords', [])
+                )
+
+                # Add affiliate links if available
+                if affiliate_mgr:
+                    from affiliate_link_updater import AffiliateLinkUpdater
+                    updater = AffiliateLinkUpdater(anthropic_key)
+                    result_aff = updater.update_content_with_affiliate_links(
+                        content=improved_content,
+                        title=action_data.get('title', ''),
+                        available_links=affiliate_mgr.get_all_links(),
+                        keywords=action_data.get('keywords', [])
+                    )
+                    if result_aff.get('success'):
+                        improved_content = result_aff['updated_content']
+                        for link in result_aff.get('links_added', []):
+                            affiliate_mgr.increment_usage(link.get('link_id'))
+
+                wp.update_post(post_id, content=improved_content)
+                result['post_id'] = post_id
+                result['success'] = True
+                state_mgr.mark_completed(action_data['id'], post_id)
+
+            else:
+                result['error'] = f"Unsupported action type: {action_data['action_type']}"
+
+        except Exception as e:
+            result['error'] = str(e)
+
+        # Get updated stats
+        stats = state_mgr.get_stats()
+
+        return jsonify({
+            "status": "action_executed",
+            "result": result,
+            "stats": stats,
+            "has_more": stats['pending'] > 0
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": "Execution failed",
+            "details": str(e)
+        }), 500
+
+
 @app.route("/api/sites", methods=["GET"])
 def list_sites_endpoint():
     """
@@ -306,10 +467,10 @@ def list_sites_endpoint():
     try:
         from config import list_sites
         from state_manager import StateManager
-        
+
         sites = list_sites()
         site_status = []
-        
+
         for site_name in sites:
             state_mgr = StateManager(site_name)
             stats = state_mgr.get_stats()
@@ -319,12 +480,12 @@ def list_sites_endpoint():
                 'completed_actions': stats.get('completed', 0),
                 'total_actions': stats.get('total_actions', 0)
             })
-        
+
         return jsonify({
             "sites": site_status,
             "total_sites": len(sites)
         })
-    
+
     except Exception as e:
         return jsonify({
             "error": "Failed to load sites",
