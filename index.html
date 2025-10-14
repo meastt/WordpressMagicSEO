@@ -1409,39 +1409,120 @@
                 }
             }
 
-            const endpoint = isExecution ? '/execute' : '/analyze';
-            const loadingMsg = isExecution
-                ? 'Executing AI-powered pipeline... This may take several minutes.'
-                : 'Running AI analysis with niche intelligence...';
+            // For execution modes, use the new timeout-safe endpoint
+            if (isExecution) {
+                await runExecutionLoop(formData.get('site_name'));
+            } else {
+                // For analysis only, use the standard endpoint
+                showLoading('Running AI analysis with niche intelligence...');
 
-            showLoading(loadingMsg);
+                try {
+                    const response = await fetch(`${API_BASE}/analyze`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const responseText = await response.text();
+                    console.log('API Response:', responseText);
+
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (parseError) {
+                        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}...`);
+                    }
+
+                    if (!response.ok) {
+                        const errorMsg = data.details || data.error || `HTTP ${response.status}: ${response.statusText}`;
+                        throw new Error(errorMsg);
+                    }
+
+                    showResults(data);
+                } catch (error) {
+                    console.error('Pipeline error:', error);
+                    showError(error.message || 'An unknown error occurred');
+                }
+            }
+        }
+
+        // New timeout-safe execution function that processes one action at a time
+        async function runExecutionLoop(siteName) {
+            showLoading('Executing actions... Processing one at a time to avoid timeouts.');
+
+            const completedActions = [];
+            const errors = [];
+            let hasMore = true;
+            let actionCount = 0;
 
             try {
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    method: 'POST',
-                    body: formData
-                });
+                while (hasMore) {
+                    const response = await fetch(`${API_BASE}/execute-next`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({site_name: siteName})
+                    });
 
-                // Get response text first to see what we're actually receiving
-                const responseText = await response.text();
-                console.log('API Response:', responseText);
+                    const data = await response.json();
 
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}...`);
+                    if (!response.ok) {
+                        throw new Error(data.error || data.details || 'Execution failed');
+                    }
+
+                    if (data.status === 'complete') {
+                        console.log('All actions completed!');
+                        break;
+                    }
+
+                    if (data.status === 'action_executed') {
+                        actionCount++;
+                        const result = data.result;
+
+                        // Update loading message with progress
+                        showLoading(`Executing actions... Completed ${data.stats.completed}/${data.stats.total_actions} actions`);
+
+                        console.log(`Action ${actionCount} result:`, result);
+
+                        if (result.success) {
+                            completedActions.push({
+                                action: result.action_type,
+                                url: result.url,
+                                title: result.title,
+                                post_id: result.post_id
+                            });
+                        } else if (result.error) {
+                            errors.push({
+                                action: result.action_type,
+                                url: result.url,
+                                error: result.error
+                            });
+                        }
+
+                        hasMore = data.has_more;
+                    }
                 }
 
-                if (!response.ok) {
-                    const errorMsg = data.details || data.error || `HTTP ${response.status}: ${response.statusText}`;
-                    throw new Error(errorMsg);
-                }
+                // Show final results
+                const finalData = {
+                    status: 'execution_complete',
+                    mode: 'ai_powered',
+                    site: siteName,
+                    stats: {
+                        total_actions: actionCount,
+                        successful: completedActions.length,
+                        failed: errors.length,
+                        success_rate: actionCount > 0 ? `${Math.round((completedActions.length / actionCount) * 100)}%` : '0%'
+                    },
+                    completed_actions: completedActions,
+                    errors: errors,
+                    note: errors.length > 0
+                        ? `${errors.length} action(s) failed - check errors for details`
+                        : 'All actions completed successfully!'
+                };
 
-                showResults(data);
+                showResults(finalData);
             } catch (error) {
-                console.error('Pipeline error:', error);
-                showError(error.message || 'An unknown error occurred');
+                console.error('Execution error:', error);
+                showError(error.message || 'An unknown error occurred during execution');
             }
         }
     </script>
