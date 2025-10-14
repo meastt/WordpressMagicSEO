@@ -375,13 +375,25 @@ class SEOAutomationPipeline:
             max_api_calls_per_minute=10
         )
         
+        # Initialize affiliate manager if available
+        affiliate_manager = None
+        try:
+            from affiliate_link_manager import AffiliateLinkManager
+            affiliate_manager = AffiliateLinkManager(self.site_name)
+            # Check if there are any links configured
+            if affiliate_manager.get_all_links():
+                print(f"  ✓ Loaded {len(affiliate_manager.get_all_links())} affiliate links")
+        except Exception as e:
+            print(f"  ℹ Affiliate links not configured (optional): {e}")
+        
         self.scheduler = ExecutionScheduler(
             self.action_plan,
             self.wp_publisher,
             self.content_generator,
             schedule_config,
             planner=self.strategic_planner,
-            state_manager=self.state_mgr
+            state_manager=self.state_mgr,
+            affiliate_manager=affiliate_manager
         )
         
         # Execute!

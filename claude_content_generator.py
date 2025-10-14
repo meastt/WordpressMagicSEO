@@ -49,9 +49,10 @@ Be thorough and cite recent sources."""
         research: str,
         meta_description: str,
         existing_content: str = None,
-        internal_links: List[Dict] = None
+        internal_links: List[Dict] = None,
+        affiliate_links: List[Dict] = None
     ) -> Dict[str, str]:
-        """Generate complete article with metadata."""
+        """Generate complete article with metadata and affiliate links."""
         
         action = "update this existing content" if existing_content else "create new content"
         existing_context = f"\n\nEXISTING CONTENT TO UPDATE:\n{existing_content}" if existing_content else ""
@@ -62,6 +63,12 @@ Be thorough and cite recent sources."""
             for link in internal_links:
                 internal_links_text += f"- {link['title']}: {link['url']}\n"
         
+        affiliate_links_text = ""
+        if affiliate_links:
+            affiliate_links_text = "\n\nAFFILIATE PRODUCT LINKS to include naturally:\n"
+            for link in affiliate_links:
+                affiliate_links_text += f"- {link['brand']} {link['product_name']} ({link['product_type']}): {link['url']}\n"
+        
         prompt = f"""You are an expert SEO content writer. {action.capitalize()} about: "{topic_title}"
 
 TARGET KEYWORDS: {', '.join(keywords)}
@@ -70,6 +77,7 @@ RESEARCH DATA:
 {research}
 {existing_context}
 {internal_links_text}
+{affiliate_links_text}
 
 Create a comprehensive, helpful article that:
 1. Uses natural, engaging writing (not robotic)
@@ -78,9 +86,10 @@ Create a comprehensive, helpful article that:
 4. Includes specific examples and actionable advice
 5. Incorporates 2-3 external links to authoritative sources
 6. Naturally weaves in the provided internal links where relevant
-7. Uses proper HTML formatting (h2, h3, p, ul, ol, strong, em tags)
-8. Follows Google's helpful content guidelines
-9. Is optimized for both traditional SEO and AI search (LLMs)
+7. Naturally incorporates affiliate product links where they add value (don't force them)
+8. Uses proper HTML formatting (h2, h3, p, ul, ol, strong, em tags)
+9. Follows Google's helpful content guidelines
+10. Is optimized for both traditional SEO and AI search (LLMs)
 
 ARTICLE STRUCTURE:
 - Engaging introduction (hook the reader immediately)

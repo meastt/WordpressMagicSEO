@@ -136,6 +136,27 @@ class WordPressPublisher:
             print(f"Error getting/creating tag '{tag_name}': {e}")
             return None
     
+    def get_post(self, post_id: int) -> Dict:
+        """
+        Fetch a single post by ID from WordPress.
+        
+        Args:
+            post_id: WordPress post ID
+            
+        Returns:
+            Dict with post data
+        """
+        try:
+            response = requests.get(
+                f"{self.api_base}/posts/{post_id}",
+                auth=self.auth,
+                timeout=30
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            raise Exception(f"Error fetching post {post_id}: {e}")
+    
     def get_all_posts(self) -> List[Dict]:
         """Fetch all posts from WordPress."""
         posts = []

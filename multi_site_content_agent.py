@@ -190,7 +190,7 @@ class DataProcessor:
         
         Expected columns (flexible, will normalize):
         - page / landing_page / page_path
-        - sessions
+        - sessions / views
         - engagement_rate
         - avg_engagement_time / average_engagement_time
         - bounce_rate
@@ -208,6 +208,8 @@ class DataProcessor:
         if not self.ga4_path:
             return pd.DataFrame()
 
+        print(f"\n📊 Loading GA4 data from: {self.ga4_path}")
+        
         # Read Excel or CSV file
         if self.ga4_path.endswith('.xlsx') or self.ga4_path.endswith('.xls'):
             # Read Excel file (first sheet)
@@ -222,36 +224,60 @@ class DataProcessor:
                 for idx, row in df_test.iterrows():
                     row_str = ' '.join([str(x).lower() for x in row if pd.notna(x)])
                     # Check if this looks like a header row
-                    if any(keyword in row_str for keyword in ['page', 'view', 'session', 'user', 'bounce']):
+                    if any(keyword in row_str for keyword in ['page', 'view', 'session', 'user', 'bounce', 'engagement']):
                         header_row = idx
+                        print(f"   ✓ Detected header row at line {idx + 1}")
                         break
 
                 if header_row is not None and header_row > 0:
-                    print(f"GA4: Detected header row at line {header_row + 1}, skipping {header_row} rows")
+                    print(f"   ℹ Skipping {header_row} metadata rows")
                     df = pd.read_excel(self.ga4_path, sheet_name=0, skiprows=header_row)
                 else:
                     df = pd.read_excel(self.ga4_path, sheet_name=0)
             except Exception as e:
-                print(f"GA4 read error: {e}, trying default read")
+                print(f"   ⚠️  GA4 Excel read error: {e}, trying default read")
                 df = pd.read_excel(self.ga4_path, sheet_name=0)
         else:
             # Read CSV file with encoding detection
+            print(f"   📄 Reading CSV file...")
             try:
-                # Try UTF-8 first (most common)
-                df = pd.read_csv(self.ga4_path, encoding='utf-8')
+                # GA4 CSV exports may have metadata at the top - detect header row
+                # Read first 20 rows to find headers
+                df_test = pd.read_csv(self.ga4_path, nrows=20, header=None, encoding='utf-8')
+                
+                header_row = None
+                for idx, row in df_test.iterrows():
+                    row_str = ' '.join([str(x).lower() for x in row if pd.notna(x)])
+                    # Check if this looks like a header row
+                    if any(keyword in row_str for keyword in ['page', 'view', 'session', 'user', 'bounce', 'engagement']):
+                        header_row = idx
+                        print(f"   ✓ Detected header row at line {idx + 1}")
+                        break
+                
+                if header_row is not None and header_row > 0:
+                    print(f"   ℹ Skipping {header_row} metadata rows")
+                    df = pd.read_csv(self.ga4_path, skiprows=header_row, encoding='utf-8')
+                else:
+                    df = pd.read_csv(self.ga4_path, encoding='utf-8')
             except UnicodeDecodeError:
+                print(f"   ⚠️  UTF-8 decode error, trying latin-1...")
                 # Fall back to latin-1 (handles most other encodings)
                 try:
                     df = pd.read_csv(self.ga4_path, encoding='latin-1')
                 except Exception:
                     # Last resort: ignore errors
+                    print(f"   ⚠️  Latin-1 failed, using UTF-8 with error ignore")
                     df = pd.read_csv(self.ga4_path, encoding='utf-8', errors='ignore')
         
+        # Remove completely empty rows (GA4 exports sometimes have trailing empty rows)
+        df = df.dropna(how='all')
+        
         # Normalize column names
-        df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
+        df.columns = [col.strip().lower().replace(" ", "_").replace("(", "").replace(")", "") for col in df.columns]
 
         # Debug: print available columns
-        print(f"GA4 columns found: {list(df.columns)}")
+        print(f"   ✓ GA4 columns found: {list(df.columns)[:10]}..." if len(df.columns) > 10 else f"   ✓ GA4 columns found: {list(df.columns)}")
+        print(f"   ✓ GA4 rows loaded: {len(df)}")
 
         # Map common variations to standard names (including more variations)
         column_mapping = {
@@ -279,19 +305,20 @@ class DataProcessor:
             # Look for any column that might contain URLs or page identifiers
             url_candidates = [col for col in df.columns if any(x in col for x in ['page', 'url', 'path', 'landing', 'title'])]
             if url_candidates:
-                print(f"⚠️  Using column '{url_candidates[0]}' as 'page' identifier")
+                print(f"   ℹ Using column '{url_candidates[0]}' as 'page' identifier")
                 df.rename(columns={url_candidates[0]: 'page'}, inplace=True)
                 # Check if this column contains page titles vs URLs
                 sample = df['page'].iloc[0] if len(df) > 0 else ''
                 if sample and not sample.startswith('http') and '/' not in str(sample):
-                    print(f"⚠️  Warning: GA4 'page' column contains page titles, not URLs.")
-                    print(f"   This data won't merge with GSC data. For better results,")
-                    print(f"   export GA4 with 'Page path' or 'Full page URL' dimension.")
-                    print(f"   Continuing with GA4 data as supplementary metrics only...")
+                    print(f"   ⚠️  Warning: GA4 'page' column contains page titles, not URLs.")
+                    print(f"      This data won't merge with GSC data. For better results,")
+                    print(f"      export GA4 with 'Page path' or 'Full page URL' dimension.")
+                    print(f"      Continuing with GA4 data as supplementary metrics only...")
             else:
                 # GA4 data is optional, so return empty instead of error
-                print(f"Warning: GA4 file has no recognizable page/URL column. Columns: {list(df.columns)}")
-                print("Skipping GA4 data - only GSC data will be used.")
+                print(f"   ⚠️  Warning: GA4 file has no recognizable page/URL column.")
+                print(f"      Available columns: {list(df.columns)}")
+                print(f"      Skipping GA4 data - only GSC data will be used.")
                 return pd.DataFrame()
         
         # Normalize numeric columns

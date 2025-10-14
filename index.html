@@ -495,6 +495,95 @@
                 </div>
             </div>
             
+            <!-- Affiliate Link Management -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🔗</span> Affiliate Link Management (Optional)
+                </div>
+                
+                <div class="form-group">
+                    <label>Input Method</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="affiliate_none" name="affiliate_mode" value="none" checked>
+                            <label for="affiliate_none">
+                                <strong>Skip</strong><br>
+                                <small>No affiliate links</small>
+                            </label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="affiliate_csv" name="affiliate_mode" value="csv">
+                            <label for="affiliate_csv">
+                                <strong>📁 Upload CSV</strong><br>
+                                <small>Bulk import</small>
+                            </label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="affiliate_manual" name="affiliate_mode" value="manual">
+                            <label for="affiliate_manual">
+                                <strong>✏️ Manual Entry</strong><br>
+                                <small>Add individually</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CSV Upload Section -->
+                <div id="affiliate_csv_section" style="display: none; margin-top: 15px;">
+                    <div class="form-group">
+                        <label>Upload Affiliate Links CSV</label>
+                        <div class="file-upload">
+                            <input type="file" id="affiliate_csv_file" accept=".csv" onchange="updateFileName('affiliate_csv_file')">
+                            <div class="file-label">📁 Click to upload CSV</div>
+                            <div class="file-name" id="affiliate_csv_file_name"></div>
+                        </div>
+                        <div class="help-text">
+                            CSV Format: url,brand,product_name,product_type,keywords(optional)<br>
+                            Example: https://brand.com/product?aff=123,Traeger,Flatrock Griddle,outdoor griddle,griddle|cooking
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manual Entry Section -->
+                <div id="affiliate_manual_section" style="display: none; margin-top: 15px;">
+                    <div id="affiliate_links_container">
+                        <div class="affiliate-link-entry" style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 10px;">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>Affiliate URL</label>
+                                    <input type="text" class="affiliate-url" placeholder="https://brand.com/product?aff=123">
+                                </div>
+                                <div class="form-group">
+                                    <label>Brand</label>
+                                    <input type="text" class="affiliate-brand" placeholder="e.g., Traeger">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label>Product Name</label>
+                                    <input type="text" class="affiliate-product-name" placeholder="e.g., Flatrock Griddle">
+                                </div>
+                                <div class="form-group">
+                                    <label>Product Type</label>
+                                    <input type="text" class="affiliate-product-type" placeholder="e.g., outdoor griddle">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addAffiliateRow()" style="background: #667eea; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+                        + Add Another Link
+                    </button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="enable_affiliate_updates" style="width: auto;">
+                        <span>Enable AI-powered affiliate link updates in content</span>
+                    </label>
+                    <div class="help-text">When enabled, the bot will scan each post and intelligently add/remove affiliate links</div>
+                </div>
+            </div>
+            
             <!-- Execution Mode -->
             <div class="form-section">
                 <div class="section-title">
@@ -587,6 +676,16 @@
             });
         });
         
+        // Show/hide affiliate sections based on mode
+        document.querySelectorAll('input[name="affiliate_mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('affiliate_csv_section').style.display = 
+                    this.value === 'csv' ? 'block' : 'none';
+                document.getElementById('affiliate_manual_section').style.display = 
+                    this.value === 'manual' ? 'block' : 'none';
+            });
+        });
+        
         async function loadSites() {
             try {
                 const response = await fetch(`${API_BASE}/sites`);
@@ -634,6 +733,14 @@
             if (input.files.length > 0) {
                 nameDisplay.textContent = '✓ ' + input.files[0].name;
             }
+        }
+        
+        function addAffiliateRow() {
+            const container = document.getElementById('affiliate_links_container');
+            const newRow = container.firstElementChild.cloneNode(true);
+            // Clear all inputs
+            newRow.querySelectorAll('input').forEach(input => input.value = '');
+            container.appendChild(newRow);
         }
         
         function showLoading(message) {
@@ -851,6 +958,62 @@
         async function runPipeline() {
             const form = document.getElementById('seoForm');
             const formData = new FormData(form);
+            
+            // Handle affiliate links first if configured
+            const affiliateMode = document.querySelector('input[name="affiliate_mode"]:checked').value;
+            const enableAffiliateUpdates = document.getElementById('enable_affiliate_updates').checked;
+            
+            if (affiliateMode !== 'none' && enableAffiliateUpdates) {
+                const siteName = document.getElementById('site_selector').value || 
+                                extractSiteName(document.getElementById('site_url').value);
+                
+                if (affiliateMode === 'csv') {
+                    // Upload CSV
+                    const csvFile = document.getElementById('affiliate_csv_file');
+                    if (csvFile.files.length > 0) {
+                        const affiliateFormData = new FormData();
+                        affiliateFormData.append('site_name', siteName);
+                        affiliateFormData.append('csv_file', csvFile.files[0]);
+                        
+                        try {
+                            const response = await fetch(`${API_BASE}/affiliate/links/upload`, {
+                                method: 'POST',
+                                body: affiliateFormData
+                            });
+                            const result = await response.json();
+                            console.log('Affiliate CSV upload result:', result);
+                        } catch (e) {
+                            console.error('Error uploading affiliate CSV:', e);
+                        }
+                    }
+                } else if (affiliateMode === 'manual') {
+                    // Add manual entries
+                    const entries = document.querySelectorAll('.affiliate-link-entry');
+                    for (const entry of entries) {
+                        const url = entry.querySelector('.affiliate-url').value;
+                        const brand = entry.querySelector('.affiliate-brand').value;
+                        const productName = entry.querySelector('.affiliate-product-name').value;
+                        const productType = entry.querySelector('.affiliate-product-type').value;
+                        
+                        if (url && brand && productName && productType) {
+                            try {
+                                const response = await fetch(`${API_BASE}/affiliate/links/add`, {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        site_name: siteName,
+                                        url, brand, product_name: productName, product_type: productType
+                                    })
+                                });
+                                const result = await response.json();
+                                console.log('Affiliate link added:', result);
+                            } catch (e) {
+                                console.error('Error adding affiliate link:', e);
+                            }
+                        }
+                    }
+                }
+            }
 
             const siteSelector = document.getElementById('site_selector');
 

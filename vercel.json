@@ -11,6 +11,12 @@
     { "src": "/api/niche/(.*)", "dest": "api/generate.py" },
     { "src": "/api/plan/(.*)", "dest": "api/generate.py" },
     { "src": "/api/health", "dest": "api/generate.py" },
+    { "src": "/api/affiliate/links", "dest": "api/generate.py" },
+    { "src": "/api/affiliate/links/add", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/affiliate/links/upload", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/affiliate/links/delete/(.*)", "dest": "api/generate.py", "methods": ["DELETE"] },
+    { "src": "/api/affiliate/update-content", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/affiliate/bulk-update", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/(.*)", "dest": "api/generate.py" }
   ]
 }

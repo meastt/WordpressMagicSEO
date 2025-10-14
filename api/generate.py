@@ -13,6 +13,8 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from seo_automation_main import SEOAutomationPipeline
+from affiliate_link_manager import AffiliateLinkManager
+from affiliate_link_updater import AffiliateLinkUpdater
 
 app = Flask(__name__)
 CORS(app)
@@ -370,6 +372,362 @@ def health_check():
         "timestamp": datetime.now().isoformat(),
         "version": "3.0-ai"
     })
+
+
+# ============================================================================
+# AFFILIATE LINK MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.route("/api/affiliate/links", methods=["GET"])
+def get_affiliate_links():
+    """
+    Get all affiliate links for a site.
+    Query params: site_name (required)
+    """
+    site_name = request.args.get('site_name')
+    
+    if not site_name:
+        return jsonify({"error": "site_name parameter required"}), 400
+    
+    try:
+        manager = AffiliateLinkManager(site_name)
+        links = manager.get_all_links()
+        stats = manager.get_stats()
+        
+        return jsonify({
+            "site": site_name,
+            "links": links,
+            "stats": stats
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to retrieve affiliate links",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/affiliate/links/add", methods=["POST"])
+def add_affiliate_link():
+    """
+    Add a single affiliate link manually.
+    JSON body: {site_name, url, brand, product_name, product_type, keywords (optional)}
+    """
+    data = request.get_json()
+    
+    site_name = data.get('site_name')
+    url = data.get('url')
+    brand = data.get('brand')
+    product_name = data.get('product_name')
+    product_type = data.get('product_type')
+    keywords = data.get('keywords', [])
+    
+    if not all([site_name, url, brand, product_name, product_type]):
+        return jsonify({
+            "error": "Missing required fields: site_name, url, brand, product_name, product_type"
+        }), 400
+    
+    try:
+        manager = AffiliateLinkManager(site_name)
+        link = manager.add_link(url, brand, product_name, product_type, keywords)
+        
+        return jsonify({
+            "success": True,
+            "link": link,
+            "message": "Affiliate link added successfully"
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to add affiliate link",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/affiliate/links/upload", methods=["POST"])
+def upload_affiliate_links_csv():
+    """
+    Upload multiple affiliate links via CSV.
+    Expects: multipart/form-data with 'csv_file' and 'site_name'
+    """
+    site_name = request.form.get('site_name')
+    
+    if not site_name:
+        return jsonify({"error": "site_name parameter required"}), 400
+    
+    if 'csv_file' not in request.files:
+        return jsonify({"error": "No CSV file uploaded"}), 400
+    
+    csv_file = request.files['csv_file']
+    
+    if csv_file.filename == '' or not csv_file.filename.endswith('.csv'):
+        return jsonify({"error": "Please upload a CSV file"}), 400
+    
+    try:
+        # Read CSV content
+        csv_content = csv_file.read().decode('utf-8')
+        
+        # Process the CSV
+        manager = AffiliateLinkManager(site_name)
+        results = manager.add_links_from_csv(csv_content)
+        
+        return jsonify({
+            "success": True,
+            "site": site_name,
+            "results": results,
+            "message": f"Processed CSV: {results['added']} added, {results['skipped']} skipped"
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to process CSV",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/affiliate/links/delete/<int:link_id>", methods=["DELETE"])
+def delete_affiliate_link(link_id):
+    """
+    Delete an affiliate link by ID.
+    Query params: site_name (required)
+    """
+    site_name = request.args.get('site_name')
+    
+    if not site_name:
+        return jsonify({"error": "site_name parameter required"}), 400
+    
+    try:
+        manager = AffiliateLinkManager(site_name)
+        success = manager.delete_link(link_id)
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": f"Link {link_id} deleted successfully"
+            })
+        else:
+            return jsonify({
+                "error": f"Link {link_id} not found"
+            }), 404
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to delete link",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/affiliate/update-content", methods=["POST"])
+def update_content_with_affiliates():
+    """
+    Use AI to update content with affiliate links.
+    
+    JSON body:
+    {
+        "site_name": "domain.com",
+        "post_id": 123,  // Optional - for updating specific post
+        "content": "HTML content",  // Optional if post_id provided
+        "title": "Post title",
+        "keywords": ["keyword1", "keyword2"],  // Optional
+        "auto_publish": false  // If true, updates the post in WordPress
+    }
+    """
+    data = request.get_json()
+    
+    site_name = data.get('site_name')
+    post_id = data.get('post_id')
+    content = data.get('content')
+    title = data.get('title')
+    keywords = data.get('keywords', [])
+    auto_publish = data.get('auto_publish', False)
+    
+    if not site_name:
+        return jsonify({"error": "site_name required"}), 400
+    
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_key:
+        return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+    
+    try:
+        # Get affiliate links for this site
+        link_manager = AffiliateLinkManager(site_name)
+        available_links = link_manager.get_all_links()
+        
+        if not available_links:
+            return jsonify({
+                "error": "No affiliate links configured for this site",
+                "message": "Please add affiliate links first"
+            }), 400
+        
+        # If post_id provided but no content, fetch from WordPress
+        if post_id and not content:
+            from config import get_site
+            from wordpress_publisher import WordPressPublisher
+            
+            site_config = get_site(site_name)
+            wp = WordPressPublisher(
+                site_config['url'],
+                site_config['wp_username'],
+                site_config['wp_app_password']
+            )
+            
+            post_data = wp.get_post(post_id)
+            content = post_data.get('content', {}).get('rendered', '')
+            title = title or post_data.get('title', {}).get('rendered', '')
+        
+        if not content or not title:
+            return jsonify({"error": "content and title required"}), 400
+        
+        # Update content with AI
+        updater = AffiliateLinkUpdater(anthropic_key)
+        result = updater.update_content_with_affiliate_links(
+            content=content,
+            title=title,
+            available_links=available_links,
+            keywords=keywords
+        )
+        
+        # Update usage counts for added links
+        for added_link in result.get('links_added', []):
+            for link in available_links:
+                if link['url'] == added_link.get('url'):
+                    link_manager.increment_usage(link['id'])
+                    break
+        
+        # Auto-publish if requested
+        if auto_publish and post_id and result.get('success'):
+            from config import get_site
+            from wordpress_publisher import WordPressPublisher
+            
+            site_config = get_site(site_name)
+            wp = WordPressPublisher(
+                site_config['url'],
+                site_config['wp_username'],
+                site_config['wp_app_password']
+            )
+            
+            wp.update_post(post_id, content=result['updated_content'])
+            result['published'] = True
+            result['post_id'] = post_id
+        
+        return jsonify({
+            "success": result.get('success', False),
+            **result
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to update content",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/affiliate/bulk-update", methods=["POST"])
+def bulk_update_posts_with_affiliates():
+    """
+    Bulk update multiple posts with affiliate links.
+    
+    JSON body:
+    {
+        "site_name": "domain.com",
+        "post_ids": [123, 456, 789],  // WordPress post IDs
+        "auto_publish": false,  // If true, updates posts in WordPress
+        "limit": 10  // Optional - max posts to update
+    }
+    """
+    data = request.get_json()
+    
+    site_name = data.get('site_name')
+    post_ids = data.get('post_ids', [])
+    auto_publish = data.get('auto_publish', False)
+    limit = data.get('limit')
+    
+    if not site_name:
+        return jsonify({"error": "site_name required"}), 400
+    
+    if not post_ids:
+        return jsonify({"error": "post_ids required"}), 400
+    
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_key:
+        return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+    
+    try:
+        from config import get_site
+        from wordpress_publisher import WordPressPublisher
+        
+        # Get site config and WordPress connection
+        site_config = get_site(site_name)
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password']
+        )
+        
+        # Get affiliate links
+        link_manager = AffiliateLinkManager(site_name)
+        available_links = link_manager.get_all_links()
+        
+        if not available_links:
+            return jsonify({
+                "error": "No affiliate links configured for this site"
+            }), 400
+        
+        # Limit posts if specified
+        if limit:
+            post_ids = post_ids[:limit]
+        
+        # Fetch posts from WordPress
+        posts = []
+        for post_id in post_ids:
+            try:
+                post_data = wp.get_post(post_id)
+                posts.append({
+                    'id': post_id,
+                    'title': post_data.get('title', {}).get('rendered', ''),
+                    'content': post_data.get('content', {}).get('rendered', ''),
+                    'keywords': []  # Could extract from tags/categories if needed
+                })
+            except Exception as e:
+                print(f"Error fetching post {post_id}: {e}")
+                continue
+        
+        # Update posts with AI
+        updater = AffiliateLinkUpdater(anthropic_key)
+        results = updater.batch_update_posts(posts, available_links)
+        
+        # Publish if requested
+        if auto_publish:
+            for result in results:
+                if result.get('success') and result.get('post_id'):
+                    try:
+                        wp.update_post(
+                            result['post_id'],
+                            content=result['updated_content']
+                        )
+                        result['published'] = True
+                    except Exception as e:
+                        result['publish_error'] = str(e)
+        
+        # Update usage counts
+        for result in results:
+            for added_link in result.get('links_added', []):
+                for link in available_links:
+                    if link['url'] == added_link.get('url'):
+                        link_manager.increment_usage(link['id'])
+                        break
+        
+        return jsonify({
+            "success": True,
+            "total_posts": len(results),
+            "results": results
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to bulk update posts",
+            "details": str(e)
+        }), 500
 
 
 if __name__ == "__main__":
