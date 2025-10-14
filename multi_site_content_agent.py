@@ -104,10 +104,26 @@ class DataProcessor:
         self.pages_df: pd.DataFrame | None = None
         self.queries_df: pd.DataFrame | None = None
         self.ga4_df: pd.DataFrame | None = None
+        # Enhanced GSC tabs
+        self.countries_df: pd.DataFrame | None = None
+        self.devices_df: pd.DataFrame | None = None
+        self.search_appearance_df: pd.DataFrame | None = None
+        self.dates_df: pd.DataFrame | None = None
+
+    def _normalize_gsc_metrics(self, df: pd.DataFrame) -> None:
+        """Normalize GSC metric columns (clicks, impressions, CTR, position) in place."""
+        numeric_cols = ["clicks", "impressions", "ctr", "position"]
+        for col in numeric_cols:
+            if col in df.columns:
+                if col == "ctr":
+                    if df[col].dtype == 'object':
+                        df[col] = df[col].astype(str).str.replace("%", "").astype(float) / 100
+                else:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
 
     def load_gsc(self) -> pd.DataFrame:
         """Load Google Search Console CSV or Excel file and combine Queries + Pages data."""
-        
+
         # Check file extension
         if self.gsc_path.endswith('.xlsx') or self.gsc_path.endswith('.xls'):
             # Read Excel file
@@ -138,18 +154,52 @@ class DataProcessor:
                 # Check if this is a multi-sheet export (has separate Queries and Pages sheets)
                 excel_file = pd.ExcelFile(self.gsc_path)
                 if 'Queries' in excel_file.sheet_names and 'Pages' in excel_file.sheet_names:
-                    # Load both sheets
+                    print(f"\n📊 Loading GSC data from multi-sheet export...")
+
+                    # Load Queries sheet
                     self.queries_df = pd.read_excel(self.gsc_path, sheet_name='Queries')
                     self.queries_df.columns = [col.strip().lower().replace(" ", "_") for col in self.queries_df.columns]
-
                     if 'top_queries' in self.queries_df.columns:
                         self.queries_df.rename(columns={'top_queries': 'query'}, inplace=True)
+                    print(f"   ✓ Loaded Queries sheet: {len(self.queries_df)} queries")
 
+                    # Load Pages sheet
                     self.pages_df = pd.read_excel(self.gsc_path, sheet_name='Pages')
                     self.pages_df.columns = [col.strip().lower().replace(" ", "_") for col in self.pages_df.columns]
-
                     if 'top_pages' in self.pages_df.columns:
                         self.pages_df.rename(columns={'top_pages': 'page'}, inplace=True)
+                    print(f"   ✓ Loaded Pages sheet: {len(self.pages_df)} pages")
+
+                    # Load Countries sheet if available
+                    if 'Countries' in excel_file.sheet_names:
+                        self.countries_df = pd.read_excel(self.gsc_path, sheet_name='Countries')
+                        self.countries_df.columns = [col.strip().lower().replace(" ", "_") for col in self.countries_df.columns]
+                        self._normalize_gsc_metrics(self.countries_df)
+                        print(f"   ✓ Loaded Countries sheet: {len(self.countries_df)} countries")
+
+                    # Load Devices sheet if available
+                    if 'Devices' in excel_file.sheet_names:
+                        self.devices_df = pd.read_excel(self.gsc_path, sheet_name='Devices')
+                        self.devices_df.columns = [col.strip().lower().replace(" ", "_") for col in self.devices_df.columns]
+                        self._normalize_gsc_metrics(self.devices_df)
+                        print(f"   ✓ Loaded Devices sheet: {len(self.devices_df)} device types")
+
+                    # Load Search Appearance sheet if available
+                    if 'Search Appearance' in excel_file.sheet_names:
+                        self.search_appearance_df = pd.read_excel(self.gsc_path, sheet_name='Search Appearance')
+                        self.search_appearance_df.columns = [col.strip().lower().replace(" ", "_") for col in self.search_appearance_df.columns]
+                        self._normalize_gsc_metrics(self.search_appearance_df)
+                        print(f"   ✓ Loaded Search Appearance sheet: {len(self.search_appearance_df)} appearance types")
+
+                    # Load Dates sheet if available
+                    if 'Dates' in excel_file.sheet_names:
+                        self.dates_df = pd.read_excel(self.gsc_path, sheet_name='Dates')
+                        self.dates_df.columns = [col.strip().lower().replace(" ", "_") for col in self.dates_df.columns]
+                        self._normalize_gsc_metrics(self.dates_df)
+                        # Convert date column to datetime
+                        if 'date' in self.dates_df.columns:
+                            self.dates_df['date'] = pd.to_datetime(self.dates_df['date'], errors='coerce')
+                        print(f"   ✓ Loaded Dates sheet: {len(self.dates_df)} date entries")
 
                     df = self._create_combined_data()
 
@@ -653,6 +703,134 @@ class DataProcessor:
         # Filter out empty strings
         queries = [q for q in queries if q and len(q) > 0]
         return queries[:top_n]
+
+    # Enhanced GSC analysis methods
+
+    def get_device_breakdown(self) -> Optional[pd.DataFrame]:
+        """
+        Get device performance breakdown (Mobile/Desktop/Tablet).
+
+        Returns:
+            DataFrame with device, clicks, impressions, ctr, position
+            or None if device data not available
+        """
+        return self.devices_df if self.devices_df is not None else None
+
+    def get_mobile_vs_desktop_performance(self) -> Dict[str, Dict]:
+        """
+        Compare mobile vs desktop performance.
+
+        Returns:
+            Dict with mobile and desktop metrics, or empty dict if not available
+        """
+        if self.devices_df is None or len(self.devices_df) == 0:
+            return {}
+
+        result = {}
+        for _, row in self.devices_df.iterrows():
+            device = row.get('device', '').lower()
+            if device in ['mobile', 'desktop']:
+                result[device] = {
+                    'clicks': row.get('clicks', 0),
+                    'impressions': row.get('impressions', 0),
+                    'ctr': row.get('ctr', 0),
+                    'position': row.get('position', 0)
+                }
+        return result
+
+    def is_mobile_first_site(self) -> bool:
+        """
+        Determine if site is mobile-first based on traffic distribution.
+
+        Returns:
+            True if mobile traffic > desktop traffic
+        """
+        breakdown = self.get_mobile_vs_desktop_performance()
+        if not breakdown or 'mobile' not in breakdown or 'desktop' not in breakdown:
+            return False  # Default to desktop if unknown
+
+        mobile_clicks = breakdown['mobile'].get('clicks', 0)
+        desktop_clicks = breakdown['desktop'].get('clicks', 0)
+
+        return mobile_clicks > desktop_clicks
+
+    def get_geographic_performance(self, top_n: int = 10) -> Optional[pd.DataFrame]:
+        """
+        Get top performing countries.
+
+        Args:
+            top_n: Number of top countries to return
+
+        Returns:
+            DataFrame with country performance data
+        """
+        if self.countries_df is not None and len(self.countries_df) > 0:
+            return self.countries_df.nlargest(top_n, 'clicks')
+        return None
+
+    def get_trending_vs_declining(self, lookback_days: int = 30) -> Dict[str, List[str]]:
+        """
+        Identify trending and declining content based on time-series data.
+
+        Args:
+            lookback_days: Number of days to analyze for trends
+
+        Returns:
+            Dict with 'trending' and 'declining' lists of topics
+        """
+        if self.dates_df is None or len(self.dates_df) == 0:
+            return {'trending': [], 'declining': []}
+
+        # Group by date and calculate rolling averages
+        # This is a simplified implementation - in production you'd want more sophisticated trend detection
+        dates_sorted = self.dates_df.sort_values('date')
+
+        trending = []
+        declining = []
+
+        # TODO: Implement time-series trend analysis
+        # For now, return empty lists - this can be enhanced based on specific needs
+
+        return {'trending': trending, 'declining': declining}
+
+    def get_rich_results_opportunities(self) -> Optional[pd.DataFrame]:
+        """
+        Get search appearance data showing rich result opportunities.
+
+        Returns:
+            DataFrame with search appearance types and their performance
+        """
+        return self.search_appearance_df if self.search_appearance_df is not None else None
+
+    def get_data_summary(self) -> Dict[str, any]:
+        """
+        Get a comprehensive summary of all available data.
+
+        Returns:
+            Dict with summary statistics from all data sources
+        """
+        summary = {
+            'gsc_available': True if self.df is not None else False,
+            'ga4_available': True if self.ga4_df is not None else False,
+            'queries_count': len(self.queries_df) if self.queries_df is not None else 0,
+            'pages_count': len(self.pages_df) if self.pages_df is not None else 0,
+            'countries_available': True if self.countries_df is not None else False,
+            'devices_available': True if self.devices_df is not None else False,
+            'search_appearance_available': True if self.search_appearance_df is not None else False,
+            'dates_available': True if self.dates_df is not None else False,
+        }
+
+        # Add device breakdown if available
+        if self.devices_df is not None:
+            summary['device_breakdown'] = self.get_mobile_vs_desktop_performance()
+            summary['is_mobile_first'] = self.is_mobile_first_site()
+
+        # Add top country if available
+        if self.countries_df is not None and len(self.countries_df) > 0:
+            top_country = self.countries_df.nlargest(1, 'clicks').iloc[0]
+            summary['top_country'] = top_country.get('country', 'Unknown')
+
+        return summary
 
 
 class TopicPlanner:
