@@ -119,9 +119,11 @@ def analyze_only():
         
         # Run analysis with AI planner
         use_ai = request.form.get("use_ai_planner", "true").lower() == "true"
+        force_new = request.form.get("force_new_plan", "false").lower() == "true"
         result = pipeline.run(
             execution_mode="view_plan",
-            use_ai_planner=use_ai
+            use_ai_planner=use_ai,
+            force_new_plan=force_new
         )
         
         # Format response
@@ -225,6 +227,7 @@ def execute_full_pipeline():
         )
         
         # Run pipeline with specified execution mode
+        force_new = request.form.get("force_new_plan", "false").lower() == "true"
         result = pipeline.run(
             execution_mode=execution_mode,
             schedule_mode=schedule_mode,
@@ -232,7 +235,8 @@ def execute_full_pipeline():
             delay_hours=delay_hours,
             limit=limit,
             output_csv=output_csv,
-            use_ai_planner=use_ai
+            use_ai_planner=use_ai,
+            force_new_plan=force_new
         )
 
         # Get error details from result
@@ -282,9 +286,9 @@ def list_sites_endpoint():
             stats = state_mgr.get_stats()
             site_status.append({
                 'name': site_name,
-                'pending_actions': stats['pending'],
-                'completed_actions': stats['completed'],
-                'total_actions': stats['total_actions']
+                'pending_actions': stats.get('pending', 0),
+                'completed_actions': stats.get('completed', 0),
+                'total_actions': stats.get('total_actions', 0)
             })
         
         return jsonify({

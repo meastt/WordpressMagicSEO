@@ -713,6 +713,14 @@
                     <input type="number" id="limit" name="limit" value="5" min="1" placeholder="e.g., 5">
                     <div class="help-text">Only the top N highest-priority actions will be executed (creates, updates, or deletes based on GSC analysis)</div>
                 </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="force_new_plan" name="force_new_plan" style="width: auto;">
+                        <span>Force New Action Plan</span>
+                    </label>
+                    <div class="help-text">Check this to regenerate the action plan from scratch. Normally, the system will resume from where you left off if you've already executed some actions. Only check this if you want to completely restart with fresh GSC data analysis.</div>
+                </div>
             </div>
             
             <!-- Quick Actions -->
@@ -852,7 +860,20 @@
                     data.sites.forEach(site => {
                         const option = document.createElement('option');
                         option.value = site.name;
-                        option.textContent = `${site.name} (${site.pending_actions} SEO actions pending)`;
+
+                        // Show completion status
+                        let statusText = '';
+                        if (site.completed_actions > 0 && site.pending_actions > 0) {
+                            statusText = ` (${site.completed_actions} done, ${site.pending_actions} pending)`;
+                        } else if (site.pending_actions > 0) {
+                            statusText = ` (${site.pending_actions} actions pending)`;
+                        } else if (site.completed_actions > 0) {
+                            statusText = ` (${site.completed_actions} completed)`;
+                        } else {
+                            statusText = ' (no plan yet)';
+                        }
+
+                        option.textContent = `${site.name}${statusText}`;
                         selector.appendChild(option);
 
                         // Also populate bulk update modal

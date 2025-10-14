@@ -127,11 +127,12 @@ class SEOAutomationPipeline:
         delay_hours: float = 8,
         limit: int = None,
         output_csv: str = "seo_automation_results.csv",
-        use_ai_planner: bool = True
+        use_ai_planner: bool = True,
+        force_new_plan: bool = False
     ) -> Dict:
         """
         Run the complete enhanced pipeline.
-        
+
         Args:
             execution_mode: "view_plan" (analyze only), "execute_all", "execute_top_n", "continue"
             schedule_mode: "all_at_once", "daily", "hourly", "custom"
@@ -140,7 +141,8 @@ class SEOAutomationPipeline:
             limit: Maximum number of actions to execute (for execute_top_n mode)
             output_csv: Path to save results CSV
             use_ai_planner: Use AI planner (True) or legacy rule-based planner (False)
-        
+            force_new_plan: Force regeneration of action plan (ignores existing saved plan)
+
         Returns:
             Dictionary with execution summary and action plan
         """
@@ -222,9 +224,29 @@ class SEOAutomationPipeline:
 
         # Check if we have a saved plan with pending actions
         pending_actions_data = self.state_mgr.get_pending_actions()
+        stats = self.state_mgr.get_stats()
 
-        if pending_actions_data:
-            print(f"  ✓ Found existing plan with {len(pending_actions_data)} pending actions")
+        # Decision logic: Use existing plan or create new one
+        use_existing_plan = False
+
+        if force_new_plan:
+            # User explicitly wants to regenerate the plan
+            print(f"  ⚠️  Force regenerating action plan (existing plan will be replaced)")
+            use_existing_plan = False
+        elif pending_actions_data and stats['completed'] > 0:
+            # We have an existing plan with some completed actions - resume it
+            use_existing_plan = True
+            print(f"  ✓ Resuming existing plan: {stats['completed']} completed, {len(pending_actions_data)} pending")
+        elif pending_actions_data and execution_mode == "view_plan":
+            # In view_plan mode, always show the current plan if it exists
+            use_existing_plan = True
+            print(f"  ✓ Showing existing plan with {len(pending_actions_data)} pending actions")
+        elif pending_actions_data and execution_mode != "view_plan":
+            # Execution mode but no completed actions yet - fresh plan from previous view
+            use_existing_plan = True
+            print(f"  ✓ Executing existing plan: {len(pending_actions_data)} actions ready")
+
+        if use_existing_plan:
             # Convert stored actions back to ActionItem objects
             from strategic_planner import ActionItem, ActionType
             self.action_plan = []
@@ -243,6 +265,7 @@ class SEOAutomationPipeline:
                 action.id = action_data['id']
                 self.action_plan.append(action)
         else:
+            # No existing plan or user wants to regenerate
             print(f"  ✓ Creating new action plan...")
             self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
             self.action_plan = self.strategic_planner.create_master_plan(
@@ -274,6 +297,7 @@ class SEOAutomationPipeline:
                 })
 
             self.state_mgr.update_plan(plan_data)
+            print(f"  ✓ Saved {len(plan_data)} actions to state tracker")
 
         # Get summary from current plan
         plan_summary = {
