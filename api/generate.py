@@ -373,28 +373,40 @@ def execute_next_action():
         try:
             if action_data['action_type'] == 'create':
                 # Generate and publish new content
-                content = content_gen.generate_seo_content(
-                    title=action_data['title'],
-                    keywords=action_data.get('keywords', []),
-                    target_word_count=1500
+                title = action_data['title']
+                keywords = action_data.get('keywords', [])
+
+                # Do research first
+                research = content_gen.research_topic(title, keywords)
+
+                # Get affiliate links if available
+                affiliate_links = []
+                if affiliate_mgr:
+                    affiliate_links = affiliate_mgr.get_all_links()
+
+                # Generate complete article
+                article_data = content_gen.generate_article(
+                    topic_title=title,
+                    keywords=keywords,
+                    research=research,
+                    meta_description=f"Learn about {title}",
+                    affiliate_links=affiliate_links
                 )
 
-                # Add affiliate links if available
-                if affiliate_mgr:
-                    from affiliate_link_updater import AffiliateLinkUpdater
-                    updater = AffiliateLinkUpdater(anthropic_key)
-                    result_aff = updater.update_content_with_affiliate_links(
-                        content=content,
-                        title=action_data['title'],
-                        available_links=affiliate_mgr.get_all_links(),
-                        keywords=action_data.get('keywords', [])
-                    )
-                    if result_aff.get('success'):
-                        content = result_aff['updated_content']
-                        for link in result_aff.get('links_added', []):
-                            affiliate_mgr.increment_usage(link.get('link_id'))
+                # Create the post
+                post_id = wp.create_post(
+                    title=article_data.get('title', title),
+                    content=article_data['content'],
+                    categories=article_data.get('categories', []),
+                    tags=article_data.get('tags', [])
+                )
 
-                post_id = wp.create_post(action_data['title'], content)
+                # Update affiliate link usage if any were added
+                if affiliate_mgr and affiliate_links:
+                    for link in affiliate_links:
+                        if link['url'] in article_data['content']:
+                            affiliate_mgr.increment_usage(link['id'])
+
                 result['post_id'] = post_id
                 result['success'] = True
                 state_mgr.mark_completed(action_data['id'], post_id)
@@ -407,30 +419,44 @@ def execute_next_action():
 
                 post_id = post['id']
                 existing_content = post.get('content', {}).get('rendered', '')
+                title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
+                keywords = action_data.get('keywords', [])
 
-                # Generate improved content
-                improved_content = content_gen.improve_existing_content(
+                # Generate improved content using generate_article with existing_content
+                # First do research
+                research = content_gen.research_topic(title, keywords)
+
+                # Get affiliate links for this update if available
+                affiliate_links = []
+                if affiliate_mgr:
+                    affiliate_links = affiliate_mgr.get_all_links()
+
+                # Generate updated article
+                article_data = content_gen.generate_article(
+                    topic_title=title,
+                    keywords=keywords,
+                    research=research,
+                    meta_description=f"Updated: {title}",
                     existing_content=existing_content,
-                    title=action_data.get('title', ''),
-                    keywords=action_data.get('keywords', [])
+                    affiliate_links=affiliate_links
                 )
 
-                # Add affiliate links if available
-                if affiliate_mgr:
-                    from affiliate_link_updater import AffiliateLinkUpdater
-                    updater = AffiliateLinkUpdater(anthropic_key)
-                    result_aff = updater.update_content_with_affiliate_links(
-                        content=improved_content,
-                        title=action_data.get('title', ''),
-                        available_links=affiliate_mgr.get_all_links(),
-                        keywords=action_data.get('keywords', [])
-                    )
-                    if result_aff.get('success'):
-                        improved_content = result_aff['updated_content']
-                        for link in result_aff.get('links_added', []):
-                            affiliate_mgr.increment_usage(link.get('link_id'))
+                # Update the post with new content
+                wp.update_post(
+                    post_id,
+                    title=article_data.get('title', title),
+                    content=article_data['content'],
+                    categories=article_data.get('categories', []),
+                    tags=article_data.get('tags', [])
+                )
 
-                wp.update_post(post_id, content=improved_content)
+                # Update affiliate link usage if any were added
+                if affiliate_mgr and affiliate_links:
+                    # Count how many affiliate links appear in the new content
+                    for link in affiliate_links:
+                        if link['url'] in article_data['content']:
+                            affiliate_mgr.increment_usage(link['id'])
+
                 result['post_id'] = post_id
                 result['success'] = True
                 state_mgr.mark_completed(action_data['id'], post_id)
