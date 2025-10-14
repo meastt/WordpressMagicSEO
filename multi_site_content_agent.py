@@ -187,15 +187,18 @@ class DataProcessor:
     def load_ga4(self) -> pd.DataFrame:
         """
         Load Google Analytics 4 CSV export.
-        
-        Expected columns (flexible, will normalize):
-        - page / landing_page / page_path
-        - sessions / views
-        - engagement_rate
-        - avg_engagement_time / average_engagement_time
-        - bounce_rate
-        - conversions (optional)
-        
+
+        Supports two export formats:
+        1. Standard CSV/Excel with columns: page, views, users, bounce_rate, etc.
+        2. "Reports Snapshot" format with hashtag-delimited sections
+
+        For Reports Snapshot, extracts the "Page title and screen class" section which contains:
+        - Page title and screen class
+        - Views
+        - Active users
+        - Event count
+        - Bounce rate
+
         Returns:
             pd.DataFrame: Normalized GA4 data with columns:
                 - page (URL)
@@ -209,6 +212,18 @@ class DataProcessor:
             return pd.DataFrame()
 
         print(f"\n📊 Loading GA4 data from: {self.ga4_path}")
+
+        # First, check if this is a "Reports Snapshot" format by reading raw lines
+        try:
+            with open(self.ga4_path, 'r', encoding='utf-8') as f:
+                first_lines = [f.readline() for _ in range(5)]
+                is_reports_snapshot = any('Reports snapshot' in line or '# ------' in line for line in first_lines)
+        except:
+            is_reports_snapshot = False
+
+        if is_reports_snapshot:
+            print(f"   ℹ Detected GA4 'Reports Snapshot' format - using section parser")
+            return self._parse_ga4_reports_snapshot()
         
         # Read Excel or CSV file
         if self.ga4_path.endswith('.xlsx') or self.ga4_path.endswith('.xls'):
@@ -340,7 +355,145 @@ class DataProcessor:
         
         self.ga4_df = df
         return df
-    
+
+    def _parse_ga4_reports_snapshot(self) -> pd.DataFrame:
+        """
+        Parse GA4 'Reports Snapshot' CSV format which uses hashtag-delimited sections.
+
+        Format example:
+        # ----------------------------------------
+        # Reports snapshot
+        # ----------------------------------------
+        ...
+        # Start date: 20241013
+        # End date: 20251013
+        Page title and screen class    Views    Active users    Event count    Bounce rate
+        Article Title 1    1370    1070    4372    0.5580847724
+        Article Title 2    1115    953    3320    0.815920398
+        ...
+        #
+        # Start date: 20241013
+        First user source / medium    Active users
+        ...
+
+        We want to extract the "Page title and screen class" section.
+        """
+        print(f"   📄 Parsing GA4 Reports Snapshot format...")
+
+        try:
+            with open(self.ga4_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+        except UnicodeDecodeError:
+            try:
+                with open(self.ga4_path, 'r', encoding='latin-1') as f:
+                    lines = f.readlines()
+            except Exception as e:
+                print(f"   ❌ Failed to read file: {e}")
+                return pd.DataFrame()
+
+        # Find the "Page title" section
+        page_section_start = None
+        page_section_end = None
+
+        for i, line in enumerate(lines):
+            line_lower = line.lower()
+
+            # Look for section that contains page titles
+            if 'page title' in line_lower and 'screen class' in line_lower:
+                # This is the header row for the page section
+                page_section_start = i
+                print(f"   ✓ Found 'Page title' section at line {i + 1}")
+                continue
+
+            # If we found the start, look for the end (next # line or empty section)
+            if page_section_start is not None and page_section_end is None:
+                # Check if this is the start of a new section (line starting with #)
+                if line.strip().startswith('#'):
+                    page_section_end = i
+                    print(f"   ✓ Page section ends at line {i}")
+                    break
+
+        if page_section_start is None:
+            print(f"   ⚠️  Warning: Could not find 'Page title and screen class' section")
+            print(f"      Available sections: {[l.strip() for l in lines if 'user' in l.lower() or 'page' in l.lower()][:5]}")
+            return pd.DataFrame()
+
+        # If we didn't find an end, use the rest of the file
+        if page_section_end is None:
+            page_section_end = len(lines)
+
+        # Extract the page section lines
+        section_lines = lines[page_section_start:page_section_end]
+
+        # Remove empty lines and lines starting with #
+        data_lines = [line for line in section_lines if line.strip() and not line.strip().startswith('#')]
+
+        if len(data_lines) < 2:  # Need at least header + 1 data row
+            print(f"   ⚠️  Warning: Page section has insufficient data ({len(data_lines)} lines)")
+            return pd.DataFrame()
+
+        # Parse into DataFrame using tab separator (GA4 uses tabs)
+        from io import StringIO
+        csv_data = ''.join(data_lines)
+
+        try:
+            # Try tab-separated first (most common in GA4 exports)
+            df = pd.read_csv(StringIO(csv_data), sep='\t')
+
+            # If that resulted in only 1 column, try comma-separated
+            if len(df.columns) == 1:
+                df = pd.read_csv(StringIO(csv_data), sep=',')
+
+            print(f"   ✓ Parsed {len(df)} rows from Page title section")
+            print(f"   ✓ Columns: {list(df.columns)}")
+
+            # Normalize column names
+            df.columns = [col.strip().lower().replace(" ", "_").replace("(", "").replace(")", "") for col in df.columns]
+
+            # Map GA4 columns to our standard names
+            column_mapping = {
+                'page_title_and_screen_class': 'page',
+                'page_title': 'page',
+                'views': 'sessions',
+                'active_users': 'users',
+                'event_count': 'events',
+                'bounce_rate': 'bounce_rate',
+            }
+
+            for old_col, new_col in column_mapping.items():
+                if old_col in df.columns and new_col not in df.columns:
+                    df.rename(columns={old_col: new_col}, inplace=True)
+
+            # Convert bounce rate from decimal to percentage if needed
+            if 'bounce_rate' in df.columns:
+                df['bounce_rate'] = pd.to_numeric(df['bounce_rate'], errors='coerce')
+                # If values are between 0 and 1, they're already decimals
+                # If values are > 1, they're percentages that need conversion
+                if df['bounce_rate'].max() > 1:
+                    df['bounce_rate'] = df['bounce_rate'] / 100
+
+            # Convert other numeric columns
+            numeric_cols = ['sessions', 'users', 'events', 'bounce_rate']
+            for col in numeric_cols:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+
+            # Add warning about page titles vs URLs
+            if 'page' in df.columns and len(df) > 0:
+                sample = df['page'].iloc[0] if len(df) > 0 else ''
+                if sample and not str(sample).startswith('http') and '/' not in str(sample):
+                    print(f"   ⚠️  Note: 'page' column contains page TITLES, not URLs")
+                    print(f"      This data will be used as supplementary metrics only.")
+                    print(f"      For URL-based merging with GSC, export GA4 with 'Page path' dimension.")
+
+            self.ga4_df = df
+            return df
+
+        except Exception as e:
+            print(f"   ❌ Error parsing page section: {e}")
+            print(f"      First few lines: {data_lines[:3]}")
+            return pd.DataFrame()
+
     def merge_data(self) -> pd.DataFrame:
         """
         Merge GSC and GA4 data on the 'page' column.
