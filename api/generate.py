@@ -125,17 +125,46 @@ def analyze_only():
             use_ai_planner=use_ai,
             force_new_plan=force_new
         )
-        
-        # Format response
-        return jsonify({
+
+        # Enrich UPDATE actions with titles from WordPress
+        # Create a temporary WordPress publisher to fetch titles
+        from wordpress_publisher import WordPressPublisher
+        temp_wp = WordPressPublisher(
+            pipeline.site_url,
+            pipeline.wp_username,
+            pipeline.wp_app_password,
+            rate_limit_delay=0.5  # Fast for fetching only
+        )
+
+        enriched_action_plan = []
+        for action in result['action_plan'][:50]:  # Limit to top 50
+            # If it's an UPDATE action with a URL but no title, fetch the title from WordPress
+            if action['action_type'] == 'update' and action['url'] and not action.get('title'):
+                try:
+                    post = temp_wp.find_post_by_url(action['url'])
+                    if post:
+                        action['title'] = post.get('title', {}).get('rendered', '') if isinstance(post.get('title'), dict) else post.get('title', '')
+                except Exception as e:
+                    # If fetching fails, leave title empty
+                    print(f"Warning: Could not fetch title for {action['url']}: {e}")
+            enriched_action_plan.append(action)
+
+        # Save the analysis result to state for later export/reference
+        analysis_result = {
             "status": "analysis_complete",
             "mode": "ai_powered" if use_ai else "rule_based",
             "site": result['site'],
             "summary": result['summary'],
             "niche_insights": result.get('niche_insights'),
-            "action_plan": result['action_plan'][:50],  # Limit to top 50
+            "action_plan": enriched_action_plan,
             "stats": result['stats'],
-            "has_ga4": ga4_path is not None,
+            "has_ga4": ga4_path is not None
+        }
+        pipeline.state_mgr.save_analysis_result(analysis_result)
+
+        # Format response
+        return jsonify({
+            **analysis_result,
             "note": "This is analysis only. Use /execute endpoint to run actions."
         })
     
@@ -364,6 +393,159 @@ def get_action_plan(site_name):
     except Exception as e:
         return jsonify({
             "error": "Failed to retrieve action plan",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/api/export/pdf/<site_name>", methods=["GET"])
+def export_analysis_pdf(site_name):
+    """
+    Export the last analysis result as a styled PDF report.
+    """
+    try:
+        from state_manager import StateManager
+        from flask import make_response
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        import io
+
+        state_mgr = StateManager(site_name)
+        analysis = state_mgr.get_analysis_result()
+
+        if not analysis:
+            return jsonify({
+                "error": "No analysis available for this site",
+                "message": "Please run an analysis first"
+            }), 404
+
+        # Create PDF in memory
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.75*inch, bottomMargin=0.75*inch)
+        story = []
+        styles = getSampleStyleSheet()
+
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1a56db'),
+            spaceAfter=30,
+            alignment=TA_CENTER
+        )
+
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=12,
+            spaceBefore=20
+        )
+
+        # Title
+        story.append(Paragraph(f"SEO Analysis Report", title_style))
+        story.append(Paragraph(f"{analysis.get('site', site_name)}", styles['Normal']))
+        story.append(Paragraph(f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}", styles['Normal']))
+        story.append(Spacer(1, 0.3*inch))
+
+        # Summary Stats
+        story.append(Paragraph("Executive Summary", heading_style))
+        summary = analysis.get('summary', {})
+        summary_data = [
+            ['Total Actions', str(summary.get('total_actions', 0))],
+            ['Updates Recommended', str(summary.get('updates', 0))],
+            ['New Posts Suggested', str(summary.get('creates', 0))],
+            ['High Priority Items', str(summary.get('high_priority', 0))],
+        ]
+        summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb'))
+        ]))
+        story.append(summary_table)
+        story.append(Spacer(1, 0.3*inch))
+
+        # Niche Insights
+        niche = analysis.get('niche_insights')
+        if niche:
+            story.append(Paragraph("Niche Intelligence", heading_style))
+
+            if niche.get('summary'):
+                story.append(Paragraph(f"<b>Market Overview:</b> {niche['summary']}", styles['Normal']))
+                story.append(Spacer(1, 0.15*inch))
+
+            if niche.get('trends'):
+                story.append(Paragraph("<b>Top Trends:</b>", styles['Normal']))
+                for trend in niche['trends'][:5]:
+                    story.append(Paragraph(f"• {trend}", styles['Normal']))
+                story.append(Spacer(1, 0.15*inch))
+
+            if niche.get('opportunities'):
+                story.append(Paragraph("<b>Key Opportunities:</b>", styles['Normal']))
+                for opp in niche['opportunities'][:5]:
+                    story.append(Paragraph(f"• {opp}", styles['Normal']))
+                story.append(Spacer(1, 0.2*inch))
+
+        # Top Priority Actions
+        story.append(PageBreak())
+        story.append(Paragraph("Recommended Actions", heading_style))
+
+        actions = analysis.get('action_plan', [])[:15]  # Top 15
+        if actions:
+            action_data = [['Priority', 'Type', 'Title/URL', 'Reasoning']]
+            for action in actions:
+                action_data.append([
+                    f"{action.get('priority_score', 0):.1f}",
+                    action.get('action_type', '').upper(),
+                    action.get('title') or action.get('url', '')[:40] + '...' if len(action.get('url', '')) > 40 else action.get('url', ''),
+                    action.get('reasoning', '')[:60] + '...' if len(action.get('reasoning', '')) > 60 else action.get('reasoning', '')
+                ])
+
+            actions_table = Table(action_data, colWidths=[0.7*inch, 0.8*inch, 2.5*inch, 2.5*inch])
+            actions_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e40af')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('TOPPADDING', (0, 1), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP')
+            ]))
+            story.append(actions_table)
+
+        # Build PDF
+        doc.build(story)
+
+        # Prepare response
+        buffer.seek(0)
+        response = make_response(buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename="{site_name}_seo_analysis_{datetime.now().strftime("%Y%m%d")}.pdf"'
+
+        return response
+
+    except ImportError:
+        return jsonify({
+            "error": "PDF export not available",
+            "message": "reportlab library not installed. Install with: pip install reportlab"
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to generate PDF",
             "details": str(e)
         }), 500
 

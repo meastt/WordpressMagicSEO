@@ -137,12 +137,34 @@ class StateManager:
     def get_stats(self):
         """
         Get execution statistics.
-        
+
         Returns:
             dict: Statistics with keys: total_actions, completed, pending
         """
         return self.state['stats'].copy()
-    
+
+    def save_analysis_result(self, analysis: Dict):
+        """
+        Save full analysis result for later export/reference.
+
+        Args:
+            analysis: Full analysis dictionary with action_plan, summary, niche_insights, etc.
+        """
+        self.state['last_analysis'] = {
+            'timestamp': datetime.now().isoformat(),
+            'result': analysis
+        }
+        self.save()
+
+    def get_analysis_result(self):
+        """
+        Get the last saved analysis result.
+
+        Returns:
+            dict or None: Last analysis result if available
+        """
+        return self.state.get('last_analysis', {}).get('result')
+
     def clear_state(self):
         """Clear all state (use with caution)"""
         self.state = {
