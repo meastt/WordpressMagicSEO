@@ -466,6 +466,30 @@
             color: #333;
             font-size: 16px;
             font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .progress-counter {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .results-panel {
@@ -730,6 +754,10 @@
         <div class="loading-content">
             <div class="spinner"></div>
             <div id="loading_text" class="loading-text">Processing...</div>
+            <div id="progress_counter" class="progress-counter" style="display: none;">0/0</div>
+            <div class="progress-bar-container" id="progress_bar_container" style="display: none;">
+                <div id="progress_bar" class="progress-bar"></div>
+            </div>
         </div>
     </div>
 
@@ -975,13 +1003,36 @@
         }
 
         // Loading Overlay
-        function showLoading(message) {
+        function showLoading(message, showProgress = false) {
             document.getElementById('loading_text').textContent = message;
             document.getElementById('loading_overlay').classList.add('show');
+
+            const progressCounter = document.getElementById('progress_counter');
+            const progressBarContainer = document.getElementById('progress_bar_container');
+
+            if (showProgress) {
+                progressCounter.style.display = 'block';
+                progressBarContainer.style.display = 'block';
+            } else {
+                progressCounter.style.display = 'none';
+                progressBarContainer.style.display = 'none';
+            }
+        }
+
+        function updateProgress(current, total) {
+            const progressCounter = document.getElementById('progress_counter');
+            const progressBar = document.getElementById('progress_bar');
+
+            progressCounter.textContent = `${current}/${total}`;
+            const percentage = total > 0 ? (current / total) * 100 : 0;
+            progressBar.style.width = `${percentage}%`;
         }
 
         function hideLoading() {
             document.getElementById('loading_overlay').classList.remove('show');
+            // Reset progress
+            document.getElementById('progress_counter').textContent = '0/0';
+            document.getElementById('progress_bar').style.width = '0%';
         }
 
         // Continue Execution
@@ -1270,7 +1321,9 @@
 
         // Execution Loop (for continue execution)
         async function runExecutionLoop(siteName, limit) {
-            showLoading('Executing actions...');
+            // Determine total for progress bar
+            const totalActions = limit || 'all';
+            showLoading(limit ? `Executing ${limit} actions...` : 'Executing all actions...', true);
 
             const completedActions = [];
             const errors = [];
@@ -1294,10 +1347,16 @@
 
                     if (data.status === 'action_executed') {
                         actionCount++;
+
+                        // Update progress
+                        const total = limit || data.stats.total_actions;
+                        const current = limit ? actionCount : data.stats.completed;
+                        updateProgress(current, total);
+
                         const progressMsg = limit
-                            ? `Completed ${actionCount}/${limit} actions`
-                            : `Completed ${data.stats.completed}/${data.stats.total_actions} actions`;
-                        showLoading(progressMsg);
+                            ? `Executing action ${actionCount} of ${limit}...`
+                            : `Executing action ${data.stats.completed} of ${data.stats.total_actions}...`;
+                        document.getElementById('loading_text').textContent = progressMsg;
 
                         const result = data.result;
                         if (result.success) {
