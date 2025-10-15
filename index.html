@@ -849,7 +849,41 @@
             } else {
                 continuePanel.style.display = 'none';
             }
+
+            // Clear file inputs when switching sites
+            clearFileInputs();
         });
+
+        // Clear file inputs and displays
+        function clearFileInputs() {
+            // Clear GSC file
+            const gscInput = document.getElementById('gsc_file_input');
+            const gscDisplay = document.getElementById('gsc_file_name');
+            if (gscInput) {
+                gscInput.value = '';
+            }
+            if (gscDisplay) {
+                gscDisplay.textContent = '';
+                gscDisplay.style.display = 'none';
+            }
+
+            // Clear GA4 file
+            const ga4Input = document.getElementById('ga4_file_input');
+            const ga4Display = document.getElementById('ga4_file_name');
+            if (ga4Input) {
+                ga4Input.value = '';
+            }
+            if (ga4Display) {
+                ga4Display.textContent = '';
+                ga4Display.style.display = 'none';
+            }
+
+            // Clear batch limit if shown
+            const continueLimit = document.getElementById('continue_limit');
+            if (continueLimit) {
+                continueLimit.value = '';
+            }
+        }
 
         // Select Site from Dashboard
         function selectSiteFromDashboard(siteName) {
@@ -1119,6 +1153,7 @@
 
                     showAnalysisResults(data);
                     await loadSites(); // Refresh dashboard
+                    clearFileInputs(); // Clear for next run
                     hideLoading();
 
                 } catch (error) {
@@ -1253,6 +1288,7 @@
 
                 // Reload dashboard
                 await loadSites();
+                clearFileInputs(); // Clear for next run
                 hideLoading();
 
             } catch (error) {
