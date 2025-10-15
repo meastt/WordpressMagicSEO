@@ -1313,7 +1313,7 @@
         
         // Save and Load State Functions
         function saveCurrentState() {
-            const siteName = document.getElementById('siteSelect').value;
+            const siteName = document.getElementById('site_selector').value;
             if (!siteName) {
                 showSaveStatus('Please select a site first', 'error');
                 return;
@@ -1345,7 +1345,7 @@
         }
         
         function loadCurrentState() {
-            const siteName = document.getElementById('siteSelect').value;
+            const siteName = document.getElementById('site_selector').value;
             if (!siteName) {
                 showSaveStatus('Please select a site first', 'error');
                 return;
