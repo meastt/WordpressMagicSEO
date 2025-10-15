@@ -199,8 +199,17 @@ def save_state():
             # Force save current state
             print(f"DEBUG SAVE: Saving state for {site_name}")
             print(f"DEBUG SAVE: Current state: {state_mgr.state}")
+            print(f"DEBUG SAVE: Current plan length: {len(state_mgr.state.get('current_plan', []))}")
+            print(f"DEBUG SAVE: Stats before save: {state_mgr.get_stats()}")
+            
             state_mgr.save()
             print(f"DEBUG SAVE: State saved successfully")
+            
+            # Reload and check
+            state_mgr.state = state_mgr._load()
+            print(f"DEBUG SAVE: State after reload: {state_mgr.state}")
+            print(f"DEBUG SAVE: Stats after reload: {state_mgr.get_stats()}")
+            
             return jsonify({
                 'success': True,
                 'message': f'State saved for {site_name}',
@@ -241,6 +250,53 @@ def refresh_sites():
             'success': True,
             'sites': site_status,
             'total_sites': len(sites)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/create-test-plan', methods=['POST'])
+def create_test_plan():
+    """
+    Create a test action plan to verify state persistence.
+    """
+    try:
+        from state_manager import StateManager
+        
+        data = request.get_json()
+        site_name = data.get('site_name')
+        
+        if not site_name:
+            return jsonify({'success': False, 'error': 'Site name required'})
+        
+        state_mgr = StateManager(site_name)
+        
+        # Create a test plan with 5 actions
+        test_plan = []
+        for i in range(5):
+            test_plan.append({
+                'id': f'test_action_{i+1}',
+                'action_type': 'update',
+                'url': f'https://{site_name}/test-page-{i+1}/',
+                'title': f'Test Page {i+1}',
+                'keywords': [f'test keyword {i+1}'],
+                'priority_score': 8.0 - i * 0.5,
+                'reasoning': f'Test action {i+1} for state persistence verification',
+                'estimated_impact': 'High',
+                'status': 'pending'
+            })
+        
+        # Update the plan
+        state_mgr.update_plan(test_plan)
+        
+        print(f"DEBUG TEST PLAN: Created test plan for {site_name}")
+        print(f"DEBUG TEST PLAN: Plan length: {len(test_plan)}")
+        print(f"DEBUG TEST PLAN: Stats: {state_mgr.get_stats()}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Test plan created for {site_name}',
+            'stats': state_mgr.get_stats()
         })
         
     except Exception as e:
@@ -642,6 +698,7 @@ def list_sites_endpoint():
             print(f"DEBUG SITES: Plan length: {len(state_mgr.state.get('current_plan', []))}")
             print(f"DEBUG SITES: Stats: {stats}")
             print(f"DEBUG SITES: State keys: {list(state_mgr.state.keys())}")
+            print(f"DEBUG SITES: Current plan: {state_mgr.state.get('current_plan', [])[:2]}...")  # Show first 2 actions
             
             site_status.append({
                 'name': site_name,

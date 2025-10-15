@@ -1149,8 +1149,20 @@
                             border-radius: 6px;
                             font-size: 16px;
                             cursor: pointer;
+                            margin-right: 10px;
                         ">
                             📂 Load Saved Plan
+                        </button>
+                        <button id="testPlanBtn" onclick="createTestPlan()" style="
+                            background: #ffc107;
+                            color: black;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            font-size: 16px;
+                            cursor: pointer;
+                        ">
+                            🧪 Create Test Plan
                         </button>
                         <div id="saveStatus" style="margin-top: 10px; font-size: 14px;"></div>
                     </div>
@@ -1389,6 +1401,38 @@
                 statusDiv.style.color = type === 'success' ? '#28a745' : 
                                        type === 'error' ? '#dc3545' : '#007bff';
             }
+        }
+        
+        function createTestPlan() {
+            const siteName = document.getElementById('site_selector').value;
+            if (!siteName) {
+                showSaveStatus('Please select a site first', 'error');
+                return;
+            }
+            
+            showSaveStatus('Creating test plan...', 'info');
+            
+            fetch('/api/create-test-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    site_name: siteName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSaveStatus('✅ Test plan created successfully!', 'success');
+                    refreshSitesDropdown();
+                } else {
+                    showSaveStatus(`❌ Test plan failed: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showSaveStatus(`❌ Error: ${error.message}`, 'error');
+            });
         }
         
         function refreshSitesDropdown() {
