@@ -537,12 +537,31 @@ def execute_next_action():
         print(f"Site config: {site_config}")
 
         print(f"Initializing StateManager for: {site_name}")
-        state_mgr = StateManager(site_name)
-        print(f"StateManager initialized")
+        try:
+            state_mgr = StateManager(site_name)
+            print(f"StateManager initialized successfully")
+        except Exception as sm_error:
+            print(f"ERROR initializing StateManager: {sm_error}")
+            import traceback
+            print(f"StateManager traceback: {traceback.format_exc()}")
+            raise
 
         # Get next pending action
-        pending = state_mgr.get_pending_actions(limit=1)
-        stats = state_mgr.get_stats()
+        print(f"Getting pending actions...")
+        try:
+            pending = state_mgr.get_pending_actions(limit=1)
+            print(f"Found {len(pending)} pending action(s)")
+        except Exception as pend_error:
+            print(f"ERROR getting pending actions: {pend_error}")
+            raise
+
+        print(f"Getting stats...")
+        try:
+            stats = state_mgr.get_stats()
+            print(f"Stats: {stats}")
+        except Exception as stats_error:
+            print(f"ERROR getting stats: {stats_error}")
+            raise
         
         print(f"DEBUG: Site {site_name}")
         print(f"DEBUG: Total actions in plan: {len(state_mgr.state.get('current_plan', []))}")

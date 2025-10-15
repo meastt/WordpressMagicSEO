@@ -91,13 +91,26 @@ class StateManager:
                 print(f"DEBUG STATE: Gist ID is 'new', no existing state")
                 return None
             
-            # Load from Gist
-            response = requests.get(f"https://api.github.com/gists/{gist_id}", timeout=10)
+            # Load from Gist with short timeout for Vercel
+            print(f"DEBUG STATE: Fetching from Gist API...")
+            response = requests.get(
+                f"https://api.github.com/gists/{gist_id}",
+                timeout=5,  # Shorter timeout for serverless
+                headers={'Accept': 'application/vnd.github.v3+json'}
+            )
             print(f"DEBUG STATE: Gist response status: {response.status_code}")
             
             if response.status_code == 200:
                 gist_data = response.json()
-                state_content = gist_data['files'][f"{self.site_name}_state.json"]['content']
+                file_key = f"{self.site_name}_state.json"
+                print(f"DEBUG STATE: Looking for file key: {file_key}")
+                print(f"DEBUG STATE: Available files in Gist: {list(gist_data.get('files', {}).keys())}")
+
+                if file_key not in gist_data.get('files', {}):
+                    print(f"DEBUG STATE: File {file_key} not found in Gist")
+                    return None
+
+                state_content = gist_data['files'][file_key]['content']
                 state = json.loads(state_content)
                 print(f"DEBUG STATE: Loaded state from Gist: {state.get('stats', {})}")
                 return state
