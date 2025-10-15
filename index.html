@@ -1335,6 +1335,8 @@
             .then(data => {
                 if (data.success) {
                     showSaveStatus('✅ State saved successfully!', 'success');
+                    // Refresh sites dropdown to show updated status
+                    refreshSitesDropdown();
                 } else {
                     showSaveStatus(`❌ Save failed: ${data.error}`, 'error');
                 }
@@ -1387,6 +1389,50 @@
                 statusDiv.style.color = type === 'success' ? '#28a745' : 
                                        type === 'error' ? '#dc3545' : '#007bff';
             }
+        }
+        
+        function refreshSitesDropdown() {
+            fetch('/api/refresh-sites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the sites dropdown
+                    const siteSelector = document.getElementById('site_selector');
+                    if (siteSelector) {
+                        // Clear existing options
+                        siteSelector.innerHTML = '';
+                        
+                        // Add new options
+                        data.sites.forEach(site => {
+                            const option = document.createElement('option');
+                            option.value = site.name;
+                            
+                            // Show completion status
+                            let statusText = '';
+                            if (site.completed_actions > 0 && site.pending_actions > 0) {
+                                statusText = ` (${site.completed_actions} done, ${site.pending_actions} pending)`;
+                            } else if (site.pending_actions > 0) {
+                                statusText = ` (${site.pending_actions} actions pending)`;
+                            } else if (site.completed_actions > 0) {
+                                statusText = ` (${site.completed_actions} completed)`;
+                            } else {
+                                statusText = ' (no plan yet)';
+                            }
+                            
+                            option.textContent = `${site.name}${statusText}`;
+                            siteSelector.appendChild(option);
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing sites:', error);
+            });
         }
 
         async function runPipeline() {

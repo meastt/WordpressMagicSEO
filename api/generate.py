@@ -212,6 +212,40 @@ def save_state():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/refresh-sites', methods=['POST'])
+def refresh_sites():
+    """
+    Force refresh sites status after state changes.
+    """
+    try:
+        from config import list_sites
+        from state_manager import StateManager
+        
+        sites = list_sites()
+        site_status = []
+        
+        for site_name in sites:
+            state_mgr = StateManager(site_name)
+            # Force reload state to get latest data
+            state_mgr.state = state_mgr._load()
+            stats = state_mgr.get_stats()
+            
+            site_status.append({
+                'name': site_name,
+                'pending_actions': stats.get('pending', 0),
+                'completed_actions': stats.get('completed', 0),
+                'total_actions': stats.get('total_actions', 0)
+            })
+        
+        return jsonify({
+            'success': True,
+            'sites': site_status,
+            'total_sites': len(sites)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/api/load-state', methods=['POST'])
 def load_state():
     """
@@ -599,6 +633,8 @@ def list_sites_endpoint():
 
         for site_name in sites:
             state_mgr = StateManager(site_name)
+            # Force reload state to get latest data
+            state_mgr.state = state_mgr._load()
             stats = state_mgr.get_stats()
             
             print(f"DEBUG SITES: {site_name}")
