@@ -21,35 +21,55 @@ class StateManager:
     def __init__(self, site_name: str, state_dir: str = None):
         """
         Initialize state manager for a specific site.
-        
+
         Args:
             site_name: Domain name of the site
             state_dir: Directory to store state files (default: persistent location)
         """
+        print(f"DEBUG INIT: StateManager.__init__ called for {site_name}")
         self.site_name = site_name
-        
+        print(f"DEBUG INIT: Site name set")
+
         # Use persistent directory for Vercel serverless
         if state_dir is None:
+            print(f"DEBUG INIT: state_dir is None, determining default")
             # For Vercel, we need to use a location that persists between deployments
             # Use the project root directory which is persistent in Vercel
             state_dir = os.path.dirname(os.path.abspath(__file__))
-            
+            print(f"DEBUG INIT: state_dir set to {state_dir}")
+
             # Ensure the directory exists
+            print(f"DEBUG INIT: Creating directory if needed")
             os.makedirs(state_dir, exist_ok=True)
-        
+            print(f"DEBUG INIT: Directory created/verified")
+
         self.state_file = os.path.join(state_dir, f"{site_name}_state.json")
+        print(f"DEBUG INIT: state_file set to {self.state_file}")
+        print(f"DEBUG INIT: About to call self._load()")
         self.state = self._load()
+        print(f"DEBUG INIT: StateManager.__init__ completed successfully")
     
     def _load(self):
         """Load state from persistent storage or file, create new state structure if needed"""
+        print(f"DEBUG LOAD: _load() called for {self.site_name}")
+
         # Try to load from persistent storage first (for Vercel)
-        state = self._load_from_persistent_storage()
-        if state:
-            print(f"Loaded state from persistent storage for {self.site_name}: {state.get('stats', {})}")
-            return state
-        
+        print(f"DEBUG LOAD: Calling _load_from_persistent_storage()")
+        try:
+            state = self._load_from_persistent_storage()
+            print(f"DEBUG LOAD: _load_from_persistent_storage() returned, state is {'None' if state is None else 'loaded'}")
+            if state:
+                print(f"Loaded state from persistent storage for {self.site_name}: {state.get('stats', {})}")
+                return state
+        except Exception as e:
+            print(f"DEBUG LOAD: Exception in _load_from_persistent_storage(): {e}")
+            import traceback
+            print(f"DEBUG LOAD: Traceback: {traceback.format_exc()}")
+
         # Fallback to file-based storage (for local development)
+        print(f"DEBUG LOAD: Checking for file at {self.state_file}")
         if os.path.exists(self.state_file):
+            print(f"DEBUG LOAD: File exists, attempting to load")
             try:
                 with open(self.state_file, 'r') as f:
                     state = json.load(f)
@@ -57,7 +77,9 @@ class StateManager:
                     return state
             except (json.JSONDecodeError, IOError) as e:
                 print(f"Warning: Could not load state file, creating new state: {e}")
-        
+        else:
+            print(f"DEBUG LOAD: File does not exist")
+
         print(f"Creating new state for {self.site_name}")
         return {
             "site_name": self.site_name,
@@ -72,12 +94,17 @@ class StateManager:
     
     def _load_from_persistent_storage(self):
         """Load state from GitHub Gist (persistent storage for Vercel)"""
+        print(f"DEBUG PERSISTENT: _load_from_persistent_storage() entered for {self.site_name}")
         try:
+            print(f"DEBUG PERSISTENT: Inside try block")
             # Use GitHub Gist as persistent storage
+            print(f"DEBUG PERSISTENT: Building env_key")
             env_key = f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}"
+            print(f"DEBUG PERSISTENT: Getting gist_id from env")
             gist_id = os.getenv(env_key)
+            print(f"DEBUG PERSISTENT: Getting github_token from env")
             github_token = os.getenv("GITHUB_TOKEN")
-            
+
             print(f"DEBUG STATE: Loading for {self.site_name}")
             print(f"DEBUG STATE: Env key: {env_key}")
             print(f"DEBUG STATE: Gist ID: {gist_id}")
@@ -92,13 +119,24 @@ class StateManager:
                 return None
             
             # Load from Gist with short timeout for Vercel
-            print(f"DEBUG STATE: Fetching from Gist API...")
-            response = requests.get(
-                f"https://api.github.com/gists/{gist_id}",
-                timeout=5,  # Shorter timeout for serverless
-                headers={'Accept': 'application/vnd.github.v3+json'}
-            )
-            print(f"DEBUG STATE: Gist response status: {response.status_code}")
+            print(f"DEBUG STATE: About to fetch from Gist API...")
+            print(f"DEBUG STATE: URL: https://api.github.com/gists/{gist_id}")
+            print(f"DEBUG STATE: Timeout: 5 seconds")
+            try:
+                print(f"DEBUG STATE: Calling requests.get()...")
+                response = requests.get(
+                    f"https://api.github.com/gists/{gist_id}",
+                    timeout=5,  # Shorter timeout for serverless
+                    headers={'Accept': 'application/vnd.github.v3+json'}
+                )
+                print(f"DEBUG STATE: requests.get() returned")
+                print(f"DEBUG STATE: Gist response status: {response.status_code}")
+            except requests.exceptions.Timeout:
+                print(f"DEBUG STATE: Gist API request timed out after 5 seconds")
+                return None
+            except requests.exceptions.RequestException as req_err:
+                print(f"DEBUG STATE: Gist API request failed: {req_err}")
+                return None
             
             if response.status_code == 200:
                 gist_data = response.json()
