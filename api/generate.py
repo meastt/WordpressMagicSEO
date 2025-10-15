@@ -156,6 +156,15 @@ def analyze_only():
         # This makes the actions available to /api/execute-next
         full_action_plan = result.get('action_plan', [])
         if full_action_plan:
+            # Ensure each action has an ID
+            import hashlib
+            for i, action in enumerate(full_action_plan):
+                if 'id' not in action:
+                    # Generate a unique ID based on action content
+                    id_string = f"{action.get('action_type', '')}_{action.get('url', '')}_{action.get('title', '')}_{i}"
+                    action_id = hashlib.md5(id_string.encode()).hexdigest()[:12]
+                    action['id'] = action_id
+
             pipeline.state_mgr.update_plan(full_action_plan)
             print(f"Saved {len(full_action_plan)} actions to StateManager for {site_name or site_url}")
 
@@ -580,6 +589,15 @@ def execute_next_action():
             })
 
         action_data = pending[0]
+
+        # Ensure action has an ID (generate one if missing)
+        if 'id' not in action_data:
+            import hashlib
+            # Generate a unique ID based on action content
+            id_string = f"{action_data.get('action_type', '')}_{action_data.get('url', '')}_{action_data.get('title', '')}"
+            action_id = hashlib.md5(id_string.encode()).hexdigest()[:12]
+            action_data['id'] = action_id
+            print(f"Generated ID for action: {action_id}")
 
         # Initialize WordPress and content generator
         wp = WordPressPublisher(
