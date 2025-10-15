@@ -178,6 +178,68 @@ def analyze_only():
         }), 500
 
 
+@app.route('/api/save-state', methods=['POST'])
+def save_state():
+    """
+    Manually save state for a site.
+    """
+    try:
+        from state_manager import StateManager
+        
+        data = request.get_json()
+        site_name = data.get('site_name')
+        action = data.get('action')
+        
+        if not site_name:
+            return jsonify({'success': False, 'error': 'Site name required'})
+        
+        state_mgr = StateManager(site_name)
+        
+        if action == 'save':
+            # Force save current state
+            state_mgr.save()
+            return jsonify({
+                'success': True,
+                'message': f'State saved for {site_name}',
+                'stats': state_mgr.get_stats()
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Invalid action'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/load-state', methods=['POST'])
+def load_state():
+    """
+    Manually load state for a site.
+    """
+    try:
+        from state_manager import StateManager
+        
+        data = request.get_json()
+        site_name = data.get('site_name')
+        action = data.get('action')
+        
+        if not site_name:
+            return jsonify({'success': False, 'error': 'Site name required'})
+        
+        state_mgr = StateManager(site_name)
+        
+        if action == 'load':
+            # Force reload state
+            state_mgr.state = state_mgr._load()
+            return jsonify({
+                'success': True,
+                'message': f'State loaded for {site_name}',
+                'stats': state_mgr.get_stats()
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Invalid action'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route("/api/execute", methods=["POST"])
 def execute_full_pipeline():
     """
