@@ -535,8 +535,10 @@ def list_sites_endpoint():
             stats = state_mgr.get_stats()
             
             print(f"DEBUG SITES: {site_name}")
+            print(f"DEBUG SITES: State file: {state_mgr.state_file}")
             print(f"DEBUG SITES: Plan length: {len(state_mgr.state.get('current_plan', []))}")
             print(f"DEBUG SITES: Stats: {stats}")
+            print(f"DEBUG SITES: State keys: {list(state_mgr.state.keys())}")
             
             site_status.append({
                 'name': site_name,

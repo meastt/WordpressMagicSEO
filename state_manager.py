@@ -32,7 +32,7 @@ class StateManager:
         if state_dir is None:
             # For Vercel, we need to use a location that persists between deployments
             # Use the project root directory which is persistent in Vercel
-            state_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            state_dir = os.path.dirname(os.path.abspath(__file__))
             
             # Ensure the directory exists
             os.makedirs(state_dir, exist_ok=True)
