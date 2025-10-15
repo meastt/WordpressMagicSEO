@@ -545,7 +545,53 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Continue Execution Section (shown when site has pending actions) -->
+            <div id="continue_execution_section" class="form-section" style="display: none; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50;">
+                <div class="section-title" style="color: #2e7d32;">
+                    <span>▶️</span> Continue Execution
+                </div>
+
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="color: #2e7d32; margin-bottom: 15px;">✅ Action Plan Already Exists</h3>
+                    <p style="margin-bottom: 15px;">This site has pending actions from a previous analysis. You can continue executing them without re-uploading data.</p>
+
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button type="button" onclick="continueExecution()" style="
+                            flex: 1;
+                            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            ▶️ Continue Execution
+                        </button>
+
+                        <button type="button" onclick="viewCurrentPlan()" style="
+                            flex: 1;
+                            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            👁️ View Current Plan
+                        </button>
+                    </div>
+                </div>
+
+                <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                    <strong>💡 Want to start fresh?</strong> Check "Force New Action Plan" below and upload new GSC data to create a completely new plan.
+                </div>
+            </div>
+
             <!-- Data Upload -->
             <div class="form-section">
                 <div class="section-title">
@@ -891,6 +937,7 @@
         function handleSiteSelect() {
             const selector = document.getElementById('site_selector');
             const manualConfig = document.getElementById('manualConfig');
+            const continueSection = document.getElementById('continue_execution_section');
 
             if (selector.value) {
                 // Pre-configured site selected - hide manual config and clear values
@@ -901,12 +948,27 @@
                 document.getElementById('site_url').removeAttribute('required');
                 document.getElementById('username').removeAttribute('required');
                 document.getElementById('app_password').removeAttribute('required');
+
+                // Check if site has pending actions
+                const selectedOption = selector.options[selector.selectedIndex];
+                const optionText = selectedOption.textContent;
+                const hasPendingActions = optionText.includes('pending') || optionText.includes('done');
+
+                if (hasPendingActions && continueSection) {
+                    continueSection.style.display = 'block';
+                } else if (continueSection) {
+                    continueSection.style.display = 'none';
+                }
             } else {
                 // Manual config
                 manualConfig.style.display = 'block';
                 document.getElementById('site_url').setAttribute('required', '');
                 document.getElementById('username').setAttribute('required', '');
                 document.getElementById('app_password').setAttribute('required', '');
+
+                if (continueSection) {
+                    continueSection.style.display = 'none';
+                }
             }
         }
         
@@ -1643,6 +1705,113 @@
                     showError(error.message || 'An unknown error occurred');
                 }
             }
+        }
+
+        async function continueExecution() {
+            const siteName = document.getElementById('site_selector').value;
+
+            if (!siteName) {
+                alert('Please select a site first');
+                return;
+            }
+
+            if (!confirm('Continue executing pending actions for ' + siteName + '?\n\nThis will process actions one at a time until all are complete.')) {
+                return;
+            }
+
+            await runExecutionLoop(siteName);
+        }
+
+        async function viewCurrentPlan() {
+            const siteName = document.getElementById('site_selector').value;
+
+            if (!siteName) {
+                alert('Please select a site first');
+                return;
+            }
+
+            showLoading('Loading current action plan...');
+
+            try {
+                const response = await fetch(`${API_BASE}/plan/${siteName}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load plan');
+                }
+
+                // Display the plan
+                showPlanResults(data);
+            } catch (error) {
+                console.error('Error loading plan:', error);
+                showError(error.message || 'Failed to load action plan');
+            }
+        }
+
+        function showPlanResults(data) {
+            const resultsDiv = document.getElementById('results');
+
+            let html = `
+                <div class="results-header">
+                    <h2>📋 Current Action Plan</h2>
+                    <p>Site: ${data.site}</p>
+                </div>
+                <div class="results-body">
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Actions</div>
+                            <div class="stat-value">${data.stats.total_actions || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Completed</div>
+                            <div class="stat-value" style="color: #4caf50;">${data.stats.completed || 0}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value" style="color: #ff9800;">${data.stats.pending || 0}</div>
+                        </div>
+                    </div>
+
+                    <div class="action-table">
+                        <h3 style="padding: 15px; background: white;">🎯 Pending Actions (Top 20)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Priority</th>
+                                    <th>Type</th>
+                                    <th>Title / URL</th>
+                                    <th>Reasoning</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.pending_actions.map(action => `
+                                    <tr>
+                                        <td>
+                                            <span class="priority-badge ${getPriorityClass(action.priority_score)}">
+                                                ${action.priority_score.toFixed(1)}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="action-badge action-${action.action_type}">
+                                                ${action.action_type}
+                                            </span>
+                                        </td>
+                                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                                            <strong>${action.title || 'N/A'}</strong><br>
+                                            <small style="color: #888;">${action.url || 'New content'}</small>
+                                        </td>
+                                        <td style="font-size: 13px;">${action.reasoning.substring(0, 150)}...</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+            hideLoading();
         }
 
         // New timeout-safe execution function that processes one action at a time
