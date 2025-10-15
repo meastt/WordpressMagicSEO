@@ -556,6 +556,12 @@
                     <h3 style="color: #2e7d32; margin-bottom: 15px;">✅ Action Plan Already Exists</h3>
                     <p style="margin-bottom: 15px;">This site has pending actions from a previous analysis. You can continue executing them without re-uploading data.</p>
 
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="continue_limit">Number of Actions to Execute (optional)</label>
+                        <input type="number" id="continue_limit" min="1" placeholder="Leave empty to execute all" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                        <div class="help-text">Execute a specific number of actions, or leave empty to execute all pending actions</div>
+                    </div>
+
                     <div style="display: flex; gap: 15px; margin-top: 20px;">
                         <button type="button" onclick="continueExecution()" style="
                             flex: 1;
@@ -1738,11 +1744,18 @@
                 return;
             }
 
-            if (!confirm('Continue executing pending actions for ' + siteName + '?\n\nThis will process actions one at a time until all are complete.')) {
+            const limitInput = document.getElementById('continue_limit');
+            const limit = limitInput && limitInput.value ? parseInt(limitInput.value) : null;
+
+            const confirmMsg = limit
+                ? `Execute ${limit} action(s) for ${siteName}?\n\nThis will process ${limit} actions one at a time.`
+                : `Continue executing ALL pending actions for ${siteName}?\n\nThis will process actions one at a time until all are complete.`;
+
+            if (!confirm(confirmMsg)) {
                 return;
             }
 
-            await runExecutionLoop(siteName);
+            await runExecutionLoop(siteName, limit);
         }
 
         async function viewCurrentPlan() {
@@ -1885,7 +1898,7 @@
         }
 
         // New timeout-safe execution function that processes one action at a time
-        async function runExecutionLoop(siteName) {
+        async function runExecutionLoop(siteName, limit = null) {
             showLoading('Executing actions... Processing one at a time to avoid timeouts.');
 
             const completedActions = [];
@@ -1895,6 +1908,12 @@
 
             try {
                 while (hasMore) {
+                    // Check if we've hit the limit
+                    if (limit && actionCount >= limit) {
+                        console.log(`Reached limit of ${limit} actions`);
+                        break;
+                    }
+
                     const response = await fetch(`${API_BASE}/execute-next`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1917,7 +1936,10 @@
                         const result = data.result;
 
                         // Update loading message with progress
-                        showLoading(`Executing actions... Completed ${data.stats.completed}/${data.stats.total_actions} actions`);
+                        const progressMsg = limit
+                            ? `Executing actions... Completed ${actionCount}/${limit} requested actions`
+                            : `Executing actions... Completed ${data.stats.completed}/${data.stats.total_actions} actions`;
+                        showLoading(progressMsg);
 
                         console.log(`Action ${actionCount} result:`, result);
 
@@ -1941,6 +1963,15 @@
                 }
 
                 // Show final results
+                let note = '';
+                if (limit && actionCount >= limit) {
+                    note = `Executed ${actionCount} of ${limit} requested actions. ${errors.length > 0 ? `${errors.length} failed.` : 'All successful!'}`;
+                } else if (errors.length > 0) {
+                    note = `${errors.length} action(s) failed - check errors for details`;
+                } else {
+                    note = 'All actions completed successfully!';
+                }
+
                 const finalData = {
                     status: 'execution_complete',
                     mode: 'ai_powered',
@@ -1953,9 +1984,7 @@
                     },
                     completed_actions: completedActions,
                     errors: errors,
-                    note: errors.length > 0
-                        ? `${errors.length} action(s) failed - check errors for details`
-                        : 'All actions completed successfully!'
+                    note: note
                 };
 
                 showResults(finalData);

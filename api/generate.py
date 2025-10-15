@@ -152,6 +152,13 @@ def analyze_only():
                     print(f"Warning: Could not fetch title for {action['url']}: {e}")
             enriched_action_plan.append(action)
 
+        # Save the full action plan to StateManager so it can be executed later
+        # This makes the actions available to /api/execute-next
+        full_action_plan = result.get('action_plan', [])
+        if full_action_plan:
+            pipeline.state_mgr.update_plan(full_action_plan)
+            print(f"Saved {len(full_action_plan)} actions to StateManager for {site_name or site_url}")
+
         # Save the analysis result to state for later export/reference
         analysis_result = {
             "status": "analysis_complete",
