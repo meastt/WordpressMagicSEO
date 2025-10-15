@@ -310,13 +310,7 @@
         }
 
         .file-upload-area input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            cursor: pointer;
+            display: none;
         }
 
         .upload-icon {
@@ -333,6 +327,11 @@
             margin-top: 12px;
             color: #667eea;
             font-weight: 600;
+            display: none;
+        }
+
+        .file-name-display:not(:empty) {
+            display: block;
         }
 
         .execution-mode-grid {
@@ -896,8 +895,14 @@
             const input = document.getElementById(type + '_file_input');
             const display = document.getElementById(type + '_file_name');
 
-            if (input.files.length > 0) {
-                display.textContent = '✓ ' + input.files[0].name;
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+                display.textContent = `✓ ${file.name} (${fileSize} MB)`;
+                display.style.display = 'block';
+            } else {
+                display.textContent = '';
+                display.style.display = 'none';
             }
         }
 
