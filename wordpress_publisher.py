@@ -46,6 +46,35 @@ class WordPressPublisher:
         """Enforce rate limiting between API calls."""
         time.sleep(self.rate_limit_delay)
     
+    def _make_request_with_retry(self, method: str, url: str, max_retries: int = 3, **kwargs):
+        """Make HTTP request with retry logic for transient errors."""
+        for attempt in range(max_retries):
+            try:
+                response = requests.request(method, url, **kwargs)
+                response.raise_for_status()
+                
+                # Try to parse JSON and validate it
+                try:
+                    json_data = response.json()
+                    return response, json_data
+                except json.JSONDecodeError as e:
+                    if attempt < max_retries - 1:
+                        print(f"JSON decode error (attempt {attempt + 1}/{max_retries}): {e}")
+                        time.sleep(2 ** attempt)  # Exponential backoff
+                        continue
+                    else:
+                        raise Exception(f"Invalid JSON response after {max_retries} attempts: {e}")
+                        
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    print(f"Request error (attempt {attempt + 1}/{max_retries}): {e}")
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+                else:
+                    raise Exception(f"Request failed after {max_retries} attempts: {e}")
+        
+        raise Exception("Max retries exceeded")
+    
     def _get_or_create_category(self, category_name: str) -> Optional[int]:
         """Get category ID by name, creating it if it doesn't exist."""
         try:
@@ -260,15 +289,13 @@ class WordPressPublisher:
                 if meta_description:
                     post_data["meta"]["_yoast_wpseo_metadesc"] = meta_description
             
-            response = requests.post(
+            response, result_data = self._make_request_with_retry(
+                'POST',
                 f"{self.api_base}/posts",
                 auth=self.auth,
                 json=post_data,
                 timeout=30
             )
-            response.raise_for_status()
-            
-            result_data = response.json()
             self._rate_limit()
             
             return PublishResult(
@@ -337,15 +364,13 @@ class WordPressPublisher:
                 if meta_description:
                     update_data["meta"]["_yoast_wpseo_metadesc"] = meta_description
             
-            response = requests.post(
+            response, result_data = self._make_request_with_retry(
+                'POST',
                 f"{self.api_base}/posts/{post_id}",
                 auth=self.auth,
                 json=update_data,
                 timeout=30
             )
-            response.raise_for_status()
-            
-            result_data = response.json()
             self._rate_limit()
             
             return PublishResult(
@@ -447,14 +472,13 @@ class WordPressPublisher:
         
         for keyword in keywords[:3]:  # Check top 3 keywords
             try:
-                response = requests.get(
+                response, posts = self._make_request_with_retry(
+                    'GET',
                     f"{self.api_base}/posts",
                     auth=self.auth,
                     params={'search': keyword, 'per_page': limit},
                     timeout=30
                 )
-                response.raise_for_status()
-                posts = response.json()
                 
                 for post in posts:
                     suggestions.append({

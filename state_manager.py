@@ -10,6 +10,7 @@ Prevents repeating work by tracking:
 
 import json
 import os
+import requests
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -17,27 +18,47 @@ from typing import Dict, List, Optional
 class StateManager:
     """Per-site state tracking - prevents repeating work"""
     
-    def __init__(self, site_name: str, state_dir: str = "/tmp"):
+    def __init__(self, site_name: str, state_dir: str = None):
         """
         Initialize state manager for a specific site.
         
         Args:
             site_name: Domain name of the site
-            state_dir: Directory to store state files (default: /tmp)
+            state_dir: Directory to store state files (default: persistent location)
         """
         self.site_name = site_name
+        
+        # Use persistent directory for Vercel serverless
+        if state_dir is None:
+            # For Vercel, we need to use a location that persists between deployments
+            # Use the project root directory which is persistent in Vercel
+            state_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            # Ensure the directory exists
+            os.makedirs(state_dir, exist_ok=True)
+        
         self.state_file = os.path.join(state_dir, f"{site_name}_state.json")
         self.state = self._load()
     
     def _load(self):
-        """Load state from disk or create new state structure"""
+        """Load state from persistent storage or file, create new state structure if needed"""
+        # Try to load from persistent storage first (for Vercel)
+        state = self._load_from_persistent_storage()
+        if state:
+            print(f"Loaded state from persistent storage for {self.site_name}: {state.get('stats', {})}")
+            return state
+        
+        # Fallback to file-based storage (for local development)
         if os.path.exists(self.state_file):
             try:
                 with open(self.state_file, 'r') as f:
-                    return json.load(f)
+                    state = json.load(f)
+                    print(f"Loaded state from file for {self.site_name}: {state.get('stats', {})}")
+                    return state
             except (json.JSONDecodeError, IOError) as e:
                 print(f"Warning: Could not load state file, creating new state: {e}")
         
+        print(f"Creating new state for {self.site_name}")
         return {
             "site_name": self.site_name,
             "niche_research": None,
@@ -49,13 +70,82 @@ class StateManager:
             }
         }
     
+    def _load_from_persistent_storage(self):
+        """Load state from GitHub Gist (persistent storage for Vercel)"""
+        try:
+            # Use GitHub Gist as persistent storage
+            gist_id = os.getenv(f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}")
+            if not gist_id:
+                return None
+            
+            # Load from Gist
+            response = requests.get(f"https://api.github.com/gists/{gist_id}", timeout=10)
+            if response.status_code == 200:
+                gist_data = response.json()
+                state_content = gist_data['files'][f"{self.site_name}_state.json"]['content']
+                return json.loads(state_content)
+        except Exception as e:
+            print(f"Could not load from persistent storage: {e}")
+            return None
+    
     def save(self):
-        """Save state to disk"""
+        """Save state to persistent storage and file"""
+        # Save to persistent storage first (for Vercel)
+        self._save_to_persistent_storage()
+        
+        # Also save to file (for local development)
         try:
             with open(self.state_file, 'w') as f:
                 json.dump(self.state, f, indent=2)
+            print(f"State saved for {self.site_name}: {self.state.get('stats', {})}")
         except IOError as e:
             print(f"Warning: Could not save state file: {e}")
+    
+    def _save_to_persistent_storage(self):
+        """Save state to GitHub Gist (persistent storage for Vercel)"""
+        try:
+            # Use GitHub Gist as persistent storage
+            gist_id = os.getenv(f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}")
+            github_token = os.getenv("GITHUB_TOKEN")
+            
+            if not gist_id or not github_token:
+                print(f"No Gist ID or GitHub token configured for {self.site_name}")
+                return
+            
+            # Save to Gist
+            headers = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            files = {
+                f"{self.site_name}_state.json": {
+                    "content": json.dumps(self.state, indent=2)
+                }
+            }
+            
+            if gist_id == "new":
+                # Create new Gist
+                data = {
+                    "description": f"State for {self.site_name}",
+                    "public": False,
+                    "files": files
+                }
+                response = requests.post("https://api.github.com/gists", 
+                                       headers=headers, json=data, timeout=10)
+                if response.status_code == 201:
+                    new_gist_id = response.json()['id']
+                    print(f"Created new Gist {new_gist_id} for {self.site_name}")
+            else:
+                # Update existing Gist
+                data = {"files": files}
+                response = requests.patch(f"https://api.github.com/gists/{gist_id}", 
+                                        headers=headers, json=data, timeout=10)
+                if response.status_code == 200:
+                    print(f"Updated Gist {gist_id} for {self.site_name}")
+                    
+        except Exception as e:
+            print(f"Could not save to persistent storage: {e}")
     
     def update_plan(self, actions: List[Dict]):
         """

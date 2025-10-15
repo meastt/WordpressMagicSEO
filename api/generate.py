@@ -379,6 +379,9 @@ def execute_next_action():
                 # Do research first
                 research = content_gen.research_topic(title, keywords)
 
+                # Get internal link suggestions (FIX: was missing)
+                internal_links = wp.get_internal_link_suggestions(keywords)
+
                 # Get affiliate links if available
                 affiliate_links = []
                 if affiliate_mgr:
@@ -390,13 +393,16 @@ def execute_next_action():
                     keywords=keywords,
                     research=research,
                     meta_description=f"Learn about {title}",
+                    internal_links=internal_links,  # FIX: Add internal links
                     affiliate_links=affiliate_links
                 )
 
                 # Create the post
-                post_id = wp.create_post(
+                publish_result = wp.create_post(
                     title=article_data.get('title', title),
                     content=article_data['content'],
+                    meta_title=article_data.get('meta_title'),  # FIX: Add meta title
+                    meta_description=article_data.get('meta_description'),  # FIX: Add meta description
                     categories=article_data.get('categories', []),
                     tags=article_data.get('tags', [])
                 )
@@ -407,9 +413,14 @@ def execute_next_action():
                         if link['url'] in article_data['content']:
                             affiliate_mgr.increment_usage(link['id'])
 
-                result['post_id'] = post_id
-                result['success'] = True
-                state_mgr.mark_completed(action_data['id'], post_id)
+                # FIX: Extract post_id from PublishResult object
+                if publish_result.success:
+                    result['post_id'] = publish_result.post_id
+                    result['success'] = True
+                    state_mgr.mark_completed(action_data['id'], publish_result.post_id)
+                else:
+                    result['error'] = publish_result.error
+                    result['success'] = False
 
             elif action_data['action_type'] == 'update':
                 # Fetch and update existing content
@@ -426,6 +437,9 @@ def execute_next_action():
                 # First do research
                 research = content_gen.research_topic(title, keywords)
 
+                # Get internal link suggestions (FIX: was missing)
+                internal_links = wp.get_internal_link_suggestions(keywords)
+
                 # Get affiliate links for this update if available
                 affiliate_links = []
                 if affiliate_mgr:
@@ -438,14 +452,17 @@ def execute_next_action():
                     research=research,
                     meta_description=f"Updated: {title}",
                     existing_content=existing_content,
+                    internal_links=internal_links,  # FIX: Add internal links
                     affiliate_links=affiliate_links
                 )
 
                 # Update the post with new content
-                wp.update_post(
+                publish_result = wp.update_post(
                     post_id,
                     title=article_data.get('title', title),
                     content=article_data['content'],
+                    meta_title=article_data.get('meta_title'),  # FIX: Add meta title
+                    meta_description=article_data.get('meta_description'),  # FIX: Add meta description
                     categories=article_data.get('categories', []),
                     tags=article_data.get('tags', [])
                 )
@@ -457,9 +474,14 @@ def execute_next_action():
                         if link['url'] in article_data['content']:
                             affiliate_mgr.increment_usage(link['id'])
 
-                result['post_id'] = post_id
-                result['success'] = True
-                state_mgr.mark_completed(action_data['id'], post_id)
+                # FIX: Handle PublishResult properly
+                if publish_result.success:
+                    result['post_id'] = post_id
+                    result['success'] = True
+                    state_mgr.mark_completed(action_data['id'], post_id)
+                else:
+                    result['error'] = publish_result.error
+                    result['success'] = False
 
             else:
                 result['error'] = f"Unsupported action type: {action_data['action_type']}"
