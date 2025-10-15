@@ -503,8 +503,19 @@ def execute_next_action():
     JSON body: {site_name}
     Returns: Action result + remaining count
     """
-    data = request.get_json()
-    site_name = data.get('site_name')
+    print("=== /api/execute-next called ===")
+    print(f"Request method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
+
+    try:
+        data = request.get_json()
+        print(f"Request JSON data: {data}")
+    except Exception as json_error:
+        print(f"Error parsing JSON: {json_error}")
+        return jsonify({"error": "Invalid JSON", "details": str(json_error)}), 400
+
+    site_name = data.get('site_name') if data else None
+    print(f"Site name: {site_name}")
 
     if not site_name:
         return jsonify({"error": "site_name required"}), 400
@@ -518,12 +529,16 @@ def execute_next_action():
         from state_manager import StateManager
         from wordpress_publisher import WordPressPublisher
         from claude_content_generator import ClaudeContentGenerator
-        from strategic_planner import ActionType
         from affiliate_link_manager import AffiliateLinkManager
 
         # Get site config
+        print(f"Getting config for site: {site_name}")
         site_config = get_site(site_name)
+        print(f"Site config: {site_config}")
+
+        print(f"Initializing StateManager for: {site_name}")
         state_mgr = StateManager(site_name)
+        print(f"StateManager initialized")
 
         # Get next pending action
         pending = state_mgr.get_pending_actions(limit=1)
@@ -705,9 +720,14 @@ def execute_next_action():
         })
 
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"ERROR in execute-next: {str(e)}")
+        print(f"Traceback: {error_trace}")
         return jsonify({
             "error": "Execution failed",
-            "details": str(e)
+            "details": str(e),
+            "trace": error_trace
         }), 500
 
 
