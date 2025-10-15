@@ -126,6 +126,10 @@ class SitemapAnalyzer:
         # Get all URLs that have GSC data (any impressions/clicks)
         gsc_urls = set(gsc_df['page'].unique())
         
+        print(f"DEBUG SITEMAP: Total sitemap URLs: {len(sitemap_set)}")
+        print(f"DEBUG SITEMAP: Total GSC URLs: {len(gsc_urls)}")
+        print(f"DEBUG SITEMAP: GSC columns: {list(gsc_df.columns)}")
+        
         # Find dead content (in sitemap but no GSC data)
         dead_urls = sitemap_set - gsc_urls
         
@@ -134,6 +138,10 @@ class SitemapAnalyzer:
         
         # Find URLs in GSC but not in sitemap (might be deleted or orphaned)
         orphaned_urls = gsc_urls - sitemap_set
+        
+        print(f"DEBUG SITEMAP: Dead content: {len(dead_urls)}")
+        print(f"DEBUG SITEMAP: Performing content: {len(performing_urls)}")
+        print(f"DEBUG SITEMAP: Orphaned content: {len(orphaned_urls)}")
         
         return {
             'dead_content': list(dead_urls),

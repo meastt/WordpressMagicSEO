@@ -100,6 +100,8 @@ class StrategicPlanner:
         actions = []
         
         dead_urls = self.sitemap_data.get('dead_content', [])
+        print(f"DEBUG STRATEGIC: Dead content URLs: {len(dead_urls)}")
+        print(f"DEBUG STRATEGIC: Sitemap data keys: {list(self.sitemap_data.keys())}")
         
         # Check if dead URLs should redirect to better performing duplicates
         duplicate_map = {}
@@ -150,6 +152,9 @@ class StrategicPlanner:
         """Find content that should be updated/refreshed."""
         actions = []
         
+        print(f"DEBUG STRATEGIC: Total GSC rows: {len(self.gsc_df)}")
+        print(f"DEBUG STRATEGIC: GSC columns: {list(self.gsc_df.columns)}")
+        
         # High impressions but low CTR = needs better title/meta
         high_imp_low_ctr = self.gsc_df.groupby('page').agg({
             'impressions': 'sum',
@@ -158,13 +163,30 @@ class StrategicPlanner:
             'position': 'mean'
         }).reset_index()
         
+        print(f"DEBUG STRATEGIC: Grouped pages: {len(high_imp_low_ctr)}")
+        
         # Filter: >1000 impressions, CTR < 2%, or position > 10
         candidates = high_imp_low_ctr[
             (high_imp_low_ctr['impressions'] > 1000) & 
             ((high_imp_low_ctr['ctr'] < 0.02) | (high_imp_low_ctr['position'] > 10))
         ]
         
-        for _, row in candidates.iterrows():
+        print(f"DEBUG STRATEGIC: High-impression candidates: {len(candidates)}")
+        
+        # Also check for low-impression content that could be improved
+        low_imp_candidates = high_imp_low_ctr[
+            (high_imp_low_ctr['impressions'] > 0) & 
+            (high_imp_low_ctr['impressions'] <= 1000) &
+            (high_imp_low_ctr['position'] > 20)
+        ]
+        
+        print(f"DEBUG STRATEGIC: Low-impression candidates: {len(low_imp_candidates)}")
+        
+        # Combine both sets
+        all_candidates = pd.concat([candidates, low_imp_candidates], ignore_index=True)
+        print(f"DEBUG STRATEGIC: Total update candidates: {len(all_candidates)}")
+        
+        for _, row in all_candidates.iterrows():
             url = row['page']
             
             # Skip if no URL
