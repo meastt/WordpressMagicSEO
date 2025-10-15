@@ -5,12 +5,13 @@ AI-powered strategic planner that analyzes all data and creates a prioritized ac
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from enum import Enum
 from datetime import datetime, timedelta
 import pandas as pd
 import json
 import os
+import re
 
 
 class ActionType(Enum):
@@ -54,6 +55,10 @@ class StrategicPlanner:
         self.state_file = state_file
         self.skip_recent_days = skip_recent_days
         self.completed_actions = self._load_state()
+        
+        # SEO enhancement data
+        self.keyword_data = self._extract_keywords_from_gsc()
+        self.intent_scores = self._calculate_intent_scores()
     
     def _load_state(self) -> Dict:
         """Load previously completed actions from state file."""
@@ -65,6 +70,126 @@ class StrategicPlanner:
                 print(f"  ⚠️  Could not load state file: {e}")
                 return {'completed': []}
         return {'completed': []}
+    
+    def _extract_keywords_from_gsc(self) -> Dict[str, Dict]:
+        """Extract and analyze keywords from GSC data for better SEO scoring."""
+        keyword_data = {}
+        
+        # Group by page and analyze queries
+        for page, group in self.gsc_df.groupby('page'):
+            if not page or page.strip() == '':
+                continue
+                
+            # Extract main keyword from page URL
+            main_keyword = self._extract_main_keyword_from_url(page)
+            
+            # Analyze query performance
+            queries = group['query'].dropna().unique()
+            total_impressions = group['impressions'].sum()
+            total_clicks = group['clicks'].sum()
+            avg_position = group['position'].mean()
+            avg_ctr = group['ctr'].mean()
+            
+            # Calculate keyword characteristics
+            keyword_data[page] = {
+                'main_keyword': main_keyword,
+                'queries': list(queries),
+                'total_impressions': total_impressions,
+                'total_clicks': total_clicks,
+                'avg_position': avg_position,
+                'avg_ctr': avg_ctr,
+                'query_count': len(queries),
+                'search_volume_estimate': self._estimate_search_volume(total_impressions, avg_position),
+                'competition_score': self._estimate_competition(avg_position, avg_ctr),
+                'intent_score': self._calculate_commercial_intent(main_keyword, queries)
+            }
+        
+        return keyword_data
+    
+    def _extract_main_keyword_from_url(self, url: str) -> str:
+        """Extract the main keyword from a URL."""
+        if not url:
+            return ""
+        
+        # Extract slug from URL
+        slug = url.rstrip('/').split('/')[-1]
+        
+        # Convert to readable keyword
+        keyword = slug.replace('-', ' ').replace('_', ' ')
+        
+        # Remove common suffixes
+        suffixes = [' review', ' guide', ' tips', ' vs ', ' vs', ' comparison', ' differences']
+        for suffix in suffixes:
+            if keyword.endswith(suffix):
+                keyword = keyword[:-len(suffix)]
+                break
+        
+        return keyword.strip()
+    
+    def _estimate_search_volume(self, impressions: int, position: float) -> int:
+        """Estimate search volume based on impressions and position."""
+        if position <= 0:
+            return 0
+        
+        # Rough estimation: impressions = search_volume * CTR * position_factor
+        # Higher positions get more impressions per search volume
+        position_factor = max(0.1, 1 / (position ** 0.5))
+        estimated_volume = int(impressions / (position_factor * 0.05))  # Assume 5% CTR
+        
+        return max(0, estimated_volume)
+    
+    def _estimate_competition(self, position: float, ctr: float) -> float:
+        """Estimate keyword competition based on position and CTR."""
+        # Lower position = higher competition
+        # Lower CTR = higher competition
+        position_score = max(0, 1 - (position / 100))
+        ctr_score = min(1, ctr / 0.05)  # 5% CTR is good
+        
+        competition = (1 - position_score) + (1 - ctr_score)
+        return min(1, max(0, competition / 2))
+    
+    def _calculate_commercial_intent(self, main_keyword: str, queries: List[str]) -> float:
+        """Calculate commercial intent score for keywords."""
+        commercial_indicators = [
+            'buy', 'purchase', 'price', 'cost', 'cheap', 'expensive', 'best', 'top', 'review',
+            'vs', 'comparison', 'alternative', 'recommend', 'guide', 'how to', 'where to',
+            'shop', 'store', 'deal', 'discount', 'sale', 'offer'
+        ]
+        
+        informational_indicators = [
+            'what is', 'how does', 'why do', 'when do', 'where do', 'facts', 'information',
+            'learn', 'understand', 'explain', 'meaning', 'definition', 'types', 'species'
+        ]
+        
+        # Check main keyword
+        main_score = 0
+        for indicator in commercial_indicators:
+            if indicator in main_keyword.lower():
+                main_score += 0.3
+        for indicator in informational_indicators:
+            if indicator in main_keyword.lower():
+                main_score -= 0.2
+        
+        # Check queries
+        query_score = 0
+        for query in queries[:10]:  # Check top 10 queries
+            query_lower = query.lower()
+            for indicator in commercial_indicators:
+                if indicator in query_lower:
+                    query_score += 0.1
+            for indicator in informational_indicators:
+                if indicator in query_lower:
+                    query_score -= 0.05
+        
+        total_score = main_score + query_score
+        return max(0, min(1, total_score))  # Clamp between 0 and 1
+    
+    def _calculate_intent_scores(self) -> Dict[str, float]:
+        """Calculate intent scores for all pages."""
+        intent_scores = {}
+        for page, data in self.keyword_data.items():
+            intent_scores[page] = data['intent_score']
+        return intent_scores
     
     def _is_recently_processed(self, url: str) -> bool:
         """Check if URL was processed within skip_recent_days."""
@@ -154,40 +279,10 @@ class StrategicPlanner:
         
         print(f"DEBUG STRATEGIC: Total GSC rows: {len(self.gsc_df)}")
         print(f"DEBUG STRATEGIC: GSC columns: {list(self.gsc_df.columns)}")
+        print(f"DEBUG STRATEGIC: Keyword data entries: {len(self.keyword_data)}")
         
-        # High impressions but low CTR = needs better title/meta
-        high_imp_low_ctr = self.gsc_df.groupby('page').agg({
-            'impressions': 'sum',
-            'clicks': 'sum',
-            'ctr': 'mean',
-            'position': 'mean'
-        }).reset_index()
-        
-        print(f"DEBUG STRATEGIC: Grouped pages: {len(high_imp_low_ctr)}")
-        
-        # Filter: >1000 impressions, CTR < 2%, or position > 10
-        candidates = high_imp_low_ctr[
-            (high_imp_low_ctr['impressions'] > 1000) & 
-            ((high_imp_low_ctr['ctr'] < 0.02) | (high_imp_low_ctr['position'] > 10))
-        ]
-        
-        print(f"DEBUG STRATEGIC: High-impression candidates: {len(candidates)}")
-        
-        # Also check for low-impression content that could be improved
-        low_imp_candidates = high_imp_low_ctr[
-            (high_imp_low_ctr['impressions'] > 0) & 
-            (high_imp_low_ctr['impressions'] <= 1000) &
-            (high_imp_low_ctr['position'] > 20)
-        ]
-        
-        print(f"DEBUG STRATEGIC: Low-impression candidates: {len(low_imp_candidates)}")
-        
-        # Combine both sets
-        all_candidates = pd.concat([candidates, low_imp_candidates], ignore_index=True)
-        print(f"DEBUG STRATEGIC: Total update candidates: {len(all_candidates)}")
-        
-        for _, row in all_candidates.iterrows():
-            url = row['page']
+        # Process each page with advanced SEO scoring
+        for url, data in self.keyword_data.items():
             
             # Skip if no URL
             if not url or url.strip() == '':
@@ -201,34 +296,119 @@ class StrategicPlanner:
             if self._is_recently_processed(url):
                 continue
             
-            # Get keywords for this URL from GSC data
-            # Note: With Excel exports, we may only have URL-derived keywords
-            url_queries = self.gsc_df[self.gsc_df['page'] == url]
-            keywords = url_queries['query'].unique().tolist()
+            # Calculate advanced SEO opportunity score
+            seo_score = self._calculate_seo_opportunity_score(data)
             
-            # If no keywords found, derive from URL
-            if not keywords or keywords == ['']:
+            # Only include pages with meaningful SEO potential
+            if seo_score < 3.0:
+                continue
+            
+            # Determine action type and reasoning
+            action_type, reasoning, impact = self._determine_update_strategy(data)
+            
+            # Get keywords for this URL
+            keywords = data.get('queries', [])
+            if not keywords:
                 url_slug = url.rstrip('/').split('/')[-1]
                 keywords = [url_slug.replace('-', ' ')]
-            
-            # Calculate priority score based on potential impact
-            # High impressions = high potential impact
-            priority = (row['impressions'] / 1000) * (1 - row['ctr']) * 10
-            priority = min(priority, 10.0)  # Cap at 10
-            
-            impact = "High" if row['impressions'] > 5000 else "Medium"
             
             action = ActionItem(
                 action_type=ActionType.UPDATE,
                 url=url,
                 keywords=keywords,
-                priority_score=priority,
-                reasoning=f"High visibility ({int(row['impressions'])} impr) but low engagement (CTR: {row['ctr']:.2%}, pos: {row['position']:.1f})",
+                priority_score=seo_score,
+                reasoning=reasoning,
                 estimated_impact=impact
             )
+            
             actions.append(action)
         
+        print(f"DEBUG STRATEGIC: Total update candidates: {len(actions)}")
         return actions
+    
+    def _calculate_seo_opportunity_score(self, data: Dict) -> float:
+        """Calculate comprehensive SEO opportunity score."""
+        impressions = data['total_impressions']
+        position = data['avg_position']
+        ctr = data['avg_ctr']
+        search_volume = data['search_volume_estimate']
+        competition = data['competition_score']
+        intent = data['intent_score']
+        
+        # Base score from impressions and position
+        if impressions > 1000:
+            base_score = 8.0 + min(2.0, impressions / 1000)
+        elif impressions > 500:
+            base_score = 6.0 + min(2.0, impressions / 500)
+        elif impressions > 100:
+            base_score = 4.0 + min(2.0, impressions / 100)
+        else:
+            base_score = 2.0
+        
+        # Position penalty/bonus
+        if position > 50:
+            position_modifier = -1.0
+        elif position > 20:
+            position_modifier = -0.5
+        elif position > 10:
+            position_modifier = 0.0
+        else:
+            position_modifier = 0.5
+        
+        # CTR penalty
+        if ctr < 0.01:
+            ctr_modifier = -0.5
+        elif ctr < 0.03:
+            ctr_modifier = 0.0
+        else:
+            ctr_modifier = 0.3
+        
+        # Search volume bonus
+        if search_volume > 5000:
+            volume_modifier = 1.0
+        elif search_volume > 1000:
+            volume_modifier = 0.5
+        else:
+            volume_modifier = 0.0
+        
+        # Competition modifier (lower competition = higher opportunity)
+        competition_modifier = (1 - competition) * 0.5
+        
+        # Intent modifier (commercial intent = higher value)
+        intent_modifier = intent * 0.3
+        
+        total_score = base_score + position_modifier + ctr_modifier + volume_modifier + competition_modifier + intent_modifier
+        
+        return max(0, min(10, total_score))  # Clamp between 0 and 10
+    
+    def _determine_update_strategy(self, data: Dict) -> Tuple[str, str, str]:
+        """Determine the best update strategy based on SEO data."""
+        impressions = data['total_impressions']
+        position = data['avg_position']
+        ctr = data['avg_ctr']
+        search_volume = data['search_volume_estimate']
+        intent = data['intent_score']
+        
+        if impressions > 1000 and ctr < 0.02:
+            strategy = "High visibility but low CTR - optimize title and meta description for better click-through rates"
+            impact = "High"
+        elif position > 30 and search_volume > 1000:
+            strategy = f"High search volume ({search_volume:.0f} est.) but poor ranking (pos: {position:.1f}) - comprehensive content optimization needed"
+            impact = "High"
+        elif intent > 0.6 and position > 15:
+            strategy = f"Commercial intent detected but suboptimal ranking (pos: {position:.1f}) - optimize for conversion and ranking"
+            impact = "High"
+        elif impressions > 500 and position > 20:
+            strategy = f"Moderate visibility ({impressions:.0f} impr) but poor ranking (pos: {position:.1f}) - content refresh and optimization"
+            impact = "Medium"
+        elif ctr < 0.01 and impressions > 100:
+            strategy = f"Very low CTR ({ctr:.2%}) despite visibility ({impressions:.0f} impr) - title and meta optimization critical"
+            impact = "Medium"
+        else:
+            strategy = f"Content refresh opportunity - improve engagement and ranking potential"
+            impact = "Low"
+        
+        return "update", strategy, impact
     
     def identify_content_gaps(self, top_n: int = 20) -> List[ActionItem]:
         """Find high-opportunity keywords we're not ranking for."""
