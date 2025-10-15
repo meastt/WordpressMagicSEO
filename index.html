@@ -883,6 +883,40 @@
             if (continueLimit) {
                 continueLimit.value = '';
             }
+
+            // Clear results panel
+            const resultsPanel = document.getElementById('results_panel');
+            if (resultsPanel) {
+                resultsPanel.classList.remove('show');
+                resultsPanel.innerHTML = '';
+            }
+
+            // Reset execution mode to default (View Plan)
+            const viewPlanOption = document.querySelector('.mode-option');
+            if (viewPlanOption) {
+                document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('selected'));
+                viewPlanOption.classList.add('selected');
+                const radio = viewPlanOption.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+
+                // Reset button text
+                const executeBtn = document.getElementById('execute_btn');
+                if (executeBtn) {
+                    executeBtn.textContent = '🤖 Start AI Analysis';
+                }
+
+                // Hide batch limit field
+                const batchField = document.getElementById('batch_limit_field');
+                if (batchField) {
+                    batchField.style.display = 'none';
+                }
+            }
+
+            // Reset force new plan checkbox
+            const forceNewPlan = document.getElementById('force_new_plan');
+            if (forceNewPlan) {
+                forceNewPlan.checked = false;
+            }
         }
 
         // Select Site from Dashboard
