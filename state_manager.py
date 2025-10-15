@@ -74,16 +74,36 @@ class StateManager:
         """Load state from GitHub Gist (persistent storage for Vercel)"""
         try:
             # Use GitHub Gist as persistent storage
-            gist_id = os.getenv(f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}")
+            env_key = f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}"
+            gist_id = os.getenv(env_key)
+            github_token = os.getenv("GITHUB_TOKEN")
+            
+            print(f"DEBUG STATE: Loading for {self.site_name}")
+            print(f"DEBUG STATE: Env key: {env_key}")
+            print(f"DEBUG STATE: Gist ID: {gist_id}")
+            print(f"DEBUG STATE: GitHub token: {'SET' if github_token else 'NOT SET'}")
+            
             if not gist_id:
+                print(f"DEBUG STATE: No Gist ID found for {self.site_name}")
+                return None
+            
+            if gist_id == "new":
+                print(f"DEBUG STATE: Gist ID is 'new', no existing state")
                 return None
             
             # Load from Gist
             response = requests.get(f"https://api.github.com/gists/{gist_id}", timeout=10)
+            print(f"DEBUG STATE: Gist response status: {response.status_code}")
+            
             if response.status_code == 200:
                 gist_data = response.json()
                 state_content = gist_data['files'][f"{self.site_name}_state.json"]['content']
-                return json.loads(state_content)
+                state = json.loads(state_content)
+                print(f"DEBUG STATE: Loaded state from Gist: {state.get('stats', {})}")
+                return state
+            else:
+                print(f"DEBUG STATE: Gist load failed: {response.status_code}")
+                return None
         except Exception as e:
             print(f"Could not load from persistent storage: {e}")
             return None

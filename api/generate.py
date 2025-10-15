@@ -333,11 +333,22 @@ def execute_next_action():
 
         # Get next pending action
         pending = state_mgr.get_pending_actions(limit=1)
+        stats = state_mgr.get_stats()
+        
+        print(f"DEBUG: Site {site_name}")
+        print(f"DEBUG: Total actions in plan: {len(state_mgr.state.get('current_plan', []))}")
+        print(f"DEBUG: Stats: {stats}")
+        print(f"DEBUG: Pending actions: {len(pending)}")
+        
         if not pending:
             return jsonify({
                 "status": "complete",
                 "message": "No pending actions",
-                "stats": state_mgr.get_stats()
+                "stats": stats,
+                "debug": {
+                    "total_plan_actions": len(state_mgr.state.get('current_plan', [])),
+                    "pending_count": len(pending)
+                }
             })
 
         action_data = pending[0]
@@ -522,6 +533,11 @@ def list_sites_endpoint():
         for site_name in sites:
             state_mgr = StateManager(site_name)
             stats = state_mgr.get_stats()
+            
+            print(f"DEBUG SITES: {site_name}")
+            print(f"DEBUG SITES: Plan length: {len(state_mgr.state.get('current_plan', []))}")
+            print(f"DEBUG SITES: Stats: {stats}")
+            
             site_status.append({
                 'name': site_name,
                 'pending_actions': stats.get('pending', 0),
