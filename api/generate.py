@@ -262,15 +262,15 @@ def create_test_plan():
     """
     try:
         from state_manager import StateManager
-        
+
         data = request.get_json()
         site_name = data.get('site_name')
-        
+
         if not site_name:
             return jsonify({'success': False, 'error': 'Site name required'})
-        
+
         state_mgr = StateManager(site_name)
-        
+
         # Create a test plan with 5 actions
         test_plan = []
         for i in range(5):
@@ -285,20 +285,50 @@ def create_test_plan():
                 'estimated_impact': 'High',
                 'status': 'pending'
             })
-        
+
         # Update the plan
         state_mgr.update_plan(test_plan)
-        
+
         print(f"DEBUG TEST PLAN: Created test plan for {site_name}")
         print(f"DEBUG TEST PLAN: Plan length: {len(test_plan)}")
         print(f"DEBUG TEST PLAN: Stats: {state_mgr.get_stats()}")
-        
+
         return jsonify({
             'success': True,
             'message': f'Test plan created for {site_name}',
             'stats': state_mgr.get_stats()
         })
-        
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/clear-plan', methods=['POST'])
+def clear_plan():
+    """
+    Clear the action plan for a site (wipes all state).
+    """
+    try:
+        from state_manager import StateManager
+
+        data = request.get_json()
+        site_name = data.get('site_name')
+
+        if not site_name:
+            return jsonify({'success': False, 'error': 'Site name required'})
+
+        state_mgr = StateManager(site_name)
+
+        # Clear all state
+        state_mgr.clear_state()
+
+        print(f"DEBUG CLEAR: Cleared state for {site_name}")
+
+        return jsonify({
+            'success': True,
+            'message': f'State cleared for {site_name}',
+            'stats': state_mgr.get_stats()
+        })
+
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 

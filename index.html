@@ -584,6 +584,20 @@
                         ">
                             👁️ View Current Plan
                         </button>
+
+                        <button type="button" onclick="clearCurrentPlan()" style="
+                            flex: 1;
+                            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">
+                            🗑️ Clear Plan
+                        </button>
                     </div>
                 </div>
 
@@ -902,7 +916,16 @@
                 if (response.ok) {
                     const data = await response.json();
                     const selector = document.getElementById('site_selector');
-                    
+                    const bulkSelector = document.getElementById('bulk_site_selector');
+
+                    // Clear existing options (except the first "Manual Configuration" option)
+                    while (selector.options.length > 1) {
+                        selector.remove(1);
+                    }
+                    while (bulkSelector.options.length > 1) {
+                        bulkSelector.remove(1);
+                    }
+
                     data.sites.forEach(site => {
                         const option = document.createElement('option');
                         option.value = site.name;
@@ -926,7 +949,7 @@
                         const bulkOption = document.createElement('option');
                         bulkOption.value = site.name;
                         bulkOption.textContent = site.name;
-                        document.getElementById('bulk_site_selector').appendChild(bulkOption);
+                        bulkSelector.appendChild(bulkOption);
                     });
                 }
             } catch (e) {
@@ -1745,6 +1768,53 @@
             } catch (error) {
                 console.error('Error loading plan:', error);
                 showError(error.message || 'Failed to load action plan');
+            }
+        }
+
+        async function clearCurrentPlan() {
+            const siteName = document.getElementById('site_selector').value;
+
+            if (!siteName) {
+                alert('Please select a site first');
+                return;
+            }
+
+            if (!confirm('⚠️ Clear all saved data for ' + siteName + '?\n\nThis will delete:\n- Current action plan\n- Completed action history\n- Cached niche research\n\nYou will need to run a new analysis to create a fresh plan.\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            showLoading('Clearing action plan...');
+
+            try {
+                const response = await fetch(`${API_BASE}/clear-plan`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({site_name: siteName})
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to clear plan');
+                }
+
+                // Refresh the sites dropdown to update status
+                await loadSites();
+
+                // Hide the continue execution section
+                const continueSection = document.getElementById('continue_execution_section');
+                if (continueSection) {
+                    continueSection.style.display = 'none';
+                }
+
+                hideLoading();
+                alert('✅ Plan cleared successfully!\n\nYou can now upload new GSC data and run a fresh analysis.');
+
+                // Clear any displayed results
+                document.getElementById('results').classList.remove('show');
+            } catch (error) {
+                console.error('Error clearing plan:', error);
+                showError(error.message || 'Failed to clear action plan');
             }
         }
 
