@@ -197,7 +197,10 @@ def save_state():
         
         if action == 'save':
             # Force save current state
+            print(f"DEBUG SAVE: Saving state for {site_name}")
+            print(f"DEBUG SAVE: Current state: {state_mgr.state}")
             state_mgr.save()
+            print(f"DEBUG SAVE: State saved successfully")
             return jsonify({
                 'success': True,
                 'message': f'State saved for {site_name}',
@@ -228,7 +231,9 @@ def load_state():
         
         if action == 'load':
             # Force reload state
+            print(f"DEBUG LOAD: Loading state for {site_name}")
             state_mgr.state = state_mgr._load()
+            print(f"DEBUG LOAD: Loaded state: {state_mgr.state}")
             return jsonify({
                 'success': True,
                 'message': f'State loaded for {site_name}',

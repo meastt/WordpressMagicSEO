@@ -1126,7 +1126,7 @@
             html += '</div>';
             
             // Add Save button for action plans
-            if (isExecution && data.status === 'execution_complete') {
+            if (data.status === 'analysis_complete' || data.status === 'execution_complete') {
                 html += `
                     <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
                         <button id="saveStateBtn" onclick="saveCurrentState()" style="

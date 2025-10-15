@@ -110,6 +110,10 @@ class StateManager:
     
     def save(self):
         """Save state to persistent storage and file"""
+        print(f"DEBUG STATE SAVE: Starting save for {self.site_name}")
+        print(f"DEBUG STATE SAVE: State file: {self.state_file}")
+        print(f"DEBUG STATE SAVE: State content: {self.state}")
+        
         # Save to persistent storage first (for Vercel)
         self._save_to_persistent_storage()
         
@@ -125,8 +129,13 @@ class StateManager:
         """Save state to GitHub Gist (persistent storage for Vercel)"""
         try:
             # Use GitHub Gist as persistent storage
-            gist_id = os.getenv(f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}")
+            env_key = f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}"
+            gist_id = os.getenv(env_key)
             github_token = os.getenv("GITHUB_TOKEN")
+            
+            print(f"DEBUG GIST SAVE: Env key: {env_key}")
+            print(f"DEBUG GIST SAVE: Gist ID: {gist_id}")
+            print(f"DEBUG GIST SAVE: GitHub token: {'SET' if github_token else 'NOT SET'}")
             
             if not gist_id or not github_token:
                 print(f"No Gist ID or GitHub token configured for {self.site_name}")
