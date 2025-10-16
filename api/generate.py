@@ -599,6 +599,16 @@ def execute_next_action():
             action_data['id'] = action_id
             print(f"Generated ID for action: {action_id}")
 
+            # CRITICAL: Update the action in state to persist the ID
+            for idx, act in enumerate(state_mgr.state['current_plan']):
+                if (act.get('action_type') == action_data.get('action_type') and
+                    act.get('url') == action_data.get('url') and
+                    act.get('title') == action_data.get('title')):
+                    state_mgr.state['current_plan'][idx]['id'] = action_id
+                    break
+            state_mgr.save()
+            print(f"Persisted ID to state for action: {action_id}")
+
         # Initialize WordPress and content generator
         wp = WordPressPublisher(
             site_config['url'],
@@ -632,6 +642,27 @@ def execute_next_action():
                 # Generate and publish new content
                 title = action_data['title']
                 keywords = action_data.get('keywords', [])
+
+                # DUPLICATE DETECTION: Check if post with this title already exists
+                print(f"Checking for duplicate post with title: {title}")
+                try:
+                    existing_posts = wp.get_all_posts()
+                    for post in existing_posts:
+                        post_title = post.get('title', {}).get('rendered', '') if isinstance(post.get('title'), dict) else post.get('title', '')
+                        if post_title.strip().lower() == title.strip().lower():
+                            print(f"DUPLICATE DETECTED: Post with title '{title}' already exists (ID: {post.get('id')})")
+                            result['success'] = True
+                            result['post_id'] = post.get('id')
+                            result['skipped'] = True
+                            result['reason'] = 'Duplicate post already exists'
+                            state_mgr.mark_completed(action_data['id'], post.get('id'))
+                            # Skip creation and move to next action
+                            raise Exception("SKIP_DUPLICATE")
+                except Exception as e:
+                    if str(e) == "SKIP_DUPLICATE":
+                        raise  # Re-raise to skip creation
+                    print(f"Warning: Could not check for duplicates: {e}")
+                    # Continue with creation if duplicate check fails
 
                 # Do research first
                 research = content_gen.research_topic(title, keywords)
@@ -744,7 +775,11 @@ def execute_next_action():
                 result['error'] = f"Unsupported action type: {action_data['action_type']}"
 
         except Exception as e:
-            result['error'] = str(e)
+            if str(e) == "SKIP_DUPLICATE":
+                # Duplicate detected and skipped - this is not an error
+                pass
+            else:
+                result['error'] = str(e)
 
         # Get updated stats
         stats = state_mgr.get_stats()
