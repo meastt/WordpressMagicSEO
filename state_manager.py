@@ -256,8 +256,13 @@ class StateManager:
                     action['post_id'] = post_id
                 break
         
-        self.state['stats']['completed'] += 1
-        self.state['stats']['pending'] = max(0, self.state['stats']['pending'] - 1)
+        # Recalculate stats from current plan to ensure accuracy
+        self.state['stats']['total_actions'] = len(self.state['current_plan'])
+        self.state['stats']['completed'] = len([a for a in self.state['current_plan'] if a.get('status') == 'completed'])
+        self.state['stats']['pending'] = len([a for a in self.state['current_plan'] if a.get('status') != 'completed'])
+        
+        print(f"DEBUG MARK_COMPLETED: Marked {action_id} as completed")
+        print(f"DEBUG MARK_COMPLETED: Updated stats: {self.state['stats']}")
         self.save()
     
     def get_pending_actions(self, limit: Optional[int] = None):

@@ -351,6 +351,8 @@ def delete_action():
         state_mgr.state['stats']['pending'] = len([a for a in updated_plan if a.get('status') != 'completed'])
         state_mgr.state['stats']['completed'] = len([a for a in updated_plan if a.get('status') == 'completed'])
         state_mgr.save()
+        
+        print(f"DEBUG DELETE: Updated stats after deletion: {state_mgr.get_stats()}")
 
         print(f"DEBUG DELETE: Deleted action {action_id} from {site_name}")
 

@@ -1155,6 +1155,11 @@
             // Update active view
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
             document.getElementById(viewName + '-view').classList.add('active');
+            
+            // Refresh dashboard when switching to it
+            if (viewName === 'dashboard') {
+                loadSites().then(() => renderDashboard());
+            }
         }
 
         // Load Sites
@@ -1578,7 +1583,7 @@
                 alert(`✅ Deleted ${deletedCount} action${deletedCount > 1 ? 's' : ''} successfully!`);
             }
 
-            // Reload the action plan
+            // Reload the action plan and refresh dashboard
             await openActionPlanModal(siteName);
             await loadSites();
             renderDashboard();
@@ -1729,7 +1734,7 @@
                 alert(`✅ Successfully executed all ${actions.length} actions!`);
             }
 
-            // Refresh sites data
+            // Refresh sites data and dashboard
             await loadSites();
             renderDashboard();
         }
@@ -1800,8 +1805,9 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                // Reload sites data from backend
+                // Reload sites data from backend and refresh dashboard
                 await loadSites();
+                renderDashboard();
                 populateSiteSelectors();
 
                 // Force hide the continue panel
@@ -1958,6 +1964,7 @@
 
                     showAnalysisResults(data);
                     await loadSites(); // Refresh dashboard
+                    renderDashboard(); // Ensure dashboard is updated
                     clearFileInputs(); // Clear for next run
                     hideLoading();
 
@@ -1965,6 +1972,7 @@
                     setTimeout(() => {
                         if (confirm('✅ Action plan created successfully!\n\nWould you like to view it on the Dashboard?')) {
                             switchView('dashboard');
+                            await loadSites(); // Ensure latest data
                             renderDashboard();
                         }
                     }, 500);
@@ -2107,8 +2115,9 @@
                     errors
                 });
 
-                // Reload dashboard
+                // Reload dashboard and refresh
                 await loadSites();
+                renderDashboard();
                 clearFileInputs(); // Clear for next run
                 hideLoading();
 
@@ -2313,7 +2322,7 @@
 
             alert(message);
 
-            // Clear forms and reload
+            // Clear forms and reload dashboard
             document.getElementById('quick_create_forms').innerHTML = '';
             quickCreateFormCount = 0;
             addQuickCreateForm();
