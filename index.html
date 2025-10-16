@@ -540,6 +540,291 @@
             color: #1565c0;
         }
 
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content.large {
+            max-width: 1000px;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header.warning {
+            background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Action Plan Modal */
+        .action-plan-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-buttons button {
+            padding: 8px 16px;
+            border: 1px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .control-buttons button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .selection-stats {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .action-plan-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .action-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .action-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .action-item.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .action-item.completed {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+        .action-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .action-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .action-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.create {
+            background: #4caf50;
+            color: white;
+        }
+
+        .badge.update {
+            background: #2196f3;
+            color: white;
+        }
+
+        .badge.pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .badge.completed {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .action-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .action-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .action-url {
+            color: #667eea;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .action-priority {
+            display: inline-block;
+            background: #fffde7;
+            color: #f57f17;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .action-keywords {
+            font-size: 12px;
+            color: #9e9e9e;
+            margin-top: 4px;
+        }
+
+        /* Confirmation Modal */
+        .confirmation-message {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .confirmation-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .confirmation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .confirmation-item-number {
+            font-weight: 700;
+            color: #667eea;
+            min-width: 24px;
+        }
+
+        .confirmation-item-content {
+            flex: 1;
+        }
+
+        .confirmation-item-remove {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .confirmation-summary {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .dashboard-grid {
@@ -556,6 +841,16 @@
 
             .content-area {
                 padding: 20px;
+            }
+
+            .modal-content {
+                max-width: 95%;
+            }
+
+            .action-plan-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
             }
         }
     </style>
@@ -761,6 +1056,54 @@
         </div>
     </div>
 
+    <!-- Action Plan Modal -->
+    <div id="action_plan_modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="action_plan_modal_title">Action Plan</h2>
+                <button class="modal-close" onclick="closeActionPlanModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="action-plan-controls">
+                    <div class="control-buttons">
+                        <button onclick="selectAllActions()">Select All</button>
+                        <button onclick="deselectAllActions()">Deselect All</button>
+                        <button onclick="togglePendingOnly()" id="pending_only_btn">Show Pending Only</button>
+                    </div>
+                    <div class="selection-stats">
+                        <span id="selection_count">0 selected</span>
+                    </div>
+                </div>
+                <div id="action_plan_list" class="action-plan-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeActionPlanModal()">Close</button>
+                <button class="btn-primary" onclick="executeSelectedActions()" id="execute_selected_btn">Execute Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header warning">
+                <h2>⚠️ Confirm Execution</h2>
+                <button class="modal-close" onclick="closeConfirmationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="confirmation-message" id="confirmation_message">You're about to execute <strong id="confirm_count">0</strong> actions:</p>
+                <div id="confirmation_list" class="confirmation-list"></div>
+                <div class="confirmation-summary">
+                    <strong>Summary:</strong> <span id="confirmation_summary"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+                <button class="btn-primary btn-warning" onclick="confirmExecution()" id="confirm_execute_btn">Confirm & Execute</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
         let sitesData = [];
@@ -959,8 +1302,8 @@
         }
 
         function viewSitePlan(siteName) {
-            selectSiteFromDashboard(siteName);
-            viewCurrentPlan();
+            // Open the action plan modal directly
+            openActionPlanModal(siteName);
         }
 
         // Execution Mode Selection
@@ -1033,6 +1376,264 @@
             // Reset progress
             document.getElementById('progress_counter').textContent = '0/0';
             document.getElementById('progress_bar').style.width = '0%';
+        }
+
+        // =================================================================
+        // ACTION PLAN MODAL FUNCTIONS
+        // =================================================================
+
+        let currentPlanData = [];
+        let selectedActionIds = new Set();
+        let showPendingOnly = false;
+
+        async function openActionPlanModal(siteName) {
+            try {
+                showLoading('Loading action plan...');
+
+                const response = await fetch(`${API_BASE}/plan/${siteName}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load action plan');
+                }
+
+                currentPlanData = data.actions || [];
+                selectedActionIds.clear();
+
+                document.getElementById('action_plan_modal_title').textContent = `Action Plan - ${siteName}`;
+                renderActionPlan();
+
+                document.getElementById('action_plan_modal').classList.add('show');
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                alert(`Error loading action plan: ${error.message}`);
+            }
+        }
+
+        function renderActionPlan() {
+            const container = document.getElementById('action_plan_list');
+            const actionsToShow = showPendingOnly
+                ? currentPlanData.filter(a => a.status !== 'completed')
+                : currentPlanData;
+
+            if (actionsToShow.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">No actions to display</p>';
+                return;
+            }
+
+            container.innerHTML = actionsToShow.map(action => {
+                const isSelected = selectedActionIds.has(action.id);
+                const isCompleted = action.status === 'completed';
+
+                return `
+                    <div class="action-item ${isSelected ? 'selected' : ''} ${isCompleted ? 'completed' : ''}" data-action-id="${action.id}">
+                        <div class="action-item-header">
+                            <input type="checkbox"
+                                   class="action-checkbox"
+                                   ${isCompleted ? 'disabled' : ''}
+                                   ${isSelected ? 'checked' : ''}
+                                   onchange="toggleActionSelection('${action.id}')">
+                            <div class="action-badges">
+                                <span class="badge ${action.action_type}">${action.action_type.toUpperCase()}</span>
+                                <span class="badge ${action.status || 'pending'}">${(action.status || 'pending').toUpperCase()}</span>
+                            </div>
+                            <span class="action-priority">Priority: ${action.priority_score?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                        <div class="action-title">${action.title || 'Untitled'}</div>
+                        ${action.url ? `<div class="action-url">${action.url}</div>` : ''}
+                        <div class="action-details">${action.reasoning || 'No description available'}</div>
+                        ${action.keywords && action.keywords.length > 0 ?
+                            `<div class="action-keywords">Keywords: ${action.keywords.join(', ')}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            updateSelectionCount();
+        }
+
+        function toggleActionSelection(actionId) {
+            if (selectedActionIds.has(actionId)) {
+                selectedActionIds.delete(actionId);
+            } else {
+                selectedActionIds.add(actionId);
+            }
+            renderActionPlan();
+        }
+
+        function selectAllActions() {
+            currentPlanData.forEach(action => {
+                if (action.status !== 'completed') {
+                    selectedActionIds.add(action.id);
+                }
+            });
+            renderActionPlan();
+        }
+
+        function deselectAllActions() {
+            selectedActionIds.clear();
+            renderActionPlan();
+        }
+
+        function togglePendingOnly() {
+            showPendingOnly = !showPendingOnly;
+            document.getElementById('pending_only_btn').textContent =
+                showPendingOnly ? 'Show All' : 'Show Pending Only';
+            renderActionPlan();
+        }
+
+        function updateSelectionCount() {
+            document.getElementById('selection_count').textContent =
+                `${selectedActionIds.size} selected`;
+            document.getElementById('execute_selected_btn').disabled = selectedActionIds.size === 0;
+        }
+
+        function closeActionPlanModal() {
+            document.getElementById('action_plan_modal').classList.remove('show');
+        }
+
+        // =================================================================
+        // CONFIRMATION MODAL FUNCTIONS
+        // =================================================================
+
+        let actionsToExecute = [];
+        let executionCallback = null;
+
+        function showConfirmationModal(actions, callback) {
+            actionsToExecute = [...actions];
+            executionCallback = callback;
+
+            document.getElementById('confirm_count').textContent = actionsToExecute.length;
+
+            const container = document.getElementById('confirmation_list');
+            container.innerHTML = actionsToExecute.map((action, index) => `
+                <div class="confirmation-item" data-action-id="${action.id}">
+                    <div class="confirmation-item-number">${index + 1}.</div>
+                    <div class="confirmation-item-content">
+                        <div><span class="badge ${action.action_type}">${action.action_type.toUpperCase()}</span> ${action.title || 'Untitled'}</div>
+                        ${action.url ? `<div style="font-size:12px;color:#666;margin-top:4px;">${action.url}</div>` : ''}
+                    </div>
+                    <button class="confirmation-item-remove" onclick="removeFromConfirmation('${action.id}')">✕</button>
+                </div>
+            `).join('');
+
+            updateConfirmationSummary();
+            document.getElementById('confirmation_modal').classList.add('show');
+        }
+
+        function removeFromConfirmation(actionId) {
+            actionsToExecute = actionsToExecute.filter(a => a.id !== actionId);
+            showConfirmationModal(actionsToExecute, executionCallback);
+
+            if (actionsToExecute.length === 0) {
+                closeConfirmationModal();
+            }
+        }
+
+        function updateConfirmationSummary() {
+            const creates = actionsToExecute.filter(a => a.action_type === 'create').length;
+            const updates = actionsToExecute.filter(a => a.action_type === 'update').length;
+
+            const parts = [];
+            if (creates > 0) parts.push(`${creates} create${creates > 1 ? 's' : ''}`);
+            if (updates > 0) parts.push(`${updates} update${updates > 1 ? 's' : ''}`);
+
+            document.getElementById('confirmation_summary').textContent =
+                `Total: ${actionsToExecute.length} action${actionsToExecute.length > 1 ? 's' : ''} (${parts.join(', ')})`;
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmation_modal').classList.remove('show');
+            actionsToExecute = [];
+            executionCallback = null;
+        }
+
+        function confirmExecution() {
+            closeConfirmationModal();
+            if (executionCallback && actionsToExecute.length > 0) {
+                executionCallback(actionsToExecute);
+            }
+        }
+
+        // =================================================================
+        // EXECUTE SELECTED ACTIONS
+        // =================================================================
+
+        function executeSelectedActions() {
+            if (selectedActionIds.size === 0) {
+                alert('Please select at least one action to execute');
+                return;
+            }
+
+            const selectedActions = currentPlanData.filter(a => selectedActionIds.has(a.id));
+
+            // Show confirmation modal first
+            showConfirmationModal(selectedActions, async (confirmedActions) => {
+                closeActionPlanModal();
+                await executeActionsSequentially(confirmedActions);
+            });
+        }
+
+        async function executeActionsSequentially(actions) {
+            const siteName = document.getElementById('exec_site_selector').value;
+
+            showLoading('Executing actions...', true);
+            let completed = 0;
+            let errors = [];
+
+            for (const action of actions) {
+                try {
+                    updateProgress(completed, actions.length);
+                    document.getElementById('loading_text').textContent =
+                        `Executing: ${action.title || action.url || 'Untitled'}`;
+
+                    const response = await fetch(`${API_BASE}/execute-selected`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            site_name: siteName,
+                            action_ids: [action.id]
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || data.results?.[0]?.error) {
+                        errors.push({
+                            action: action.title || action.url,
+                            error: data.results?.[0]?.error || data.error || 'Unknown error'
+                        });
+                    }
+
+                    completed++;
+
+                    // Rate limiting: 2 seconds between actions
+                    if (completed < actions.length) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+
+                } catch (error) {
+                    errors.push({
+                        action: action.title || action.url,
+                        error: error.message
+                    });
+                    completed++;
+                }
+            }
+
+            hideLoading();
+
+            // Show results
+            if (errors.length > 0) {
+                const errorMsg = errors.map(e => `• ${e.action}: ${e.error}`).join('\n');
+                alert(`Completed ${completed - errors.length} of ${actions.length} actions.\n\nErrors:\n${errorMsg}`);
+            } else {
+                alert(`✅ Successfully executed all ${actions.length} actions!`);
+            }
+
+            // Refresh sites data
+            await loadSites();
+            renderDashboard();
         }
 
         // Continue Execution

@@ -463,12 +463,30 @@ class StrategicPlanner:
     
     def create_master_plan(self, duplicate_analysis: List[Dict]) -> List[ActionItem]:
         """Create the complete prioritized action plan."""
-        
+
         # Collect all actions
         delete_actions = self.analyze_dead_content(duplicate_analysis)
         update_actions = self.analyze_update_opportunities()
         create_actions = self.identify_content_gaps()
-        
+
+        # CRITICAL: Filter out homepage URLs from all actions
+        # Homepage URLs can break the site if treated as posts
+        import re
+        homepage_pattern = re.compile(r'^https?://[^/]+/?$')
+
+        filtered_deletes = [a for a in delete_actions if not (a.url and homepage_pattern.match(a.url))]
+        filtered_updates = [a for a in update_actions if not (a.url and homepage_pattern.match(a.url))]
+        # Creates don't have URLs yet, so no filter needed
+
+        # Log if any homepages were filtered out
+        filtered_count = (len(delete_actions) - len(filtered_deletes)) + (len(update_actions) - len(filtered_updates))
+        if filtered_count > 0:
+            print(f"  ℹ  Filtered out {filtered_count} homepage URL(s) from action plan (homepages are not posts)")
+
+        # Update the lists with filtered versions
+        delete_actions = filtered_deletes
+        update_actions = filtered_updates
+
         # Remove CREATE actions that duplicate existing content
         # Get ALL performing content URLs (not just ones being updated)
         performing_urls = self.sitemap_data.get('performing_content', [])
