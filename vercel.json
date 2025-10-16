@@ -9,6 +9,7 @@
     { "src": "/api/analyze", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/execute", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/execute-next", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/execute-selected", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/save-state", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/load-state", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/refresh-sites", "dest": "api/generate.py", "methods": ["POST"] },

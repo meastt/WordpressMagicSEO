@@ -503,6 +503,225 @@ def execute_full_pipeline():
         }), 500
 
 
+@app.route("/api/execute-selected", methods=["POST"])
+def execute_selected_actions():
+    """
+    Execute specific actions by their IDs (supports multiple).
+
+    JSON body: {
+        site_name: string,
+        action_ids: string[]  // Array of action IDs to execute
+    }
+
+    Returns: Results for each action executed
+    """
+    print("=== /api/execute-selected called ===")
+
+    try:
+        data = request.get_json()
+        site_name = data.get('site_name')
+        action_ids = data.get('action_ids', [])
+
+        if not site_name:
+            return jsonify({"error": "site_name required"}), 400
+
+        if not action_ids or not isinstance(action_ids, list):
+            return jsonify({"error": "action_ids must be a non-empty array"}), 400
+
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if not anthropic_key:
+            return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+
+        from config import get_site
+        from state_manager import StateManager
+        from wordpress_publisher import WordPressPublisher
+        from claude_content_generator import ClaudeContentGenerator
+        from affiliate_link_manager import AffiliateLinkManager
+
+        site_config = get_site(site_name)
+        state_mgr = StateManager(site_name)
+
+        # Get the requested actions by ID
+        all_actions = state_mgr.state.get('current_plan', [])
+        actions_to_execute = [a for a in all_actions if a.get('id') in action_ids]
+
+        if not actions_to_execute:
+            return jsonify({
+                "error": "No matching actions found",
+                "requested_ids": action_ids
+            }), 404
+
+        # Initialize services
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password'],
+            rate_limit_delay=1.0
+        )
+        content_gen = ClaudeContentGenerator(anthropic_key)
+
+        try:
+            affiliate_mgr = AffiliateLinkManager(site_name)
+            if not affiliate_mgr.get_all_links():
+                affiliate_mgr = None
+        except:
+            affiliate_mgr = None
+
+        # Execute each selected action
+        results = []
+        for action_data in actions_to_execute:
+            result = {
+                "action_id": action_data.get('id'),
+                "action_type": action_data.get('action_type'),
+                "url": action_data.get('url'),
+                "title": action_data.get('title'),
+                "success": False,
+                "error": None
+            }
+
+            # Skip if already completed
+            if action_data.get('status') == 'completed':
+                result['success'] = True
+                result['skipped'] = True
+                result['reason'] = 'Already completed'
+                results.append(result)
+                continue
+
+            # Execute the action (reuse execute logic from execute-next)
+            try:
+                if action_data['action_type'] == 'create':
+                    title = action_data['title']
+                    keywords = action_data.get('keywords', [])
+
+                    # Duplicate detection
+                    existing_posts = wp.get_all_posts()
+                    duplicate_found = False
+                    for post in existing_posts:
+                        post_title = post.get('title', {}).get('rendered', '') if isinstance(post.get('title'), dict) else post.get('title', '')
+                        if post_title.strip().lower() == title.strip().lower():
+                            result['success'] = True
+                            result['post_id'] = post.get('id')
+                            result['skipped'] = True
+                            result['reason'] = 'Duplicate post already exists'
+                            state_mgr.mark_completed(action_data['id'], post.get('id'))
+                            duplicate_found = True
+                            break
+
+                    if duplicate_found:
+                        results.append(result)
+                        continue
+
+                    # Create new post
+                    research = content_gen.research_topic(title, keywords)
+                    internal_links = wp.get_internal_link_suggestions(keywords)
+                    affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+
+                    article_data = content_gen.generate_article(
+                        topic_title=title,
+                        keywords=keywords,
+                        research=research,
+                        meta_description=f"Learn about {title}",
+                        internal_links=internal_links,
+                        affiliate_links=affiliate_links
+                    )
+
+                    publish_result = wp.create_post(
+                        title=article_data.get('title', title),
+                        content=article_data['content'],
+                        meta_title=article_data.get('meta_title'),
+                        meta_description=article_data.get('meta_description'),
+                        categories=article_data.get('categories', []),
+                        tags=article_data.get('tags', [])
+                    )
+
+                    if publish_result.success:
+                        result['post_id'] = publish_result.post_id
+                        result['success'] = True
+                        state_mgr.mark_completed(action_data['id'], publish_result.post_id)
+
+                        # Update affiliate usage
+                        if affiliate_mgr and affiliate_links:
+                            for link in affiliate_links:
+                                if link['url'] in article_data['content']:
+                                    affiliate_mgr.increment_usage(link['id'])
+                    else:
+                        result['error'] = publish_result.error
+
+                elif action_data['action_type'] == 'update':
+                    # Update existing post
+                    post = wp.find_post_by_url(action_data['url'])
+                    if not post:
+                        result['error'] = f"Post not found: {action_data['url']}"
+                    else:
+                        post_id = post['id']
+                        existing_content = post.get('content', {}).get('rendered', '')
+                        title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
+                        keywords = action_data.get('keywords', [])
+
+                        research = content_gen.research_topic(title, keywords)
+                        internal_links = wp.get_internal_link_suggestions(keywords)
+                        affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+
+                        article_data = content_gen.generate_article(
+                            topic_title=title,
+                            keywords=keywords,
+                            research=research,
+                            meta_description=f"Updated: {title}",
+                            existing_content=existing_content,
+                            internal_links=internal_links,
+                            affiliate_links=affiliate_links
+                        )
+
+                        publish_result = wp.update_post(
+                            post_id,
+                            title=article_data.get('title', title),
+                            content=article_data['content'],
+                            meta_title=article_data.get('meta_title'),
+                            meta_description=article_data.get('meta_description'),
+                            categories=article_data.get('categories', []),
+                            tags=article_data.get('tags', [])
+                        )
+
+                        if publish_result.success:
+                            result['post_id'] = post_id
+                            result['success'] = True
+                            state_mgr.mark_completed(action_data['id'], post_id)
+
+                            # Update affiliate usage
+                            if affiliate_mgr and affiliate_links:
+                                for link in affiliate_links:
+                                    if link['url'] in article_data['content']:
+                                        affiliate_mgr.increment_usage(link['id'])
+                        else:
+                            result['error'] = publish_result.error
+                else:
+                    result['error'] = f"Unsupported action type: {action_data['action_type']}"
+
+            except Exception as e:
+                result['error'] = str(e)
+
+            results.append(result)
+
+        # Get updated stats
+        stats = state_mgr.get_stats()
+
+        return jsonify({
+            "status": "batch_complete",
+            "total_requested": len(action_ids),
+            "total_executed": len(results),
+            "results": results,
+            "stats": stats
+        })
+
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Execution failed",
+            "details": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
 @app.route("/api/execute-next", methods=["POST"])
 def execute_next_action():
     """
@@ -886,26 +1105,34 @@ def get_niche_research(site_name):
 def get_action_plan(site_name):
     """
     Get current action plan for a site.
-    Shows pending and completed actions.
+    Returns ALL actions with their full details and status.
     """
     try:
         from state_manager import StateManager
-        
+
         state_mgr = StateManager(site_name)
         plan = state_mgr.state.get('current_plan', [])
         stats = state_mgr.get_stats()
-        
-        # Get pending actions
-        pending = state_mgr.get_pending_actions()
-        
+
+        # Sort actions by priority and status
+        # Pending first (sorted by priority), then completed
+        pending_actions = [a for a in plan if a.get('status') != 'completed']
+        completed_actions = [a for a in plan if a.get('status') == 'completed']
+
+        pending_actions.sort(key=lambda x: x.get('priority_score', 0), reverse=True)
+        completed_actions.sort(key=lambda x: x.get('completed_at', ''), reverse=True)
+
+        all_actions = pending_actions + completed_actions
+
         return jsonify({
             "site": site_name,
             "stats": stats,
             "total_actions": len(plan),
-            "pending_actions": pending[:20],  # Top 20 pending
-            "all_actions_count": len(plan)
+            "actions": all_actions,  # ALL actions with full details
+            "pending_count": len(pending_actions),
+            "completed_count": len(completed_actions)
         })
-    
+
     except Exception as e:
         return jsonify({
             "error": "Failed to retrieve action plan",
