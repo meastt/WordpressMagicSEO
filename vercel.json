@@ -15,6 +15,7 @@
     { "src": "/api/load-state", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/refresh-sites", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/create-test-plan", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/delete-action", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/clear-plan", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/niche/(.*)", "dest": "api/generate.py" },
     { "src": "/api/plan/(.*)", "dest": "api/generate.py" },

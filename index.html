@@ -1094,6 +1094,7 @@
                         <button onclick="selectAllActions()">Select All</button>
                         <button onclick="deselectAllActions()">Deselect All</button>
                         <button onclick="togglePendingOnly()" id="pending_only_btn">Show Pending Only</button>
+                        <button onclick="deleteSelectedActions()" style="border-color: #f44336; color: #f44336;" id="delete_selected_btn">🗑️ Delete Selected</button>
                     </div>
                     <div class="selection-stats">
                         <span id="selection_count">0 selected</span>
@@ -1522,6 +1523,61 @@
             document.getElementById('selection_count').textContent =
                 `${selectedActionIds.size} selected`;
             document.getElementById('execute_selected_btn').disabled = selectedActionIds.size === 0;
+            document.getElementById('delete_selected_btn').disabled = selectedActionIds.size === 0;
+        }
+
+        async function deleteSelectedActions() {
+            if (selectedActionIds.size === 0) {
+                alert('Please select at least one action to delete');
+                return;
+            }
+
+            const count = selectedActionIds.size;
+            if (!confirm(`⚠️ Delete ${count} selected action${count > 1 ? 's' : ''}?\n\nThis CANNOT be undone!`)) {
+                return;
+            }
+
+            const siteName = document.getElementById('action_plan_modal_title').textContent.replace('Action Plan - ', '');
+            showLoading(`Deleting ${count} action${count > 1 ? 's' : ''}...`);
+
+            let deletedCount = 0;
+            let errors = [];
+
+            for (const actionId of selectedActionIds) {
+                try {
+                    const response = await fetch(`${API_BASE}/delete-action`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            site_name: siteName,
+                            action_id: actionId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        deletedCount++;
+                    } else {
+                        errors.push(data.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    errors.push(error.message);
+                }
+            }
+
+            hideLoading();
+
+            if (errors.length > 0) {
+                alert(`Deleted ${deletedCount} of ${count} actions.\n\nErrors: ${errors.join(', ')}`);
+            } else {
+                alert(`✅ Deleted ${deletedCount} action${deletedCount > 1 ? 's' : ''} successfully!`);
+            }
+
+            // Reload the action plan
+            await openActionPlanModal(siteName);
+            await loadSites();
+            renderDashboard();
         }
 
         function closeActionPlanModal() {
@@ -1741,6 +1797,18 @@
                 await loadSites();
                 populateSiteSelectors();
                 document.getElementById('continue_panel').style.display = 'none';
+
+                // Clear results panel
+                const resultsPanel = document.getElementById('results_panel');
+                if (resultsPanel) {
+                    resultsPanel.classList.remove('show');
+                    resultsPanel.innerHTML = '';
+                }
+
+                // Update the site selector to trigger UI update
+                const siteSelector = document.getElementById('exec_site_selector');
+                siteSelector.dispatchEvent(new Event('change'));
+
                 hideLoading();
                 alert('✅ Plan cleared successfully!');
             } catch (error) {
@@ -1877,6 +1945,14 @@
                     await loadSites(); // Refresh dashboard
                     clearFileInputs(); // Clear for next run
                     hideLoading();
+
+                    // Auto-navigate to dashboard to show the new plan
+                    setTimeout(() => {
+                        if (confirm('✅ Action plan created successfully!\n\nWould you like to view it on the Dashboard?')) {
+                            switchView('dashboard');
+                            renderDashboard();
+                        }
+                    }, 500);
 
                 } catch (error) {
                     hideLoading();

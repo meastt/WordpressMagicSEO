@@ -318,6 +318,52 @@ def create_test_plan():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/api/delete-action', methods=['POST'])
+def delete_action():
+    """
+    Delete a specific action from the plan (cannot be undone).
+    """
+    try:
+        from state_manager import StateManager
+
+        data = request.get_json()
+        site_name = data.get('site_name')
+        action_id = data.get('action_id')
+
+        if not site_name or not action_id:
+            return jsonify({'success': False, 'error': 'Site name and action_id required'})
+
+        state_mgr = StateManager(site_name)
+
+        # Find and remove the action
+        current_plan = state_mgr.state.get('current_plan', [])
+        original_count = len(current_plan)
+
+        # Filter out the action with the given ID
+        updated_plan = [a for a in current_plan if a.get('id') != action_id]
+
+        if len(updated_plan) == original_count:
+            return jsonify({'success': False, 'error': 'Action not found'})
+
+        # Update the plan
+        state_mgr.state['current_plan'] = updated_plan
+        state_mgr.state['stats']['total_actions'] = len(updated_plan)
+        state_mgr.state['stats']['pending'] = len([a for a in updated_plan if a.get('status') != 'completed'])
+        state_mgr.state['stats']['completed'] = len([a for a in updated_plan if a.get('status') == 'completed'])
+        state_mgr.save()
+
+        print(f"DEBUG DELETE: Deleted action {action_id} from {site_name}")
+
+        return jsonify({
+            'success': True,
+            'message': f'Action deleted from {site_name}',
+            'stats': state_mgr.get_stats()
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @app.route('/api/clear-plan', methods=['POST'])
 def clear_plan():
     """
