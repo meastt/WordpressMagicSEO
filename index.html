@@ -879,7 +879,32 @@
                     <!-- Site cards will be loaded here -->
                 </div>
 
-                <div class="alert alert-info">
+                <!-- Quick Create Card -->
+                <div style="margin-top: 40px;">
+                    <h2 style="margin-bottom: 24px; color: #333;">⚡ Quick Create Content</h2>
+                    <div class="card">
+                        <div class="form-group">
+                            <label>Site</label>
+                            <select id="quick_create_site" class="form-control">
+                                <option value="">-- Select a site --</option>
+                            </select>
+                        </div>
+
+                        <div id="quick_create_forms">
+                            <!-- Dynamic post forms will be added here -->
+                        </div>
+
+                        <button type="button" class="btn-secondary" onclick="addQuickCreateForm()" style="margin-bottom: 16px;">
+                            + Add Another Post
+                        </button>
+
+                        <button type="button" class="btn-primary" onclick="submitQuickCreate()" style="width: 100%;">
+                            Create Posts
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 24px;">
                     💡 <strong>Quick Start:</strong> Select a site above or switch to the Execute tab to run a new analysis.
                 </div>
             </div>
@@ -1201,12 +1226,23 @@
             const selector = document.getElementById('exec_site_selector');
             selector.innerHTML = '<option value="">-- Select a site --</option>';
 
+            const quickSelector = document.getElementById('quick_create_site');
+            quickSelector.innerHTML = '<option value="">-- Select a site --</option>';
+
             sitesData.forEach(site => {
                 const option = document.createElement('option');
                 option.value = site.name;
                 option.textContent = site.name;
                 selector.appendChild(option);
+
+                const quickOption = document.createElement('option');
+                quickOption.value = site.name;
+                quickOption.textContent = site.name;
+                quickSelector.appendChild(quickOption);
             });
+
+            // Initialize with one quick create form
+            addQuickCreateForm();
         }
 
         // Site Selection
@@ -2031,6 +2067,167 @@
                 </div>
             `;
             panel.classList.add('show');
+        }
+
+        // =================================================================
+        // QUICK CREATE FUNCTIONS
+        // =================================================================
+
+        let quickCreateFormCount = 0;
+
+        function addQuickCreateForm() {
+            const container = document.getElementById('quick_create_forms');
+            const formId = `quick_create_form_${quickCreateFormCount++}`;
+
+            const formDiv = document.createElement('div');
+            formDiv.id = formId;
+            formDiv.style.cssText = 'border: 2px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f8f9fa;';
+
+            formDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <strong>Post ${quickCreateFormCount}</strong>
+                    ${quickCreateFormCount > 1 ? `<button type="button" class="btn-secondary" onclick="removeQuickCreateForm('${formId}')" style="padding: 4px 12px; font-size: 12px;">Remove</button>` : ''}
+                </div>
+                <div class="form-group">
+                    <label>Topic / Title</label>
+                    <input type="text" class="form-control quick-create-title" placeholder="e.g., Best Camera Settings for Portraits">
+                </div>
+                <div class="form-group">
+                    <label>Keywords (comma-separated)</label>
+                    <input type="text" class="form-control quick-create-keywords" placeholder="e.g., camera settings, photography, portraits">
+                </div>
+            `;
+
+            container.appendChild(formDiv);
+        }
+
+        function removeQuickCreateForm(formId) {
+            document.getElementById(formId)?.remove();
+        }
+
+        async function submitQuickCreate() {
+            const siteName = document.getElementById('quick_create_site').value;
+            if (!siteName) {
+                alert('Please select a site first');
+                return;
+            }
+
+            // Gather all post data
+            const forms = document.querySelectorAll('#quick_create_forms > div');
+            const posts = [];
+
+            forms.forEach((form, index) => {
+                const title = form.querySelector('.quick-create-title').value.trim();
+                const keywords = form.querySelector('.quick-create-keywords').value.trim();
+
+                if (title) {
+                    posts.push({ title, keywords });
+                }
+            });
+
+            if (posts.length === 0) {
+                alert('Please enter at least one post title');
+                return;
+            }
+
+            if (posts.length > 10) {
+                alert('Maximum 10 posts at a time');
+                return;
+            }
+
+            // Show confirmation modal
+            const confirmActions = posts.map((post, i) => ({
+                id: `quick_${i}`,
+                action_type: 'create',
+                title: post.title,
+                keywords: post.keywords
+            }));
+
+            showConfirmationModal(confirmActions, async (confirmedPosts) => {
+                await executeQuickCreate(siteName, confirmedPosts);
+            });
+        }
+
+        async function executeQuickCreate(siteName, posts) {
+            showLoading('Creating posts...', true);
+            let completed = 0;
+            let errors = [];
+            let successfulPosts = [];
+
+            for (const post of posts) {
+                try {
+                    updateProgress(completed, posts.length);
+                    document.getElementById('loading_text').textContent =
+                        `Creating: ${post.title}`;
+
+                    const response = await fetch(`${API_BASE}/quick-create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            site_name: siteName,
+                            title: post.title,
+                            keywords: post.keywords
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || data.error) {
+                        errors.push({
+                            title: post.title,
+                            error: data.error || 'Unknown error'
+                        });
+                    } else if (data.skipped) {
+                        errors.push({
+                            title: post.title,
+                            error: data.reason || 'Skipped'
+                        });
+                    } else {
+                        successfulPosts.push({
+                            title: post.title,
+                            url: data.url
+                        });
+                    }
+
+                    completed++;
+
+                    // Rate limiting: 2 seconds between posts
+                    if (completed < posts.length) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+
+                } catch (error) {
+                    errors.push({
+                        title: post.title,
+                        error: error.message
+                    });
+                    completed++;
+                }
+            }
+
+            hideLoading();
+
+            // Show results
+            let message = `✅ Created ${successfulPosts.length} of ${posts.length} posts!\n\n`;
+
+            if (successfulPosts.length > 0) {
+                message += 'Successful:\n';
+                successfulPosts.forEach(p => message += `• ${p.title}\n`);
+            }
+
+            if (errors.length > 0) {
+                message += `\nErrors/Skipped (${errors.length}):\n`;
+                errors.forEach(e => message += `• ${e.title}: ${e.error}\n`);
+            }
+
+            alert(message);
+
+            // Clear forms and reload
+            document.getElementById('quick_create_forms').innerHTML = '';
+            quickCreateFormCount = 0;
+            addQuickCreateForm();
+            await loadSites();
+            renderDashboard();
         }
     </script>
 </body>

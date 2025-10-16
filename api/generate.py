@@ -722,6 +722,138 @@ def execute_selected_actions():
         }), 500
 
 
+@app.route("/api/quick-create", methods=["POST"])
+def quick_create_post():
+    """
+    Quick create a single post without action plan (ad-hoc content creation).
+
+    JSON body: {
+        site_name: string,
+        title: string,
+        keywords: string[] (comma-separated or array)
+    }
+
+    Returns: Creation result with post_id or error
+    """
+    print("=== /api/quick-create called ===")
+
+    try:
+        data = request.get_json()
+        site_name = data.get('site_name')
+        title = data.get('title')
+        keywords = data.get('keywords', [])
+
+        # Parse keywords if string
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+
+        if not site_name or not title:
+            return jsonify({"error": "site_name and title required"}), 400
+
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if not anthropic_key:
+            return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+
+        from config import get_site
+        from wordpress_publisher import WordPressPublisher
+        from claude_content_generator import ClaudeContentGenerator
+        from affiliate_link_manager import AffiliateLinkManager
+
+        # Get site config (includes niche context)
+        site_config = get_site(site_name)
+
+        # Initialize services
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password'],
+            rate_limit_delay=1.0
+        )
+        content_gen = ClaudeContentGenerator(anthropic_key)
+
+        # Get affiliate manager if available
+        try:
+            affiliate_mgr = AffiliateLinkManager(site_name)
+            if not affiliate_mgr.get_all_links():
+                affiliate_mgr = None
+        except:
+            affiliate_mgr = None
+
+        result = {
+            "title": title,
+            "success": False,
+            "error": None
+        }
+
+        try:
+            # DUPLICATE DETECTION: Check if post with this title already exists
+            print(f"Checking for duplicate post with title: {title}")
+            existing_posts = wp.get_all_posts()
+            for post in existing_posts:
+                post_title = post.get('title', {}).get('rendered', '') if isinstance(post.get('title'), dict) else post.get('title', '')
+                if post_title.strip().lower() == title.strip().lower():
+                    print(f"DUPLICATE DETECTED: Post with title '{title}' already exists (ID: {post.get('id')})")
+                    result['success'] = True
+                    result['post_id'] = post.get('id')
+                    result['skipped'] = True
+                    result['reason'] = 'Duplicate post already exists'
+                    return jsonify(result)
+
+            # Create new post
+            print(f"Creating post: {title}")
+            research = content_gen.research_topic(title, keywords)
+            internal_links = wp.get_internal_link_suggestions(keywords)
+            affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+
+            article_data = content_gen.generate_article(
+                topic_title=title,
+                keywords=keywords,
+                research=research,
+                meta_description=f"Learn about {title}",
+                internal_links=internal_links,
+                affiliate_links=affiliate_links
+            )
+
+            publish_result = wp.create_post(
+                title=article_data.get('title', title),
+                content=article_data['content'],
+                meta_title=article_data.get('meta_title'),
+                meta_description=article_data.get('meta_description'),
+                categories=article_data.get('categories', []),
+                tags=article_data.get('tags', [])
+            )
+
+            if publish_result.success:
+                result['post_id'] = publish_result.post_id
+                result['success'] = True
+                result['url'] = f"{site_config['url']}/?p={publish_result.post_id}"
+
+                # Update affiliate link usage
+                if affiliate_mgr and affiliate_links:
+                    for link in affiliate_links:
+                        if link['url'] in article_data['content']:
+                            affiliate_mgr.increment_usage(link['id'])
+
+                print(f"Post created successfully: {result['post_id']}")
+            else:
+                result['error'] = publish_result.error
+                print(f"Post creation failed: {publish_result.error}")
+
+        except Exception as e:
+            result['error'] = str(e)
+            print(f"Error creating post: {e}")
+
+        return jsonify(result)
+
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Quick create failed",
+            "details": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
 @app.route("/api/execute-next", methods=["POST"])
 def execute_next_action():
     """
