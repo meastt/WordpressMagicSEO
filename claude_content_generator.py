@@ -43,8 +43,8 @@ Be thorough and cite recent sources."""
         return message.content[0].text
     
     def generate_article(
-        self, 
-        topic_title: str, 
+        self,
+        topic_title: str,
         keywords: List[str],
         research: str,
         meta_description: str,
@@ -53,7 +53,13 @@ Be thorough and cite recent sources."""
         affiliate_links: List[Dict] = None
     ) -> Dict[str, str]:
         """Generate complete article with metadata and affiliate links."""
-        
+
+        # Get current date for context
+        from datetime import datetime
+        current_date = datetime.now()
+        date_context = f"\n\nCURRENT DATE CONTEXT: Today is {current_date.strftime('%B %d, %Y')} (Month: {current_date.strftime('%B')}, Year: {current_date.year})"
+        date_context += "\nIMPORTANT: Use the current year in any time-sensitive content (e.g., 'Best X in 2025', 'Top X for 2025'). Keep content fresh and current."
+
         action = "update this existing content" if existing_content else "create new content"
         existing_context = f"\n\nEXISTING CONTENT TO UPDATE:\n{existing_content}" if existing_content else ""
         
@@ -70,6 +76,7 @@ Be thorough and cite recent sources."""
                 affiliate_links_text += f"- {link['brand']} {link['product_name']} ({link['product_type']}): {link['url']}\n"
         
         prompt = f"""You are an expert SEO content writer. {action.capitalize()} about: "{topic_title}"
+{date_context}
 
 TARGET KEYWORDS: {', '.join(keywords)}
 

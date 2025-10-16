@@ -1145,8 +1145,12 @@
         // View Switching
         function switchView(viewName) {
             // Update active tab
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.includes(viewName === 'dashboard' ? '📊 Dashboard' : viewName === 'execute' ? '🚀 Execute' : '⚙️ Settings')) {
+                    tab.classList.add('active');
+                }
+            });
 
             // Update active view
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
@@ -1662,6 +1666,8 @@
             // Show confirmation modal first
             showConfirmationModal(selectedActions, async (confirmedActions) => {
                 closeActionPlanModal();
+                // Small delay to ensure modal closes before loading overlay shows
+                await new Promise(resolve => setTimeout(resolve, 100));
                 await executeActionsSequentially(confirmedActions);
             });
         }
@@ -1794,8 +1800,11 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
+                // Reload sites data from backend
                 await loadSites();
                 populateSiteSelectors();
+
+                // Force hide the continue panel
                 document.getElementById('continue_panel').style.display = 'none';
 
                 // Clear results panel
@@ -1805,12 +1814,18 @@
                     resultsPanel.innerHTML = '';
                 }
 
-                // Update the site selector to trigger UI update
-                const siteSelector = document.getElementById('exec_site_selector');
-                siteSelector.dispatchEvent(new Event('change'));
-
                 hideLoading();
                 alert('✅ Plan cleared successfully!');
+
+                // Wait a moment for backend to fully update, then check again
+                setTimeout(async () => {
+                    await loadSites();
+                    const site = sitesData.find(s => s.name === siteName);
+                    // Ensure continue panel stays hidden if no pending actions
+                    if (!site || site.pending_actions === 0) {
+                        document.getElementById('continue_panel').style.display = 'none';
+                    }
+                }, 500);
             } catch (error) {
                 hideLoading();
                 alert('Error: ' + error.message);
