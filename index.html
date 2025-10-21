@@ -1636,10 +1636,16 @@
             const site = sitesData.find(s => s.name === siteName);
             const continuePanel = document.getElementById('continue_panel');
 
+            console.log(`Site selector changed to: ${siteName}`);
+            console.log(`Site data:`, site);
+            console.log(`Pending actions:`, site?.pending_actions);
+
             if (site && site.pending_actions > 0) {
                 continuePanel.style.display = 'block';
+                console.log('Continue panel shown');
             } else {
                 continuePanel.style.display = 'none';
+                console.log('Continue panel hidden');
             }
 
             // Clear file inputs when switching sites
@@ -2052,11 +2058,19 @@
             let completed = 0;
             let errors = [];
 
+            // Update progress immediately to show we're starting
+            updateProgress(0, actions.length);
+            document.getElementById('loading_text').textContent = 
+                `Starting execution of ${actions.length} actions...`;
+
             for (const action of actions) {
                 try {
+                    // Update progress before each action
                     updateProgress(completed, actions.length);
                     document.getElementById('loading_text').textContent =
-                        `Executing: ${action.title || action.url || 'Untitled'}`;
+                        `[${completed + 1}/${actions.length}] Executing: ${action.title || action.url || 'Untitled'}`;
+
+                    console.log(`Executing action ${completed + 1}/${actions.length}: ${action.title || action.url}`);
 
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
@@ -2074,12 +2088,20 @@
                             action: action.title || action.url,
                             error: data.results?.[0]?.error || data.error || 'Unknown error'
                         });
+                        console.error(`Action failed: ${action.title || action.url}`, data.results?.[0]?.error || data.error);
+                    } else {
+                        console.log(`Action completed successfully: ${action.title || action.url}`);
                     }
 
                     completed++;
 
+                    // Update progress after completion
+                    updateProgress(completed, actions.length);
+
                     // Rate limiting: 2 seconds between actions
                     if (completed < actions.length) {
+                        document.getElementById('loading_text').textContent = 
+                            `Waiting 2 seconds before next action...`;
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     }
 
@@ -2089,6 +2111,10 @@
                         error: error.message
                     });
                     completed++;
+                    console.error(`Action error: ${action.title || action.url}`, error);
+                    
+                    // Update progress even on error
+                    updateProgress(completed, actions.length);
                 }
             }
 
@@ -2178,7 +2204,7 @@
                 renderDashboard();
                 populateSiteSelectors();
 
-                // Force hide the continue panel
+                // Force hide the continue panel immediately
                 document.getElementById('continue_panel').style.display = 'none';
 
                 // Clear results panel
@@ -2188,18 +2214,34 @@
                     resultsPanel.innerHTML = '';
                 }
 
+                // Clear any cached action plan data in the UI
+                const actionPlanModal = document.getElementById('action_plan_modal');
+                if (actionPlanModal) {
+                    actionPlanModal.style.display = 'none';
+                }
+
                 hideLoading();
                 alert('✅ Plan cleared successfully!');
+
+                // Force refresh the site selector to update the continue panel state
+                const siteSelector = document.getElementById('exec_site_selector');
+                if (siteSelector) {
+                    // Trigger the change event to refresh the continue panel
+                    siteSelector.dispatchEvent(new Event('change'));
+                }
 
                 // Wait a moment for backend to fully update, then check again
                 setTimeout(async () => {
                     await loadSites();
                     const site = sitesData.find(s => s.name === siteName);
+                    console.log(`After clear - Site ${siteName} pending actions:`, site?.pending_actions);
+                    
                     // Ensure continue panel stays hidden if no pending actions
                     if (!site || site.pending_actions === 0) {
                         document.getElementById('continue_panel').style.display = 'none';
+                        console.log('Continue panel hidden after clear');
                     }
-                }, 500);
+                }, 1000);
             } catch (error) {
                 hideLoading();
                 alert('Error: ' + error.message);
