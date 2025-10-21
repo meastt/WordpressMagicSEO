@@ -624,6 +624,195 @@
             gap: 12px;
         }
 
+        /* Welcome Modal */
+        .welcome-modal .modal-content {
+            max-width: 800px;
+        }
+
+        .welcome-hero {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .welcome-hero h1 {
+            font-size: 36px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .welcome-hero p {
+            font-size: 18px;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .welcome-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .welcome-step {
+            text-align: center;
+            padding: 24px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+
+        .welcome-step:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+
+        .welcome-step-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .welcome-step-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .welcome-step-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-text strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .feature-text span {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .empty-state .btn-large {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Tooltips */
+        .tooltip-trigger {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            color: #667eea;
+            margin-left: 4px;
+        }
+
+        .tooltip-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-trigger:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
         /* Action Plan Modal */
         .action-plan-controls {
             display: flex;
@@ -852,6 +1041,38 @@
                 align-items: flex-start;
                 gap: 12px;
             }
+
+            .welcome-steps {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-hero h1 {
+                font-size: 28px;
+            }
+
+            .welcome-hero p {
+                font-size: 16px;
+            }
+
+            .app-header {
+                padding: 16px 20px;
+            }
+
+            .app-title {
+                font-size: 18px;
+            }
+
+            .empty-state {
+                padding: 40px 20px;
+            }
+
+            .empty-state-icon {
+                font-size: 60px;
+            }
         }
     </style>
 </head>
@@ -860,7 +1081,12 @@
         <!-- Header -->
         <div class="app-header">
             <div class="app-title">🎯 WordPress Magic SEO</div>
-            <div class="app-badge">v3.0 AI</div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button onclick="showWelcomeModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    📖 Help
+                </button>
+                <div class="app-badge">v3.0 AI</div>
+            </div>
         </div>
 
         <!-- Navigation Tabs -->
@@ -881,10 +1107,20 @@
 
                 <!-- Quick Create Card -->
                 <div style="margin-top: 40px;">
-                    <h2 style="margin-bottom: 24px; color: #333;">⚡ Quick Create Content</h2>
-                    <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="margin: 0; color: #333;">⚡ Quick Create Content</h2>
+                        <span class="tooltip-trigger" style="font-size: 18px;">ℹ️
+                            <span class="tooltip-content">Create custom posts without GSC data</span>
+                        </span>
+                    </div>
+                    <div style="background: #f8f9fa; border-radius: 12px; padding: 32px; border: 2px solid #e0e0e0;">
                         <div class="form-group">
-                            <label>Site</label>
+                            <label>
+                                Select Site
+                                <span class="tooltip-trigger">ℹ️
+                                    <span class="tooltip-content">Choose which WordPress site to publish to</span>
+                                </span>
+                            </label>
                             <select id="quick_create_site" class="form-control">
                                 <option value="">-- Select a site --</option>
                             </select>
@@ -894,18 +1130,19 @@
                             <!-- Dynamic post forms will be added here -->
                         </div>
 
-                        <button type="button" class="btn-secondary" onclick="addQuickCreateForm()" style="margin-bottom: 16px;">
-                            + Add Another Post
-                        </button>
+                        <div style="display: flex; gap: 12px; margin-top: 20px;">
+                            <button type="button" class="btn-secondary" onclick="addQuickCreateForm()" style="flex: 1;">
+                                ➕ Add Another Post
+                            </button>
+                            <button type="button" class="btn-primary" onclick="submitQuickCreate()" style="flex: 2;">
+                                ✨ Create Posts with AI
+                            </button>
+                        </div>
 
-                        <button type="button" class="btn-primary" onclick="submitQuickCreate()" style="width: 100%;">
-                            Create Posts
-                        </button>
+                        <div class="alert alert-info" style="margin-top: 20px; margin-bottom: 0;">
+                            💡 <strong>Tip:</strong> Enter topics and keywords for AI-generated content. The system will research and create SEO-optimized articles automatically.
+                        </div>
                     </div>
-                </div>
-
-                <div class="alert alert-info" style="margin-top: 24px;">
-                    💡 <strong>Quick Start:</strong> Select a site above or switch to the Execute tab to run a new analysis.
                 </div>
             </div>
 
@@ -921,7 +1158,12 @@
                             <div class="step-title">Select Site</div>
                         </div>
                         <div class="form-group">
-                            <label for="exec_site_selector">Choose a site to optimize</label>
+                            <label for="exec_site_selector">
+                                Choose a site to optimize
+                                <span class="tooltip-trigger">ℹ️
+                                    <span class="tooltip-content">Sites are configured via Vercel environment variables</span>
+                                </span>
+                            </label>
                             <select id="exec_site_selector">
                                 <option value="">-- Select a site --</option>
                             </select>
@@ -952,24 +1194,35 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Google Search Console Data (Required)</label>
+                            <label>
+                                Google Search Console Data (Required)
+                                <span class="tooltip-trigger">ℹ️
+                                    <span class="tooltip-content">Go to GSC → Performance → Export → Download CSV</span>
+                                </span>
+                            </label>
                             <div class="file-upload-area" onclick="document.getElementById('gsc_file_input').click()">
                                 <input type="file" id="gsc_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('gsc')">
                                 <div class="upload-icon">📊</div>
                                 <div class="upload-text">Click to upload GSC CSV/Excel</div>
                                 <div id="gsc_file_name" class="file-name-display"></div>
                             </div>
-                            <div class="help-text">Export 12 months of data from Google Search Console</div>
+                            <div class="help-text">📅 Export 12 months of data from Google Search Console. Include queries, pages, clicks, impressions, CTR, and position data.</div>
                         </div>
 
                         <div class="form-group">
-                            <label>Google Analytics 4 Data (Optional)</label>
+                            <label>
+                                Google Analytics 4 Data (Optional)
+                                <span class="tooltip-trigger">ℹ️
+                                    <span class="tooltip-content">Adds engagement metrics for deeper insights</span>
+                                </span>
+                            </label>
                             <div class="file-upload-area" onclick="document.getElementById('ga4_file_input').click()">
                                 <input type="file" id="ga4_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('ga4')">
                                 <div class="upload-icon">📈</div>
                                 <div class="upload-text">Click to upload GA4 CSV/Excel</div>
                                 <div id="ga4_file_name" class="file-name-display"></div>
                             </div>
+                            <div class="help-text">💡 Optional: Include engagement rate, bounce rate, and session duration metrics from GA4 for more comprehensive analysis.</div>
                         </div>
                     </div>
 
@@ -985,21 +1238,21 @@
                                 <input type="radio" name="exec_mode" value="view_plan" checked>
                                 <div class="mode-icon">📋</div>
                                 <div class="mode-title">View Plan</div>
-                                <div class="mode-desc">Analyze & review (no changes)</div>
+                                <div class="mode-desc">Safe: Just analyze & create action plan</div>
                             </div>
 
                             <div class="mode-option" onclick="selectMode('execute_top_n')">
                                 <input type="radio" name="exec_mode" value="execute_top_n">
                                 <div class="mode-icon">🎯</div>
                                 <div class="mode-title">Execute Batch</div>
-                                <div class="mode-desc">Run top N actions</div>
+                                <div class="mode-desc">Run top priority actions only</div>
                             </div>
 
                             <div class="mode-option" onclick="selectMode('execute_all')">
                                 <input type="radio" name="exec_mode" value="execute_all">
                                 <div class="mode-icon">🚀</div>
                                 <div class="mode-title">Execute All</div>
-                                <div class="mode-desc">Run all recommendations</div>
+                                <div class="mode-desc">Full automation: run everything</div>
                             </div>
                         </div>
 
@@ -1130,6 +1383,92 @@
         </div>
     </div>
 
+    <!-- Welcome Modal -->
+    <div id="welcome_modal" class="modal welcome-modal">
+        <div class="modal-content">
+            <div class="welcome-hero">
+                <h1>🎯 Welcome to WordPress Magic SEO</h1>
+                <p>AI-powered SEO automation for affiliate publishers and bloggers</p>
+            </div>
+            <div class="modal-body">
+                <h3 style="text-align: center; margin-bottom: 24px; color: #333;">Get Started in 3 Easy Steps</h3>
+
+                <div class="welcome-steps">
+                    <div class="welcome-step">
+                        <div class="welcome-step-icon">📊</div>
+                        <div class="welcome-step-title">1. Upload Data</div>
+                        <div class="welcome-step-desc">Export your Google Search Console data (last 12 months) and optionally GA4 metrics</div>
+                    </div>
+                    <div class="welcome-step">
+                        <div class="welcome-step-icon">🤖</div>
+                        <div class="welcome-step-title">2. AI Analysis</div>
+                        <div class="welcome-step-desc">Claude AI analyzes your data and creates a strategic action plan</div>
+                    </div>
+                    <div class="welcome-step">
+                        <div class="welcome-step-icon">🚀</div>
+                        <div class="welcome-step-title">3. Execute</div>
+                        <div class="welcome-step-desc">Review and execute actions to optimize your content automatically</div>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 16px; color: #333;">✨ What This Tool Does:</h4>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🔍</div>
+                        <div class="feature-text">
+                            <strong>Smart Analysis</strong>
+                            <span>Identifies underperforming content and missed opportunities</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✍️</div>
+                        <div class="feature-text">
+                            <strong>Content Generation</strong>
+                            <span>Creates SEO-optimized articles with web research</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📈</div>
+                        <div class="feature-text">
+                            <strong>Trend Detection</strong>
+                            <span>Spots trending vs declining content automatically</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <div class="feature-text">
+                            <strong>Year-Aware Updates</strong>
+                            <span>Keeps your "Best of 2025" content fresh and current</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔗</div>
+                        <div class="feature-text">
+                            <strong>Auto Publishing</strong>
+                            <span>Publishes directly to WordPress with proper formatting</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-text">
+                            <strong>Schema Markup</strong>
+                            <span>Adds structured data for better search visibility</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 24px;">
+                    <strong>💡 Pro Tip:</strong> Start by uploading your GSC data in the Execute tab. The AI will create an action plan showing exactly what needs improvement on your site.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-large btn-primary" onclick="closeWelcomeModal()" style="width: 100%;">
+                    🚀 Let's Get Started!
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
         let sitesData = [];
@@ -1140,6 +1479,22 @@
         async function init() {
             await loadSites();
             populateSiteSelectors();
+
+            // Show welcome modal on first visit
+            const hasVisited = localStorage.getItem('wp_magic_seo_visited');
+            if (!hasVisited) {
+                setTimeout(() => showWelcomeModal(), 500);
+                localStorage.setItem('wp_magic_seo_visited', 'true');
+            }
+        }
+
+        // Welcome Modal Functions
+        function showWelcomeModal() {
+            document.getElementById('welcome_modal').classList.add('show');
+        }
+
+        function closeWelcomeModal() {
+            document.getElementById('welcome_modal').classList.remove('show');
         }
 
         // View Switching
@@ -1180,6 +1535,26 @@
         function renderDashboard() {
             const grid = document.getElementById('dashboard-grid');
             grid.innerHTML = '';
+
+            // Show empty state if no sites with action plans
+            if (sitesData.length === 0 || sitesData.every(s => s.total_actions === 0)) {
+                grid.innerHTML = `
+                    <div class="empty-state fade-in-up" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">🎯</div>
+                        <h3>Ready to Optimize Your WordPress Sites?</h3>
+                        <p>Upload your Google Search Console data to get started. Our AI will analyze your content and create a strategic action plan to boost your SEO performance.</p>
+                        <button class="btn-large" onclick="switchView('execute')">
+                            🚀 Start Your First Analysis
+                        </button>
+                        <div style="margin-top: 24px;">
+                            <button class="btn-secondary" onclick="showWelcomeModal()" style="padding: 12px 24px;">
+                                📖 View Getting Started Guide
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
 
             sitesData.forEach(site => {
                 const card = document.createElement('div');
