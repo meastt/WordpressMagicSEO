@@ -89,9 +89,27 @@ class AIStrategicPlanner:
         gsc_summary = self._summarize_gsc(merged_data)
         ga4_summary = self._summarize_ga4(merged_data)
         completed_urls = [a.get('url') for a in completed_actions if a.get('url')]
-        
+
+        # Add current date context for year-aware recommendations
+        from datetime import datetime
+        current_date = datetime.now()
+        current_year = current_date.year
+        current_month = current_date.strftime('%B')
+
         # Build comprehensive prompt
         prompt = f"""You're an SEO strategist for {site_config['url']}.
+
+**CURRENT DATE CONTEXT:**
+Today is {current_date.strftime('%B %d, %Y')}
+Current Year: {current_year}
+Current Month: {current_month}
+
+**CRITICAL: Content Freshness Rules**
+- ALWAYS use {current_year} in titles for "Best", "Top", or time-sensitive content
+- Flag any titles with old years (e.g., "Best X 2023", "Top Y 2024") as HIGH PRIORITY updates
+- Titles should be: "Best X {current_year}", "Top Y for {current_year}"
+- Content last updated >12 months ago needs freshness update
+- Seasonal content should align with upcoming seasons
 
 **NICHE:** {site_config['niche']}
 
@@ -143,13 +161,21 @@ Create a prioritized content action plan with 20-30 actions.
    - High bounce rate (>70%) = UX or content quality problem
    - Low engagement time (<30s) = Thin/unhelpful content
 
-5. **Cannibalization** (MEDIUM PRIORITY)
+5. **Cannibalization & Duplicate Content** (MEDIUM-HIGH PRIORITY)
    - Multiple pages targeting same keywords
-   - Consolidate into one strong page
+   - **SEMANTIC DUPLICATES:** Pages about same topic with different titles/years
+     * Example: "Best Griddles 2023" and "Top Griddles 2024" are DUPLICATES
+     * Consolidate to single updated page with current year
+   - Look for URL patterns: same topic, different years (redirect old → new)
+   - Multiple "best X" or "top X" guides for same product category
+   - Consolidate into one strong, updated page
 
-6. **Outdated Content** (LOW PRIORITY)
+6. **Outdated Content** (HIGH PRIORITY for year updates, otherwise MEDIUM)
    - Topics declining in niche research
    - Low impressions + low engagement
+   - **CRITICAL:** Titles with old years (e.g., "Best X 2023") → Update to {current_year}
+   - Content not updated in last 12 months
+   - Seasonal content out of season
 
 **OUTPUT FORMAT:**
 Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critical).
@@ -158,8 +184,19 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
   {{
     "id": "action_001",
     "action_type": "update",
+    "url": "https://example.com/best-griddles-2024",
+    "title": "Best Griddles {current_year}",
+    "keywords": ["best griddles {current_year}", "top griddles", "griddle reviews"],
+    "priority_score": 9.8,
+    "reasoning": "OUTDATED TITLE: Currently 'Best Griddles 2024' but it's {current_year}. High traffic (5K impressions, 250 clicks) but title year is stale. Update title and content to {current_year} immediately. Add latest {current_year} product releases. This is a quick win for maintaining rankings.",
+    "estimated_impact": "high",
+    "redirect_target": null
+  }},
+  {{
+    "id": "action_002",
+    "action_type": "update",
     "url": "https://example.com/page-url",
-    "title": "Suggested Title for 2025",
+    "title": "Suggested Title for {current_year}",
     "keywords": ["primary keyword", "secondary keyword", "tertiary keyword"],
     "priority_score": 9.5,
     "reasoning": "High traffic (10K impressions, 500 clicks, position #2) but terrible engagement (90% bounce, 12s avg time). Content likely doesn't match search intent. Rewrite to focus on product comparisons instead of general info. Aligns with 'comparison content +45%' trend from niche research.",
@@ -167,10 +204,10 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
     "redirect_target": null
   }},
   {{
-    "id": "action_002",
+    "id": "action_003",
     "action_type": "create",
     "url": null,
-    "title": "Cast Iron Griddle Seasoning Complete Guide 2025",
+    "title": "Cast Iron Griddle Seasoning Complete Guide {current_year}",
     "keywords": ["cast iron griddle seasoning", "how to season cast iron griddle", "griddle seasoning tips"],
     "priority_score": 9.2,
     "reasoning": "Major gap identified in niche research: 'Cast iron maintenance guides - 5K monthly searches, low competition'. No existing content on site. Highly engaged niche (from competitor analysis). Quick win opportunity.",
@@ -178,15 +215,15 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
     "redirect_target": null
   }},
   {{
-    "id": "action_003",
+    "id": "action_004",
     "action_type": "redirect",
-    "url": "https://example.com/old-griddle-guide",
+    "url": "https://example.com/best-griddles-2023",
     "title": null,
     "keywords": [],
-    "priority_score": 6.5,
-    "reasoning": "Duplicate content: covers same topic as /best-griddles-2025 but with worse performance (50 impressions vs 5K). Consolidate to avoid keyword cannibalization. Redirect to main guide.",
-    "estimated_impact": "medium",
-    "redirect_target": "https://example.com/best-griddles-2025"
+    "priority_score": 8.0,
+    "reasoning": "Old year version (2023) competing with current {current_year} version. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. Redirect to /best-griddles-{current_year}.",
+    "estimated_impact": "high",
+    "redirect_target": "https://example.com/best-griddles-{current_year}"
   }}
 ]
 
@@ -194,7 +231,10 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
 - Be SPECIFIC in reasoning (cite exact numbers from data)
 - Consider BOTH search performance (GSC) AND user behavior (GA4)
 - Align with niche trends (reference specific trends)
+- **CRITICAL:** Check ALL titles for old years - flag for immediate update to {current_year}
+- Look for patterns like "2023", "2024" in URLs/titles - these need year updates
 - Provide 20-30 diverse actions (mix of updates, creates, deletes, redirects)
+- Prioritize year updates as HIGH PRIORITY (score 8.0+)
 - Return ONLY the JSON array, no other text"""
 
         try:

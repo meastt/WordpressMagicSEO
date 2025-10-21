@@ -160,72 +160,142 @@ class StateManager:
             return None
     
     def save(self):
-        """Save state to persistent storage and file"""
+        """
+        Save state to persistent storage and file.
+
+        Attempts to save to both GitHub Gist (persistent) and local file.
+        Raises exception if CRITICAL persistent storage fails.
+        """
         print(f"DEBUG STATE SAVE: Starting save for {self.site_name}")
         print(f"DEBUG STATE SAVE: State file: {self.state_file}")
         print(f"DEBUG STATE SAVE: State content: {self.state}")
-        
-        # Save to persistent storage first (for Vercel)
-        self._save_to_persistent_storage()
-        
-        # Also save to file (for local development)
+
+        # Save to persistent storage first (for Vercel) - CRITICAL
+        try:
+            self._save_to_persistent_storage()
+        except Exception as e:
+            # Log the error but also try local save before re-raising
+            print(f"❌ Persistent storage save failed: {e}")
+            # Try local save as backup
+            try:
+                with open(self.state_file, 'w') as f:
+                    json.dump(self.state, f, indent=2)
+                print(f"✅ State saved to local file as backup: {self.state_file}")
+            except IOError as file_error:
+                print(f"❌ Local file save also failed: {file_error}")
+
+            # Re-raise the original persistent storage error
+            # User needs to know state persistence failed
+            raise e
+
+        # Also save to file (for local development and redundancy)
         try:
             with open(self.state_file, 'w') as f:
                 json.dump(self.state, f, indent=2)
-            print(f"State saved for {self.site_name}: {self.state.get('stats', {})}")
+            print(f"✅ State saved locally for {self.site_name}: {self.state.get('stats', {})}")
         except IOError as e:
-            print(f"Warning: Could not save state file: {e}")
+            # Local save failure is less critical if persistent storage succeeded
+            print(f"⚠️  Warning: Could not save state to local file: {e}")
+            print(f"   (Persistent storage succeeded, so state is safe)")
     
-    def _save_to_persistent_storage(self):
-        """Save state to GitHub Gist (persistent storage for Vercel)"""
-        try:
-            # Use GitHub Gist as persistent storage
-            env_key = f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}"
-            gist_id = os.getenv(env_key)
-            github_token = os.getenv("GITHUB_TOKEN")
-            
-            print(f"DEBUG GIST SAVE: Env key: {env_key}")
-            print(f"DEBUG GIST SAVE: Gist ID: {gist_id}")
-            print(f"DEBUG GIST SAVE: GitHub token: {'SET' if github_token else 'NOT SET'}")
-            
-            if not gist_id or not github_token:
-                print(f"No Gist ID or GitHub token configured for {self.site_name}")
-                return
-            
-            # Save to Gist
-            headers = {
-                "Authorization": f"token {github_token}",
-                "Accept": "application/vnd.github.v3+json"
+    def _save_to_persistent_storage(self, max_retries: int = 3):
+        """
+        Save state to GitHub Gist (persistent storage for Vercel) with retry logic.
+
+        Args:
+            max_retries: Number of retry attempts for transient failures
+
+        Raises:
+            Exception: If save fails after all retries (CRITICAL - state not persisted)
+        """
+        import time
+
+        # Use GitHub Gist as persistent storage
+        env_key = f"GIST_ID_{self.site_name.replace('.', '_').replace('-', '_').upper()}"
+        gist_id = os.getenv(env_key)
+        github_token = os.getenv("GITHUB_TOKEN")
+
+        print(f"DEBUG GIST SAVE: Env key: {env_key}")
+        print(f"DEBUG GIST SAVE: Gist ID: {gist_id}")
+        print(f"DEBUG GIST SAVE: GitHub token: {'SET' if github_token else 'NOT SET'}")
+
+        if not gist_id or not github_token:
+            # This is OK for local development - just skip persistent storage
+            print(f"No Gist ID or GitHub token configured for {self.site_name} - using local storage only")
+            return
+
+        # Prepare request data
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        files = {
+            f"{self.site_name}_state.json": {
+                "content": json.dumps(self.state, indent=2)
             }
-            
-            files = {
-                f"{self.site_name}_state.json": {
-                    "content": json.dumps(self.state, indent=2)
-                }
-            }
-            
-            if gist_id == "new":
-                # Create new Gist
-                data = {
-                    "description": f"State for {self.site_name}",
-                    "public": False,
-                    "files": files
-                }
-                response = requests.post("https://api.github.com/gists", 
-                                       headers=headers, json=data, timeout=10)
-                if response.status_code == 201:
-                    new_gist_id = response.json()['id']
-                    print(f"Created new Gist {new_gist_id} for {self.site_name}")
-            else:
-                # Update existing Gist
-                data = {"files": files}
-                response = requests.patch(f"https://api.github.com/gists/{gist_id}", 
-                                        headers=headers, json=data, timeout=10)
-                if response.status_code == 200:
-                    print(f"Updated Gist {gist_id} for {self.site_name}")
-                    
-        except Exception as e:
-            print(f"Could not save to persistent storage: {e}")
+        }
+
+        # Retry loop with exponential backoff
+        for attempt in range(max_retries):
+            try:
+                if gist_id == "new":
+                    # Create new Gist
+                    data = {
+                        "description": f"State for {self.site_name}",
+                        "public": False,
+                        "files": files
+                    }
+                    response = requests.post(
+                        "https://api.github.com/gists",
+                        headers=headers,
+                        json=data,
+                        timeout=10
+                    )
+
+                    if response.status_code == 201:
+                        new_gist_id = response.json()['id']
+                        print(f"✅ Created new Gist {new_gist_id} for {self.site_name}")
+                        return  # Success
+                    else:
+                        raise Exception(f"Gist creation failed: {response.status_code} - {response.text}")
+                else:
+                    # Update existing Gist
+                    data = {"files": files}
+                    response = requests.patch(
+                        f"https://api.github.com/gists/{gist_id}",
+                        headers=headers,
+                        json=data,
+                        timeout=10
+                    )
+
+                    if response.status_code == 200:
+                        print(f"✅ Updated Gist {gist_id} for {self.site_name}")
+                        return  # Success
+                    else:
+                        raise Exception(f"Gist update failed: {response.status_code} - {response.text}")
+
+            except requests.exceptions.Timeout as e:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    print(f"⚠️  Gist save timeout (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    # CRITICAL: Raise exception on final failure
+                    raise Exception(f"❌ CRITICAL: Failed to save state to Gist after {max_retries} attempts (timeout): {e}")
+
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt
+                    print(f"⚠️  Gist save error (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    # CRITICAL: Raise exception on final failure
+                    raise Exception(f"❌ CRITICAL: Failed to save state to Gist after {max_retries} attempts: {e}")
+
+            except Exception as e:
+                # Non-network errors (parsing, etc.)
+                raise Exception(f"❌ CRITICAL: Failed to save state to Gist: {e}")
     
     def update_plan(self, actions: List[Dict]):
         """
