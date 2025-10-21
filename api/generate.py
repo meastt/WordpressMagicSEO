@@ -366,6 +366,62 @@ def delete_action():
         return jsonify({'success': False, 'error': str(e)})
 
 
+@app.route('/api/delete-actions-batch', methods=['POST'])
+def delete_actions_batch():
+    """
+    Delete multiple actions from the plan in a single operation (prevents race conditions).
+    Expects: { site_name: str, action_ids: list[str] }
+    """
+    try:
+        from state_manager import StateManager
+
+        data = request.get_json()
+        site_name = data.get('site_name')
+        action_ids = data.get('action_ids', [])
+
+        if not site_name:
+            return jsonify({'success': False, 'error': 'Site name required'})
+
+        if not action_ids or not isinstance(action_ids, list):
+            return jsonify({'success': False, 'error': 'action_ids must be a non-empty list'})
+
+        state_mgr = StateManager(site_name)
+
+        # Find and remove all specified actions in one operation
+        current_plan = state_mgr.state.get('current_plan', [])
+        original_count = len(current_plan)
+
+        # Convert action_ids to a set for faster lookup
+        ids_to_delete = set(action_ids)
+
+        # Filter out all actions with IDs in the deletion list
+        updated_plan = [a for a in current_plan if a.get('id') not in ids_to_delete]
+
+        deleted_count = original_count - len(updated_plan)
+
+        if deleted_count == 0:
+            return jsonify({'success': False, 'error': 'No matching actions found'})
+
+        # Update the plan and stats
+        state_mgr.state['current_plan'] = updated_plan
+        state_mgr.state['stats']['total_actions'] = len(updated_plan)
+        state_mgr.state['stats']['pending'] = len([a for a in updated_plan if a.get('status') != 'completed'])
+        state_mgr.state['stats']['completed'] = len([a for a in updated_plan if a.get('status') == 'completed'])
+        state_mgr.save()
+
+        print(f"Batch deleted {deleted_count} actions from {site_name}")
+
+        return jsonify({
+            'success': True,
+            'message': f'Deleted {deleted_count} action{"s" if deleted_count != 1 else ""} from {site_name}',
+            'deleted_count': deleted_count,
+            'stats': state_mgr.get_stats()
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @app.route('/api/clear-plan', methods=['POST'])
 def clear_plan():
     """
