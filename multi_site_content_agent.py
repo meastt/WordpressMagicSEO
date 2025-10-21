@@ -245,7 +245,8 @@ class DataProcessor:
             with open(self.ga4_path, 'r', encoding='utf-8') as f:
                 first_lines = [f.readline() for _ in range(5)]
                 is_reports_snapshot = any('Reports snapshot' in line or '# ------' in line for line in first_lines)
-        except:
+        except (FileNotFoundError, IOError, UnicodeDecodeError) as e:
+            print(f"   ⚠ Could not read GA4 file for format detection: {e}")
             is_reports_snapshot = False
 
         if is_reports_snapshot:
