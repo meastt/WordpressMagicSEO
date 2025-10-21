@@ -1969,7 +1969,7 @@
                     hideLoading();
 
                     // Auto-navigate to dashboard to show the new plan
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         if (confirm('✅ Action plan created successfully!\n\nWould you like to view it on the Dashboard?')) {
                             switchView('dashboard');
                             await loadSites(); // Ensure latest data
