@@ -52,19 +52,15 @@ class WordPressPublisher:
             try:
                 response = requests.request(method, url, **kwargs)
                 response.raise_for_status()
-                
-                # Try to parse JSON and validate it
+
+                # Try to parse JSON - don't retry JSON errors as they're not transient
                 try:
                     json_data = response.json()
                     return response, json_data
                 except json.JSONDecodeError as e:
-                    if attempt < max_retries - 1:
-                        print(f"JSON decode error (attempt {attempt + 1}/{max_retries}): {e}")
-                        time.sleep(2 ** attempt)  # Exponential backoff
-                        continue
-                    else:
-                        raise Exception(f"Invalid JSON response after {max_retries} attempts: {e}")
-                        
+                    # JSON decode errors are not transient - fail immediately
+                    raise Exception(f"Invalid JSON response from WordPress API: {e}. Response text: {response.text[:200]}")
+
             except requests.exceptions.RequestException as e:
                 if attempt < max_retries - 1:
                     print(f"Request error (attempt {attempt + 1}/{max_retries}): {e}")
@@ -72,7 +68,7 @@ class WordPressPublisher:
                     continue
                 else:
                     raise Exception(f"Request failed after {max_retries} attempts: {e}")
-        
+
         raise Exception("Max retries exceeded")
     
     def _get_or_create_category(self, category_name: str) -> Optional[int]:
@@ -112,8 +108,8 @@ class WordPressPublisher:
                     if error_data.get('code') == 'term_exists':
                         # WordPress helpfully provides the existing term_id
                         return error_data.get('data', {}).get('term_id')
-                except:
-                    pass
+                except (json.JSONDecodeError, KeyError, AttributeError) as json_err:
+                    print(f"Failed to parse error response for category '{category_name}': {json_err}")
             print(f"Error getting/creating category '{category_name}': {e}")
             return None
         except Exception as e:
@@ -157,8 +153,8 @@ class WordPressPublisher:
                     if error_data.get('code') == 'term_exists':
                         # WordPress helpfully provides the existing term_id
                         return error_data.get('data', {}).get('term_id')
-                except:
-                    pass
+                except (json.JSONDecodeError, KeyError, AttributeError) as json_err:
+                    print(f"Failed to parse error response for tag '{tag_name}': {json_err}")
             print(f"Error getting/creating tag '{tag_name}': {e}")
             return None
         except Exception as e:

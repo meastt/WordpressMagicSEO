@@ -612,7 +612,8 @@ def execute_selected_actions():
             affiliate_mgr = AffiliateLinkManager(site_name)
             if not affiliate_mgr.get_all_links():
                 affiliate_mgr = None
-        except:
+        except Exception as e:
+            print(f"   ⚠ Could not initialize affiliate link manager: {e}")
             affiliate_mgr = None
 
         # Execute each selected action
@@ -824,7 +825,8 @@ def quick_create_post():
             affiliate_mgr = AffiliateLinkManager(site_name)
             if not affiliate_mgr.get_all_links():
                 affiliate_mgr = None
-        except:
+        except Exception as e:
+            print(f"   ⚠ Could not initialize affiliate link manager: {e}")
             affiliate_mgr = None
 
         result = {
@@ -1023,8 +1025,8 @@ def execute_next_action():
             affiliate_mgr = AffiliateLinkManager(site_name)
             if not affiliate_mgr.get_all_links():
                 affiliate_mgr = None
-        except:
-            pass
+        except Exception as e:
+            print(f"   ⚠ Could not initialize affiliate link manager: {e}")
 
         # Execute the action
         result = {

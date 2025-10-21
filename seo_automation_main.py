@@ -73,7 +73,7 @@ class SEOAutomationPipeline:
         # Mode 1: Multi-site mode (use config)
         if site_name:
             try:
-                site_config = get_site(site_name)
+                site_config = get_site(site_name)  # May raise ValueError if site not found
                 self.site_name = site_name
                 self.site_url = site_config['url']
                 self.wp_username = site_config['wp_username']
@@ -81,8 +81,8 @@ class SEOAutomationPipeline:
                 self.niche = site_config['niche']
                 self.gsc_csv_path = gsc_csv_path  # Still need to provide data files
                 self.ga4_csv_path = ga4_csv_path
-            except Exception as e:
-                raise ValueError(f"Failed to load site config for '{site_name}': {e}")
+            except KeyError as e:
+                raise ValueError(f"Site config for '{site_name}' is missing required field: {e}")
         
         # Mode 2: Legacy mode (individual parameters)
         else:
