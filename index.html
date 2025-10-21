@@ -2276,8 +2276,8 @@
                             <div class="stat-label">Pending</div>
                         </div>
                     </div>
-                    <h3 style="margin-bottom: 16px;">Top 20 Pending Actions</h3>
-                    ${data.pending_actions.slice(0, 20).map((action, i) => `
+                    <h3 style="margin-bottom: 16px;">Top 20 Actions</h3>
+                    ${data.actions.slice(0, 20).map((action, i) => `
                         <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #667eea;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                                 <strong>${i + 1}. ${action.title || 'New Content'}</strong>

@@ -452,11 +452,29 @@ def clear_plan():
         print(f"DEBUG CLEAR: Plan length: {len(state_mgr.state.get('current_plan', []))}")
         print(f"DEBUG CLEAR: Stats after: {state_mgr.get_stats()}")
 
+        # Wait a moment for persistent storage to propagate
+        import time
+        time.sleep(1)
+        
         # Force reload to verify the clear worked
         state_mgr.state = state_mgr._load()
         print(f"DEBUG CLEAR: After reload - {site_name}")
         print(f"DEBUG CLEAR: Plan length after reload: {len(state_mgr.state.get('current_plan', []))}")
         print(f"DEBUG CLEAR: Stats after reload: {state_mgr.get_stats()}")
+
+        # Additional verification: check if state file exists and its contents
+        import os
+        import json
+        if os.path.exists(state_mgr.state_file):
+            try:
+                with open(state_mgr.state_file, 'r') as f:
+                    file_content = json.load(f)
+                print(f"DEBUG CLEAR: File content after clear: {file_content.get('stats', {})}")
+                print(f"DEBUG CLEAR: File plan length: {len(file_content.get('current_plan', []))}")
+            except Exception as e:
+                print(f"DEBUG CLEAR: Error reading state file: {e}")
+        else:
+            print(f"DEBUG CLEAR: State file does not exist: {state_mgr.state_file}")
 
         return jsonify({
             'success': True,
