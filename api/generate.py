@@ -438,10 +438,25 @@ def clear_plan():
 
         state_mgr = StateManager(site_name)
 
+        # Debug: Show state before clearing
+        print(f"DEBUG CLEAR: Before clear - {site_name}")
+        print(f"DEBUG CLEAR: State file: {state_mgr.state_file}")
+        print(f"DEBUG CLEAR: Plan length: {len(state_mgr.state.get('current_plan', []))}")
+        print(f"DEBUG CLEAR: Stats before: {state_mgr.get_stats()}")
+
         # Clear all state
         state_mgr.clear_state()
 
-        print(f"DEBUG CLEAR: Cleared state for {site_name}")
+        # Debug: Show state after clearing
+        print(f"DEBUG CLEAR: After clear - {site_name}")
+        print(f"DEBUG CLEAR: Plan length: {len(state_mgr.state.get('current_plan', []))}")
+        print(f"DEBUG CLEAR: Stats after: {state_mgr.get_stats()}")
+
+        # Force reload to verify the clear worked
+        state_mgr.state = state_mgr._load()
+        print(f"DEBUG CLEAR: After reload - {site_name}")
+        print(f"DEBUG CLEAR: Plan length after reload: {len(state_mgr.state.get('current_plan', []))}")
+        print(f"DEBUG CLEAR: Stats after reload: {state_mgr.get_stats()}")
 
         return jsonify({
             'success': True,

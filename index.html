@@ -1181,7 +1181,7 @@
                             <div style="display: flex; gap: 12px;">
                                 <button class="btn-small btn-primary" onclick="continueExecution()" style="flex: 2;">▶️ Continue Execution</button>
                                 <button class="btn-small btn-secondary" onclick="viewCurrentPlan()">👁️ View Plan</button>
-                                <button class="btn-small btn-secondary" onclick="clearCurrentPlan()">🗑️ Clear</button>
+                                <button class="btn-small btn-secondary" onclick="deleteCurrentPlan()">🗑️ Delete</button>
                             </div>
                         </div>
                     </div>
@@ -1640,12 +1640,15 @@
             console.log(`Site data:`, site);
             console.log(`Pending actions:`, site?.pending_actions);
 
+            // Always hide the continue panel first
+            continuePanel.style.display = 'none';
+
+            // Only show it if there are actually pending actions
             if (site && site.pending_actions > 0) {
                 continuePanel.style.display = 'block';
-                console.log('Continue panel shown');
+                console.log('Continue panel shown - pending actions found');
             } else {
-                continuePanel.style.display = 'none';
-                console.log('Continue panel hidden');
+                console.log('Continue panel hidden - no pending actions');
             }
 
             // Clear file inputs when switching sites
@@ -2175,19 +2178,19 @@
             }
         }
 
-        // Clear Current Plan
-        async function clearCurrentPlan() {
+        // Delete Current Plan
+        async function deleteCurrentPlan() {
             const siteName = document.getElementById('exec_site_selector').value;
             if (!siteName) {
                 alert('Please select a site first');
                 return;
             }
 
-            if (!confirm('Clear all saved data for ' + siteName + '?\n\nThis cannot be undone!')) {
+            if (!confirm('Delete all saved data for ' + siteName + '?\n\nThis will permanently remove the action plan and cannot be undone!')) {
                 return;
             }
 
-            showLoading('Clearing plan...');
+            showLoading('Deleting plan...');
 
             try {
                 const response = await fetch(`${API_BASE}/clear-plan`, {
@@ -2199,10 +2202,7 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                // Reload sites data from backend and refresh dashboard
-                await loadSites();
-                renderDashboard();
-                populateSiteSelectors();
+                console.log('Plan deleted successfully, refreshing UI...');
 
                 // Force hide the continue panel immediately
                 document.getElementById('continue_panel').style.display = 'none';
@@ -2220,8 +2220,13 @@
                     actionPlanModal.style.display = 'none';
                 }
 
+                // Reload sites data from backend and refresh dashboard
+                await loadSites();
+                renderDashboard();
+                populateSiteSelectors();
+
                 hideLoading();
-                alert('✅ Plan cleared successfully!');
+                alert('✅ Action plan deleted successfully!');
 
                 // Force refresh the site selector to update the continue panel state
                 const siteSelector = document.getElementById('exec_site_selector');
@@ -2230,18 +2235,18 @@
                     siteSelector.dispatchEvent(new Event('change'));
                 }
 
-                // Wait a moment for backend to fully update, then check again
+                // Double-check after a short delay to ensure UI is updated
                 setTimeout(async () => {
                     await loadSites();
                     const site = sitesData.find(s => s.name === siteName);
-                    console.log(`After clear - Site ${siteName} pending actions:`, site?.pending_actions);
+                    console.log(`After delete - Site ${siteName} pending actions:`, site?.pending_actions);
                     
                     // Ensure continue panel stays hidden if no pending actions
                     if (!site || site.pending_actions === 0) {
                         document.getElementById('continue_panel').style.display = 'none';
-                        console.log('Continue panel hidden after clear');
+                        console.log('Continue panel hidden after delete');
                     }
-                }, 1000);
+                }, 500);
             } catch (error) {
                 hideLoading();
                 alert('Error: ' + error.message);
