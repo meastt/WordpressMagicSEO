@@ -1924,44 +1924,37 @@
             const siteName = document.getElementById('action_plan_modal_title').textContent.replace('Action Plan - ', '');
             showLoading(`Deleting ${count} action${count > 1 ? 's' : ''}...`);
 
-            let deletedCount = 0;
-            let errors = [];
+            try {
+                // Use batch delete endpoint to avoid race conditions
+                const response = await fetch(`${API_BASE}/delete-actions-batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        site_name: siteName,
+                        action_ids: Array.from(selectedActionIds)
+                    })
+                });
 
-            for (const actionId of selectedActionIds) {
-                try {
-                    const response = await fetch(`${API_BASE}/delete-action`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            site_name: siteName,
-                            action_id: actionId
-                        })
-                    });
+                const data = await response.json();
+                hideLoading();
 
-                    const data = await response.json();
-
-                    if (response.ok && data.success) {
-                        deletedCount++;
-                    } else {
-                        errors.push(data.error || 'Unknown error');
-                    }
-                } catch (error) {
-                    errors.push(error.message);
+                if (!response.ok || !data.success) {
+                    alert(`❌ Delete failed: ${data.error || 'Unknown error'}`);
+                    return;
                 }
+
+                // Show success message
+                alert(`✅ Successfully deleted ${data.deleted_count} action${data.deleted_count > 1 ? 's' : ''}!`);
+
+                // Reload the action plan and refresh dashboard
+                await openActionPlanModal(siteName);
+                await loadSites();
+                renderDashboard();
+
+            } catch (error) {
+                hideLoading();
+                alert(`❌ Delete failed: ${error.message}`);
             }
-
-            hideLoading();
-
-            if (errors.length > 0) {
-                alert(`Deleted ${deletedCount} of ${count} actions.\n\nErrors: ${errors.join(', ')}`);
-            } else {
-                alert(`✅ Deleted ${deletedCount} action${deletedCount > 1 ? 's' : ''} successfully!`);
-            }
-
-            // Reload the action plan and refresh dashboard
-            await openActionPlanModal(siteName);
-            await loadSites();
-            renderDashboard();
         }
 
         function closeActionPlanModal() {
@@ -2337,20 +2330,23 @@
                         throw new Error(data.error || 'Analysis failed');
                     }
 
-                    showAnalysisResults(data);
-                    await loadSites(); // Refresh dashboard
-                    renderDashboard(); // Ensure dashboard is updated
-                    clearFileInputs(); // Clear for next run
                     hideLoading();
+                    await loadSites(); // Refresh dashboard data
+                    renderDashboard(); // Ensure dashboard is updated
+                    showAnalysisResults(data);
+                    clearFileInputs(); // Clear for next run
 
-                    // Auto-navigate to dashboard to show the new plan
-                    setTimeout(async () => {
-                        if (confirm('✅ Action plan created successfully!\n\nWould you like to view it on the Dashboard?')) {
-                            switchView('dashboard');
-                            await loadSites(); // Ensure latest data
-                            renderDashboard();
+                    // Auto-navigate to dashboard immediately to show the new plan
+                    switchView('dashboard');
+
+                    // Show success message with option to view detailed results
+                    setTimeout(() => {
+                        if (confirm('✅ Action plan created successfully!\n\n' +
+                                   `Created ${data.summary.total_actions || 0} actions (${data.summary.high_priority || 0} high priority)\n\n` +
+                                   'View detailed analysis results?')) {
+                            switchView('execute');
                         }
-                    }, 500);
+                    }, 300);
 
                 } catch (error) {
                     hideLoading();
