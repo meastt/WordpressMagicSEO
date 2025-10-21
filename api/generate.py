@@ -1381,9 +1381,27 @@ def get_action_plan(site_name):
     try:
         from state_manager import StateManager
 
+        print(f"DEBUG PLAN: Getting action plan for {site_name}")
         state_mgr = StateManager(site_name)
+        
+        print(f"DEBUG PLAN: StateManager initialized")
+        print(f"DEBUG PLAN: State file: {state_mgr.state_file}")
+        print(f"DEBUG PLAN: State keys: {list(state_mgr.state.keys())}")
+        
         plan = state_mgr.state.get('current_plan', [])
         stats = state_mgr.get_stats()
+        
+        print(f"DEBUG PLAN: Plan length: {len(plan)}")
+        print(f"DEBUG PLAN: Stats: {stats}")
+        print(f"DEBUG PLAN: First few actions: {plan[:2] if plan else 'No actions'}")
+        
+        # Force reload state to ensure we have latest data
+        state_mgr.state = state_mgr._load()
+        plan = state_mgr.state.get('current_plan', [])
+        stats = state_mgr.get_stats()
+        
+        print(f"DEBUG PLAN: After reload - Plan length: {len(plan)}")
+        print(f"DEBUG PLAN: After reload - Stats: {stats}")
 
         # Sort actions by priority and status
         # Pending first (sorted by priority), then completed
@@ -1395,14 +1413,23 @@ def get_action_plan(site_name):
 
         all_actions = pending_actions + completed_actions
 
-        return jsonify({
+        print(f"DEBUG PLAN: Pending actions: {len(pending_actions)}")
+        print(f"DEBUG PLAN: Completed actions: {len(completed_actions)}")
+        print(f"DEBUG PLAN: Total actions: {len(all_actions)}")
+
+        response_data = {
             "site": site_name,
             "stats": stats,
             "total_actions": len(plan),
             "actions": all_actions,  # ALL actions with full details
             "pending_count": len(pending_actions),
             "completed_count": len(completed_actions)
-        })
+        }
+        
+        print(f"DEBUG PLAN: Response data keys: {list(response_data.keys())}")
+        print(f"DEBUG PLAN: Response actions length: {len(response_data['actions'])}")
+        
+        return jsonify(response_data)
 
     except Exception as e:
         return jsonify({

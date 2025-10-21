@@ -2165,14 +2165,24 @@
             showLoading('Loading action plan...');
 
             try {
+                console.log(`Fetching plan for site: ${siteName}`);
                 const response = await fetch(`${API_BASE}/plan/${siteName}`);
+                console.log(`Response status: ${response.status}`);
+                console.log(`Response ok: ${response.ok}`);
+                
                 const data = await response.json();
+                console.log('API Response data:', data);
 
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) {
+                    console.error('API Error:', data);
+                    throw new Error(data.error || data.details || 'Failed to load action plan');
+                }
 
+                console.log('Calling showPlanResults with data:', data);
                 showPlanResults(data);
                 hideLoading();
             } catch (error) {
+                console.error('Error in viewCurrentPlan:', error);
                 hideLoading();
                 alert('Error: ' + error.message);
             }
@@ -2255,6 +2265,11 @@
 
         // Show Plan Results
         function showPlanResults(data) {
+            console.log('showPlanResults called with data:', data);
+            console.log('Data keys:', Object.keys(data));
+            console.log('Actions length:', data.actions ? data.actions.length : 'undefined');
+            console.log('Stats:', data.stats);
+            
             const panel = document.getElementById('results_panel');
             panel.innerHTML = `
                 <div class="results-header">
@@ -2277,7 +2292,7 @@
                         </div>
                     </div>
                     <h3 style="margin-bottom: 16px;">Top 20 Actions</h3>
-                    ${data.actions.slice(0, 20).map((action, i) => `
+                    ${data.actions && data.actions.length > 0 ? data.actions.slice(0, 20).map((action, i) => `
                         <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #667eea;">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                                 <strong>${i + 1}. ${action.title || 'New Content'}</strong>
@@ -2288,7 +2303,7 @@
                             <div style="font-size: 13px; color: #666; margin-bottom: 8px;">${action.url || 'New content'}</div>
                             <div style="font-size: 13px; color: #333;">${action.reasoning}</div>
                         </div>
-                    `).join('')}
+                    `).join('') : '<div style="text-align: center; padding: 40px; color: #666;">No actions found in the current plan.</div>'}
                 </div>
             `;
             panel.classList.add('show');
