@@ -107,17 +107,35 @@
         }
 
         .site-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 12px;
-            padding: 24px;
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
             border: 2px solid #e0e0e0;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .site-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .site-card:hover::before {
+            transform: scaleX(1);
         }
 
         .site-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
             border-color: #667eea;
         }
 
@@ -166,22 +184,35 @@
 
         .stat-box {
             text-align: center;
-            padding: 12px;
-            background: white;
-            border-radius: 8px;
+            padding: 16px 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 10px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.2s;
+        }
+
+        .stat-box:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
-            color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-label {
             font-size: 11px;
             color: #666;
             text-transform: uppercase;
-            margin-top: 4px;
+            margin-top: 6px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .site-actions {
@@ -448,13 +479,28 @@
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 5px solid rgba(102, 126, 234, 0.1);
+            border-top: 5px solid #667eea;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width: 70px;
+            height: 70px;
+            animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+
+        .spinner::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(118, 75, 162, 0.2);
+            border-bottom: 5px solid #764ba2;
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
         }
 
         @keyframes spin {
@@ -478,18 +524,46 @@
 
         .progress-bar-container {
             width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            margin-top: 20px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            margin-top: 24px;
             overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .progress-bar {
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 100%;
             width: 0%;
-            transition: width 0.3s ease;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            position: relative;
+            animation: shimmer 2s infinite;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: slideProgress 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes slideProgress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         .results-panel {
@@ -1014,6 +1088,105 @@
             background: #f57c00;
         }
 
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease-out;
+            border-left: 4px solid;
+        }
+
+        .toast.success {
+            border-color: #4caf50;
+        }
+
+        .toast.error {
+            border-color: #f44336;
+        }
+
+        .toast.info {
+            border-color: #2196f3;
+        }
+
+        .toast.warning {
+            border-color: #ff9800;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .toast.removing {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .dashboard-grid {
@@ -1066,6 +1239,12 @@
                 font-size: 18px;
             }
 
+            .toast-container {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
             .empty-state {
                 padding: 40px 20px;
             }
@@ -1100,7 +1279,14 @@
         <div class="content-area">
             <!-- Dashboard View -->
             <div id="dashboard-view" class="view active">
-                <h2 style="margin-bottom: 24px; color: #333;">Your Sites</h2>
+                <div style="margin-bottom: 32px; text-align: center;">
+                    <h1 style="font-size: 32px; font-weight: 700; color: #333; margin-bottom: 12px;">
+                        Your SEO Portfolio
+                    </h1>
+                    <p style="font-size: 16px; color: #666; max-width: 600px; margin: 0 auto;">
+                        Track and manage AI-powered SEO optimizations across all your WordPress sites
+                    </p>
+                </div>
                 <div id="dashboard-grid" class="dashboard-grid">
                     <!-- Site cards will be loaded here -->
                 </div>
@@ -1469,9 +1655,57 @@
         </div>
     </div>
 
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast_container"></div>
+
     <script>
         const API_BASE = '/api';
         let sitesData = [];
+
+        // =================================================================
+        // TOAST NOTIFICATION SYSTEM
+        // =================================================================
+
+        function showToast(title, message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast_container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️',
+                warning: '⚠️'
+            };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || icons.info}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    ${message ? `<div class="toast-message">${message}</div>` : ''}
+                </div>
+                <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-remove after duration
+            if (duration > 0) {
+                setTimeout(() => removeToast(toast), duration);
+            }
+
+            return toast;
+        }
+
+        function removeToast(toast) {
+            if (!toast || !toast.parentElement) return;
+            toast.classList.add('removing');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 300);
+        }
 
         // Initialize
         window.addEventListener('DOMContentLoaded', init);
@@ -1837,7 +2071,7 @@
                 hideLoading();
             } catch (error) {
                 hideLoading();
-                alert(`Error loading action plan: ${error.message}`);
+                showToast('Failed to Load Plan', error.message, 'error');
             }
         }
 
@@ -1921,7 +2155,7 @@
 
         async function deleteSelectedActions() {
             if (selectedActionIds.size === 0) {
-                alert('Please select at least one action to delete');
+                showToast('No Selection', 'Please select at least one action to delete', 'warning');
                 return;
             }
 
@@ -1948,21 +2182,32 @@
                 hideLoading();
 
                 if (!response.ok || !data.success) {
-                    alert(`❌ Delete failed: ${data.error || 'Unknown error'}`);
+                    showToast('Delete Failed', data.error || 'Unknown error', 'error');
                     return;
                 }
 
-                // Show success message
-                alert(`✅ Successfully deleted ${data.deleted_count} action${data.deleted_count > 1 ? 's' : ''}!`);
+                // Show success toast
+                showToast('Actions Deleted', `Successfully deleted ${data.deleted_count} action${data.deleted_count > 1 ? 's' : ''}`, 'success');
 
-                // Reload the action plan and refresh dashboard
-                await openActionPlanModal(siteName);
+                // Reload the action plan to update the list
+                currentPlanData = currentPlanData.filter(a => !selectedActionIds.has(a.id));
+                selectedActionIds.clear();
+
+                // Re-render the action plan or close if empty
+                if (currentPlanData.length === 0) {
+                    closeActionPlanModal();
+                    showToast('Action Plan Empty', 'All actions have been deleted', 'info');
+                } else {
+                    renderActionPlan();
+                }
+
+                // Refresh dashboard in the background
                 await loadSites();
                 renderDashboard();
 
             } catch (error) {
                 hideLoading();
-                alert(`❌ Delete failed: ${error.message}`);
+                showToast('Delete Failed', error.message, 'error');
             }
         }
 
@@ -2039,7 +2284,7 @@
 
         function executeSelectedActions() {
             if (selectedActionIds.size === 0) {
-                alert('Please select at least one action to execute');
+                showToast('No Selection', 'Please select at least one action to execute', 'warning');
                 return;
             }
 
@@ -2123,12 +2368,24 @@
 
             hideLoading();
 
-            // Show results
+            // Show results with toast
             if (errors.length > 0) {
+                showToast(
+                    'Execution Complete with Errors',
+                    `Completed ${completed - errors.length} of ${actions.length} actions. ${errors.length} failed.`,
+                    'warning',
+                    6000
+                );
+                // Still show alert for detailed errors
                 const errorMsg = errors.map(e => `• ${e.action}: ${e.error}`).join('\n');
-                alert(`Completed ${completed - errors.length} of ${actions.length} actions.\n\nErrors:\n${errorMsg}`);
+                alert(`⚠️ Errors occurred:\n\n${errorMsg}`);
             } else {
-                alert(`✅ Successfully executed all ${actions.length} actions!`);
+                showToast(
+                    'Execution Complete',
+                    `Successfully executed all ${actions.length} actions!`,
+                    'success',
+                    5000
+                );
             }
 
             // Refresh sites data and dashboard
@@ -2140,7 +2397,7 @@
         async function continueExecution() {
             const siteName = document.getElementById('exec_site_selector').value;
             if (!siteName) {
-                alert('Please select a site first');
+                showToast('No Site Selected', 'Please select a site first', 'warning');
                 return;
             }
 
@@ -2158,49 +2415,27 @@
         async function viewCurrentPlan() {
             const siteName = document.getElementById('exec_site_selector').value;
             if (!siteName) {
-                alert('Please select a site first');
+                showToast('No Site Selected', 'Please select a site first', 'warning');
                 return;
             }
 
-            showLoading('Loading action plan...');
-
-            try {
-                console.log(`Fetching plan for site: ${siteName}`);
-                const response = await fetch(`${API_BASE}/plan/${siteName}`);
-                console.log(`Response status: ${response.status}`);
-                console.log(`Response ok: ${response.ok}`);
-                
-                const data = await response.json();
-                console.log('API Response data:', data);
-
-                if (!response.ok) {
-                    console.error('API Error:', data);
-                    throw new Error(data.error || data.details || 'Failed to load action plan');
-                }
-
-                console.log('Calling showPlanResults with data:', data);
-                showPlanResults(data);
-                hideLoading();
-            } catch (error) {
-                console.error('Error in viewCurrentPlan:', error);
-                hideLoading();
-                alert('Error: ' + error.message);
-            }
+            // Open the action plan modal instead of showing inline results
+            await openActionPlanModal(siteName);
         }
 
         // Delete Current Plan
         async function deleteCurrentPlan() {
             const siteName = document.getElementById('exec_site_selector').value;
             if (!siteName) {
-                alert('Please select a site first');
+                showToast('No Site Selected', 'Please select a site first', 'warning');
                 return;
             }
 
-            if (!confirm('Delete all saved data for ' + siteName + '?\n\nThis will permanently remove the action plan and cannot be undone!')) {
+            if (!confirm('⚠️ Delete all saved data for ' + siteName + '?\n\nThis will permanently remove the action plan and cannot be undone!')) {
                 return;
             }
 
-            showLoading('Deleting plan...');
+            showLoading('Deleting action plan...');
 
             try {
                 const response = await fetch(`${API_BASE}/clear-plan`, {
@@ -2212,54 +2447,36 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                console.log('Plan deleted successfully, refreshing UI...');
-
-                // Force hide the continue panel immediately
+                // Clear UI elements immediately
                 document.getElementById('continue_panel').style.display = 'none';
 
-                // Clear results panel
                 const resultsPanel = document.getElementById('results_panel');
                 if (resultsPanel) {
                     resultsPanel.classList.remove('show');
                     resultsPanel.innerHTML = '';
                 }
 
-                // Clear any cached action plan data in the UI
-                const actionPlanModal = document.getElementById('action_plan_modal');
-                if (actionPlanModal) {
-                    actionPlanModal.style.display = 'none';
-                }
+                // Close any open modals
+                closeActionPlanModal();
 
-                // Reload sites data from backend and refresh dashboard
+                // Reload sites data and refresh
                 await loadSites();
                 renderDashboard();
-                populateSiteSelectors();
 
                 hideLoading();
-                alert('✅ Action plan deleted successfully!');
 
-                // Force refresh the site selector to update the continue panel state
+                // Show success toast instead of alert
+                showToast('Plan Deleted', `Action plan for ${siteName} has been removed`, 'success');
+
+                // Refresh the continue panel state
                 const siteSelector = document.getElementById('exec_site_selector');
-                if (siteSelector) {
-                    // Trigger the change event to refresh the continue panel
+                if (siteSelector && siteSelector.value === siteName) {
                     siteSelector.dispatchEvent(new Event('change'));
                 }
 
-                // Double-check after a short delay to ensure UI is updated
-                setTimeout(async () => {
-                    await loadSites();
-                    const site = sitesData.find(s => s.name === siteName);
-                    console.log(`After delete - Site ${siteName} pending actions:`, site?.pending_actions);
-                    
-                    // Ensure continue panel stays hidden if no pending actions
-                    if (!site || site.pending_actions === 0) {
-                        document.getElementById('continue_panel').style.display = 'none';
-                        console.log('Continue panel hidden after delete');
-                    }
-                }, 500);
             } catch (error) {
                 hideLoading();
-                alert('Error: ' + error.message);
+                showToast('Delete Failed', error.message, 'error');
             }
         }
 
@@ -2319,12 +2536,12 @@
 
             // Validation
             if (!siteName) {
-                alert('Please select a site');
+                showToast('No Site Selected', 'Please select a site to continue', 'warning');
                 return;
             }
 
             if (!gscFile) {
-                alert('Please upload GSC data (required)');
+                showToast('Missing Data', 'Please upload GSC data (required)', 'warning');
                 return;
             }
 
@@ -2374,11 +2591,11 @@
 
                 } catch (error) {
                     hideLoading();
-                    alert('Error: ' + error.message);
+                    showToast('Execution Failed', error.message, 'error');
                 }
             } else {
                 // Just analyze
-                showLoading('Running AI analysis...');
+                showLoading('Running AI analysis...', true);
 
                 try {
                     const response = await fetch(`${API_BASE}/analyze`, {
@@ -2393,26 +2610,35 @@
                     }
 
                     hideLoading();
-                    await loadSites(); // Refresh dashboard data
-                    renderDashboard(); // Ensure dashboard is updated
-                    showAnalysisResults(data);
-                    clearFileInputs(); // Clear for next run
 
-                    // Auto-navigate to dashboard immediately to show the new plan
-                    switchView('dashboard');
+                    // Refresh dashboard data in background
+                    await loadSites();
+                    renderDashboard();
 
-                    // Show success message with option to view detailed results
-                    setTimeout(() => {
-                        if (confirm('✅ Action plan created successfully!\n\n' +
-                                   `Created ${data.summary.total_actions || 0} actions (${data.summary.high_priority || 0} high priority)\n\n` +
-                                   'View detailed analysis results?')) {
-                            switchView('execute');
+                    // Show success toast
+                    showToast(
+                        'Analysis Complete',
+                        `Created ${data.summary.total_actions || 0} actions (${data.summary.high_priority || 0} high priority)`,
+                        'success',
+                        5000
+                    );
+
+                    // Clear file inputs
+                    clearFileInputs();
+
+                    // Auto-open the action plan modal to show the results
+                    setTimeout(async () => {
+                        const siteName = data.site;
+                        if (siteName) {
+                            await openActionPlanModal(siteName);
+                            // Switch to dashboard view so user can see the new site card
+                            switchView('dashboard');
                         }
-                    }, 300);
+                    }, 500);
 
                 } catch (error) {
                     hideLoading();
-                    alert('Error: ' + error.message);
+                    showToast('Analysis Failed', error.message, 'error');
                 }
             }
         }
@@ -2556,7 +2782,7 @@
 
             } catch (error) {
                 hideLoading();
-                alert('Execution error: ' + error.message);
+                showToast('Execution Error', error.message, 'error');
             }
         }
 
@@ -2641,7 +2867,7 @@
         async function submitQuickCreate() {
             const siteName = document.getElementById('quick_create_site').value;
             if (!siteName) {
-                alert('Please select a site first');
+                showToast('No Site Selected', 'Please select a site first', 'warning');
                 return;
             }
 
@@ -2659,12 +2885,12 @@
             });
 
             if (posts.length === 0) {
-                alert('Please enter at least one post title');
+                showToast('No Content', 'Please enter at least one post title', 'warning');
                 return;
             }
 
             if (posts.length > 10) {
-                alert('Maximum 10 posts at a time');
+                showToast('Too Many Posts', 'Maximum 10 posts at a time', 'warning');
                 return;
             }
 
@@ -2740,20 +2966,28 @@
 
             hideLoading();
 
-            // Show results
-            let message = `✅ Created ${successfulPosts.length} of ${posts.length} posts!\n\n`;
+            // Show success toast
+            if (errors.length === 0) {
+                showToast(
+                    'Posts Created!',
+                    `Successfully created ${successfulPosts.length} post${successfulPosts.length > 1 ? 's' : ''}`,
+                    'success',
+                    5000
+                );
+            } else {
+                showToast(
+                    'Partial Success',
+                    `Created ${successfulPosts.length} of ${posts.length} posts. ${errors.length} failed.`,
+                    'warning',
+                    6000
+                );
 
-            if (successfulPosts.length > 0) {
-                message += 'Successful:\n';
-                successfulPosts.forEach(p => message += `• ${p.title}\n`);
+                // Show detailed errors in alert
+                const errorMsg = errors.map(e => `• ${e.title}: ${e.error}`).join('\n');
+                setTimeout(() => {
+                    alert(`⚠️ Some posts failed:\n\n${errorMsg}`);
+                }, 500);
             }
-
-            if (errors.length > 0) {
-                message += `\nErrors/Skipped (${errors.length}):\n`;
-                errors.forEach(e => message += `• ${e.title}: ${e.error}\n`);
-            }
-
-            alert(message);
 
             // Clear forms and reload dashboard
             document.getElementById('quick_create_forms').innerHTML = '';
