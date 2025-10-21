@@ -51,42 +51,8 @@ import datetime
 import re
 
 
-@dataclass
-class Topic:
-    """Represents a content topic and its associated metadata."""
-
-    title: str
-    primary_keywords: List[str]
-    publish_month: str
-    description: str = ""
-    outline: List[str] = field(default_factory=list)
-    meta_title: str = ""
-    meta_description: str = ""
-    body: str = ""  # The generated article content
-
-    def generate_outline(self) -> None:
-        """Generate a basic outline for the topic."""
-        h1 = self.title
-        h2_sections = [
-            "Introduction",
-            "Key features and considerations",
-            "Top products or examples",
-            "How to choose the right option",
-            "Conclusion & next steps",
-        ]
-        self.outline = [h1] + h2_sections
-
-    def generate_meta(self) -> None:
-        """Create a simple meta title and description based on the primary keywords."""
-        keyword_part = self.primary_keywords[0].capitalize()
-        self.meta_title = f"{keyword_part} – {self.title}"
-        summary = (
-            f"Learn about {self.title.lower()} including features, pros and cons, "
-            f"and tips for choosing the right one. Our guide covers {', '.join(self.primary_keywords)}."
-        )
-        if len(summary) > 155:
-            summary = summary[:155].rsplit(" ", 1)[0] + "…"
-        self.meta_description = summary
+# Topic dataclass removed - no longer needed with AI-powered content generation
+# Use ClaudeContentGenerator for all content creation instead
 
 
 class DataProcessor:
@@ -230,7 +196,18 @@ class DataProcessor:
                         df[col] = df[col].astype(str).str.replace("%", "").astype(float) / 100
                 else:
                     df[col] = pd.to_numeric(df[col], errors="coerce")
-        
+
+        # CRITICAL: Filter out homepage URLs to prevent treating them as posts
+        # Homepage URLs match pattern: http(s)://domain.com/ or http(s)://domain.com
+        import re
+        homepage_pattern = re.compile(r'^https?://[^/]+/?$')
+        if 'page' in df.columns:
+            before_count = len(df)
+            df = df[~df['page'].astype(str).str.match(homepage_pattern, na=False)]
+            filtered_count = before_count - len(df)
+            if filtered_count > 0:
+                print(f"   ℹ  Filtered out {filtered_count} homepage URL(s) from GSC data")
+
         self.df = df
         return df
     
@@ -607,42 +584,48 @@ class DataProcessor:
     
     def _create_combined_data(self) -> pd.DataFrame:
         """
-        Create a dataset from Pages sheet with derived keywords from URLs.
-        Returns pages with their stats - keywords will be derived from URL/title.
+        Create a comprehensive dataset combining Pages and Queries data properly.
+
+        Returns a DataFrame with:
+        - Page-level aggregated stats (for pages with traffic)
+        - Query-level data (actual search queries from GSC)
+        - Orphaned queries (queries without associated pages - content gaps)
         """
         combined_rows = []
-        
-        # Add all pages with their actual stats
+
+        # IMPORTANT: We need to maintain BOTH page-level AND query-level data
+        # Don't create "fake" keywords from URLs - use actual GSC query data
+
+        # 1. Add page-level aggregated statistics
+        # These rows have 'page' but empty 'query' - represents overall page performance
         for _, page_row in self.pages_df.iterrows():
             page_url = page_row['page']
-            
-            # Extract potential keywords from URL path
-            # e.g., "https://site.com/bobcats/" -> "bobcats"
-            url_parts = page_url.rstrip('/').split('/')
-            url_slug = url_parts[-1] if url_parts else ''
-            # Convert slug to readable keywords (replace hyphens with spaces)
-            derived_keyword = url_slug.replace('-', ' ')
-            
+
             combined_rows.append({
                 'page': page_url,
-                'query': derived_keyword,  # Derived from URL for compatibility
+                'query': '',  # Empty query for page-level aggregates
                 'clicks': page_row['clicks'],
                 'impressions': page_row['impressions'],
                 'ctr': page_row['ctr'],
                 'position': page_row['position']
             })
-        
-        # Add all queries as potential new content opportunities (orphaned queries)
+
+        # 2. Add all ACTUAL search queries from GSC
+        # These are the real keywords people use to find content
         for _, query_row in self.queries_df.iterrows():
             combined_rows.append({
-                'page': '',  # No page yet - content gap
-                'query': query_row['query'],
+                'page': '',  # No specific page association in Queries sheet
+                'query': query_row['query'],  # REAL search query from GSC
                 'clicks': query_row['clicks'],
                 'impressions': query_row['impressions'],
                 'ctr': query_row['ctr'],
                 'position': query_row['position']
             })
-        
+
+        # Note: If you have the full GSC export with BOTH page AND query in each row,
+        # that would be ideal. The current multi-sheet format separates them.
+        # This approach maintains data integrity without creating fake keywords.
+
         return pd.DataFrame(combined_rows)
     
     def get_top_queries(self, top_n: int = 20) -> pd.DataFrame:
@@ -772,26 +755,93 @@ class DataProcessor:
         """
         Identify trending and declining content based on time-series data.
 
+        Compares recent performance (last N days) vs previous period to detect growth/decline.
+
         Args:
-            lookback_days: Number of days to analyze for trends
+            lookback_days: Number of days for recent period (default: 30)
 
         Returns:
-            Dict with 'trending' and 'declining' lists of topics
+            Dict with 'trending' and 'declining' lists of queries with growth percentages
         """
         if self.dates_df is None or len(self.dates_df) == 0:
             return {'trending': [], 'declining': []}
 
-        # Group by date and calculate rolling averages
-        # This is a simplified implementation - in production you'd want more sophisticated trend detection
-        dates_sorted = self.dates_df.sort_values('date')
+        try:
+            # Ensure date column is datetime
+            if 'date' not in self.dates_df.columns:
+                return {'trending': [], 'declining': []}
 
-        trending = []
-        declining = []
+            # Calculate cutoff dates
+            max_date = self.dates_df['date'].max()
+            recent_cutoff = max_date - pd.Timedelta(days=lookback_days)
+            comparison_cutoff = recent_cutoff - pd.Timedelta(days=lookback_days)
 
-        # TODO: Implement time-series trend analysis
-        # For now, return empty lists - this can be enhanced based on specific needs
+            # Split into periods
+            recent_period = self.dates_df[self.dates_df['date'] >= recent_cutoff]
+            comparison_period = self.dates_df[
+                (self.dates_df['date'] >= comparison_cutoff) &
+                (self.dates_df['date'] < recent_cutoff)
+            ]
 
-        return {'trending': trending, 'declining': declining}
+            # Aggregate by query (if query column exists)
+            query_col = 'query' if 'query' in self.dates_df.columns else None
+
+            if not query_col:
+                # If no query breakdown, use page instead
+                query_col = 'page' if 'page' in self.dates_df.columns else None
+
+            if not query_col:
+                return {'trending': [], 'declining': []}
+
+            # Calculate clicks for each period
+            recent_clicks = recent_period.groupby(query_col)['clicks'].sum()
+            comparison_clicks = comparison_period.groupby(query_col)['clicks'].sum()
+
+            # Calculate growth rates
+            growth_data = []
+            for query in set(recent_clicks.index) | set(comparison_clicks.index):
+                recent = recent_clicks.get(query, 0)
+                comparison = comparison_clicks.get(query, 0)
+
+                if comparison > 0:
+                    growth_pct = ((recent - comparison) / comparison) * 100
+                elif recent > 0:
+                    growth_pct = 100.0  # New content
+                else:
+                    continue  # No data for either period
+
+                growth_data.append({
+                    'query': query,
+                    'growth_pct': growth_pct,
+                    'recent_clicks': recent,
+                    'comparison_clicks': comparison
+                })
+
+            # Sort by growth percentage
+            growth_data.sort(key=lambda x: x['growth_pct'], reverse=True)
+
+            # Identify trending (growth > 20%)
+            trending = [
+                f"{item['query']} (+{item['growth_pct']:.1f}%)"
+                for item in growth_data
+                if item['growth_pct'] > 20 and item['recent_clicks'] >= 10
+            ][:10]  # Top 10
+
+            # Identify declining (growth < -20%)
+            declining = [
+                f"{item['query']} ({item['growth_pct']:.1f}%)"
+                for item in reversed(growth_data)
+                if item['growth_pct'] < -20 and item['comparison_clicks'] >= 10
+            ][:10]  # Top 10
+
+            return {
+                'trending': trending,
+                'declining': declining
+            }
+
+        except Exception as e:
+            print(f"Error in trend analysis: {e}")
+            return {'trending': [], 'declining': []}
 
     def get_rich_results_opportunities(self) -> Optional[pd.DataFrame]:
         """
@@ -833,152 +883,23 @@ class DataProcessor:
         return summary
 
 
-class TopicPlanner:
-    """Generate topic objects from high‑opportunity queries."""
-
-    def __init__(self, base_month: str | None = None) -> None:
-        # Default to current month if not provided
-        if base_month is None:
-            today = datetime.date.today()
-            base_month = today.strftime("%B %Y")
-        self.base_month = base_month
-
-    def _derive_title(self, query: str) -> str:
-        """Convert a search query into a capitalised article title."""
-        # Simple heuristic: capitalise each word and ensure the query ends with a question mark removed.
-        title = re.sub(r"\b\w+\b", lambda m: m.group().capitalize(), query)
-        return title
-
-    def create_topics_from_queries(self, queries: List[str]) -> List[Topic]:
-        topics: List[Topic] = []
-        for q in queries:
-            title = self._derive_title(q)
-            # Use the query itself as the primary keyword
-            topic = Topic(title=title, primary_keywords=[q], publish_month=self.base_month)
-            topic.generate_outline()
-            topic.generate_meta()
-            topics.append(topic)
-        return topics
-
-
-class ContentGenerator:
-    """Generate article text from a Topic using simple heuristics."""
-
-    def generate_article(self, topic: Topic) -> str:
-        sections = topic.outline[1:]
-        lines: List[str] = []
-        lines.append(f"# {topic.title}\n")
-        for section in sections:
-            lines.append(f"## {section}\n")
-            # Use simple heuristics similar to the MVP generator
-            if section == "Introduction":
-                lines.append(
-                    f"This article explores {topic.title.lower()}. We'll discuss why it's important, key features to look for and how it fits into your outdoor cooking needs.\n"
-                )
-            elif section == "Key features and considerations":
-                lines.append(
-                    "Consider factors such as build quality, fuel type, size, heat distribution and ease of cleaning when evaluating options in this category.\n"
-                )
-            elif section == "Top products or examples":
-                lines.append(
-                    "Examples range from entry‑level units with basic functionality to premium models featuring smart technology and modular design.\n"
-                )
-            elif section == "How to choose the right option":
-                lines.append(
-                    "Think about your budget, space and desired features. Read reviews, compare specs and match the product to your cooking style.\n"
-                )
-            elif section == "Conclusion & next steps":
-                lines.append(
-                    "By understanding these factors you can make an informed decision and elevate your cooking experience. Continue researching and testing to find the perfect fit.\n"
-                )
-        article = "\n".join(lines)
-        topic.body = article
-        return article
-
-
-class WordPressPublisher:
-    """
-    A lightweight wrapper for interacting with the WordPress REST API.  Requires
-    a site URL and credentials (username and application password).  See:
-    https://developer.wordpress.org/rest-api/ for details.
-
-    These methods are stubs: they will not run unless valid credentials and
-    network access are provided.  Use them as a starting point for your own
-    implementation.
-    """
-
-    def __init__(self, site_url: str, username: str, application_password: str) -> None:
-        self.site_url = site_url.rstrip("/")
-        self.auth = (username, application_password)
-
-    def post_article(self, title: str, content: str, status: str = "publish") -> Dict:
-        """Create a new post on WordPress."""
-        endpoint = f"{self.site_url}/wp-json/wp/v2/posts"
-        data = {
-            "title": title,
-            "content": content,
-            "status": status,
-        }
-        resp = requests.post(endpoint, auth=self.auth, json=data)
-        resp.raise_for_status()
-        return resp.json()
-
-    def update_article(self, post_id: int, title: str, content: str) -> Dict:
-        """Update an existing post by ID."""
-        endpoint = f"{self.site_url}/wp-json/wp/v2/posts/{post_id}"
-        data = {"title": title, "content": content}
-        resp = requests.post(endpoint, auth=self.auth, json=data)
-        resp.raise_for_status()
-        return resp.json()
+# LEGACY CLASSES REMOVED - Use ClaudeContentGenerator instead
+# These template-based generators have been replaced with AI-powered content generation
+# See claude_content_generator.py for the modern implementation
 
 
 # Backward compatibility alias
 GSCProcessor = DataProcessor
 
 
-def run_pipeline_for_site(csv_path: str, site_url: str | None = None, credentials: Tuple[str, str] | None = None) -> List[Topic]:
-    """
-    High‑level function to run the analysis and content generation pipeline for a single site.
-
-    Parameters:
-    - csv_path: Path to the GSC CSV export for the site.
-    - site_url: Base URL of the site if you intend to publish via WordPress.
-    - credentials: Tuple (username, application_password) for WordPress authentication.
-
-    Returns a list of Topic objects with generated content.
-    """
-    processor = DataProcessor(csv_path)
-    df = processor.load()
-    refresh_candidates = processor.identify_refresh_candidates()
-    # Extract new query opportunities (for demonstration we take top 5 queries)
-    queries = processor.extract_query_opportunities(top_n=5)
-    planner = TopicPlanner()
-    topics = planner.create_topics_from_queries(queries)
-    generator = ContentGenerator()
-    for topic in topics:
-        generator.generate_article(topic)
-    # Optionally publish or update posts via WordPress
-    if site_url and credentials:
-        wp = WordPressPublisher(site_url, credentials[0], credentials[1])
-        for topic in topics:
-            # NOTE: This will attempt to create a new post; adjust as needed to update existing posts.
-            try:
-                wp.post_article(topic.title, topic.body)
-            except Exception as e:
-                print(f"Failed to publish {topic.title}: {e}")
-    return topics
-
+# Legacy run_pipeline_for_site function removed
+# Use seo_automation_main.py -> SEOAutomationPipeline for the modern implementation
+# Example:
+#   from seo_automation_main import SEOAutomationPipeline
+#   pipeline = SEOAutomationPipeline(site_name="example.com", gsc_csv_path="data.csv")
+#   result = pipeline.run()
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Run the multi‑site content agent pipeline.")
-    parser.add_argument("csv_path", help="Path to the GSC CSV export")
-    parser.add_argument("--site_url", help="Base URL of the WordPress site (optional)")
-    parser.add_argument("--username", help="WordPress username (optional)")
-    parser.add_argument("--application_password", help="WordPress application password (optional)")
-    args = parser.parse_args()
-    creds = None
-    if args.site_url and args.username and args.application_password:
-        creds = (args.username, args.application_password)
-    run_pipeline_for_site(args.csv_path, args.site_url, creds)
+    print("This module has been refactored.")
+    print("Use: python seo_automation_main.py --help for the modern CLI interface")
+    print("Or import: from seo_automation_main import SEOAutomationPipeline")
