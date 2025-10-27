@@ -267,24 +267,80 @@ class SEOAutomationPipeline:
         else:
             # No existing plan or user wants to regenerate
             print(f"  ✓ Creating new action plan...")
-            self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
-            self.action_plan = self.strategic_planner.create_master_plan(
-                self.duplicate_analysis
-            )
+
+            # CHOOSE PLANNER: AI-Powered vs Rule-Based
+            if use_ai_planner and self.anthropic_api_key and self.niche_report:
+                print(f"  🤖 Using AI Strategic Planner (Claude-powered contextual analysis)")
+
+                # Initialize AI planner
+                self.ai_planner = AIStrategicPlanner(self.anthropic_api_key)
+
+                # Get completed actions to avoid duplication
+                completed_actions = []
+                stats = self.state_mgr.get_stats()
+                if stats.get('completed', 0) > 0:
+                    # TODO: Fetch completed actions from state manager
+                    pass
+
+                # Create AI-powered plan
+                site_config = {
+                    'url': self.site_url,
+                    'niche': self.niche
+                }
+
+                ai_plan = self.ai_planner.create_plan(
+                    site_config=site_config,
+                    merged_data=self.merged_df,
+                    niche_report=self.niche_report,
+                    completed_actions=completed_actions
+                )
+
+                # Convert AI plan format to ActionItem objects
+                from strategic_planner import ActionItem, ActionType
+                self.action_plan = []
+                for action_data in ai_plan:
+                    action = ActionItem(
+                        action_type=ActionType(action_data['action_type']),
+                        url=action_data.get('url', ''),
+                        title=action_data.get('title', ''),
+                        keywords=action_data.get('keywords', []),
+                        priority_score=action_data.get('priority_score', 0),
+                        reasoning=action_data.get('reasoning', ''),
+                        redirect_target=action_data.get('redirect_target', ''),
+                        estimated_impact=action_data.get('estimated_impact', '')
+                    )
+                    action.id = action_data.get('id', '')
+                    self.action_plan.append(action)
+
+                print(f"  ✓ AI analysis complete: {len(self.action_plan)} strategic actions generated")
+
+            else:
+                # Fall back to rule-based planner
+                if use_ai_planner and not self.anthropic_api_key:
+                    print(f"  ⚠️  AI planner requested but no API key - falling back to rule-based")
+                elif use_ai_planner and not self.niche_report:
+                    print(f"  ⚠️  AI planner requested but no niche data - falling back to rule-based")
+                else:
+                    print(f"  📊 Using Rule-Based Strategic Planner (formula-based scoring)")
+
+                self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
+                self.action_plan = self.strategic_planner.create_master_plan(
+                    self.duplicate_analysis
+                )
 
             # Save the plan to state manager with unique IDs
             import hashlib
             plan_data = []
             for i, action in enumerate(self.action_plan):
-                # Create unique ID from action details
-                action_id = hashlib.md5(
-                    f"{action.action_type.value}_{action.url or action.title}_{i}".encode()
-                ).hexdigest()[:12]
-
-                action.id = action_id  # Store ID on the action object
+                # Create unique ID if not already set
+                if not hasattr(action, 'id') or not action.id:
+                    action_id = hashlib.md5(
+                        f"{action.action_type.value}_{action.url or action.title}_{i}".encode()
+                    ).hexdigest()[:12]
+                    action.id = action_id
 
                 plan_data.append({
-                    'id': action_id,
+                    'id': action.id,
                     'action_type': action.action_type.value,
                     'url': action.url,
                     'title': action.title,
