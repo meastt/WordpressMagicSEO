@@ -70,9 +70,29 @@ Format your research with clear sections and bullet points. Include source URLs 
         meta_description: str,
         existing_content: str = None,
         internal_links: List[Dict] = None,
-        affiliate_links: List[Dict] = None
+        affiliate_links: List[Dict] = None,
+        competitive_brief: str = None,
+        quality_requirements: Dict = None
     ) -> Dict[str, str]:
-        """Generate complete article with metadata and affiliate links."""
+        """
+        Generate complete article with metadata and affiliate links.
+
+        Enhanced with competitive intelligence and quality requirements.
+
+        Args:
+            topic_title: Article title
+            keywords: Target keywords
+            research: Research data from research_topic()
+            meta_description: Base meta description
+            existing_content: Existing content to update (optional)
+            internal_links: Internal links to include
+            affiliate_links: Affiliate links to include
+            competitive_brief: Output from CompetitiveAnalyzer (NEW!)
+            quality_requirements: Specific quality requirements (NEW!)
+
+        Returns:
+            Dict with title, content, categories, tags, meta, schema
+        """
 
         # Get current date for context
         from datetime import datetime
@@ -94,8 +114,21 @@ Format your research with clear sections and bullet points. Include source URLs 
             affiliate_links_text = "\n\nAFFILIATE PRODUCT LINKS to include naturally:\n"
             for link in affiliate_links:
                 affiliate_links_text += f"- {link['brand']} {link['product_name']} ({link['product_type']}): {link['url']}\n"
-        
-        prompt = f"""You are an expert SEO content writer. {action.capitalize()} about: "{topic_title}"
+
+        # NEW: Competitive intelligence context
+        competitive_context = ""
+        if competitive_brief:
+            competitive_context = f"\n\n{'='*80}\n🎯 COMPETITIVE INTELLIGENCE (CRITICAL - FOLLOW THIS):\n{'='*80}\n{competitive_brief}\n{'='*80}\n"
+
+        # NEW: Quality requirements context
+        quality_context = ""
+        if quality_requirements:
+            quality_context = f"\n\n📊 QUALITY REQUIREMENTS:\n"
+            quality_context += f"- Target Word Count: {quality_requirements.get('min_word_count', 2000):,} words minimum\n"
+            quality_context += f"- E-E-A-T Score Target: {quality_requirements.get('eeat_score', 8)}/10+\n"
+            quality_context += f"- Must Include: {', '.join(quality_requirements.get('must_include', []))}\n"
+
+        prompt = f"""You are an ELITE SEO content writer. {action.capitalize()} about: "{topic_title}"
 {date_context}
 
 TARGET KEYWORDS: {', '.join(keywords)}
@@ -105,27 +138,32 @@ RESEARCH DATA:
 {existing_context}
 {internal_links_text}
 {affiliate_links_text}
+{competitive_context}
+{quality_context}
 
-Create a comprehensive, helpful article that:
-1. Uses natural, engaging writing (not robotic)
-2. Includes the target keywords naturally (don't force them)
-3. Provides genuine value to readers
-4. Includes specific examples and actionable advice
+Create a comprehensive, SUPERIOR article that:
+1. **BEATS COMPETITORS**: If competitive brief is provided, your content MUST be MORE comprehensive, better structured, and more valuable than top-ranking content
+2. Uses natural, engaging writing (not robotic)
+3. Includes the target keywords naturally (don't force them)
+4. Provides genuine value to readers with specific examples and actionable advice
 5. Incorporates 2-3 external links to authoritative sources
 6. Naturally weaves in the provided internal links where relevant
 7. Naturally incorporates affiliate product links where they add value (don't force them)
-8. Uses proper HTML formatting (h2, h3, p, ul, ol, strong, em tags)
-9. Follows Google's helpful content guidelines
-10. Is optimized for both traditional SEO and AI search (LLMs)
+8. Uses proper HTML formatting (h2, h3, p, ul, ol, strong, em, tables)
+9. **Follows competitive brief precisely** (if provided) - cover ALL missing topics
+10. Includes multimedia suggestions [Image: description], [Table: what to show]
+11. Demonstrates E-E-A-T (Experience, Expertise, Authority, Trust)
+12. Is optimized for both traditional SEO and AI search (LLMs)
 
 ARTICLE STRUCTURE:
 - Engaging introduction (hook the reader immediately)
-- 4-6 main sections with descriptive H2 headers
-- Subsections with H3 headers where needed
-- Bullet points or numbered lists for clarity
+- 6-10 main sections with descriptive H2 headers (MORE comprehensive than competitors)
+- Subsections with H3 headers for deep coverage
+- Bullet points, numbered lists, and comparison tables for clarity
+- FAQ section answering common questions (great for featured snippets!)
 - Strong conclusion with actionable next steps
 
-LENGTH: 1500-2500 words
+LENGTH: 2500-4000 words (be COMPREHENSIVE to outrank competitors)
 
 META DATA & TAXONOMIES:
 - Create a NEW, SEO-optimized title (under 60 chars, include primary keyword, must be different from old title)
