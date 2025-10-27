@@ -1201,65 +1201,142 @@ def execute_next_action():
                     result['success'] = False
 
             elif action_data['action_type'] == 'update':
-                # Fetch and update existing content
-                post = wp.find_post_by_url(action_data['url'])
-                if not post:
-                    raise Exception(f"Post not found: {action_data['url']}")
+                # SMART UPDATE: Detect page type and route appropriately
+                from page_type_detector import PageTypeDetector, PageType, UpdateStrategy
 
-                post_id = post['id']
-                existing_content = post.get('content', {}).get('rendered', '')
-                title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
-                keywords = action_data.get('keywords', [])
+                url = action_data['url']
+                page_info = PageTypeDetector.get_update_info(url)
 
-                # Generate improved content using generate_article with existing_content
-                # First do research
-                research = content_gen.research_topic(title, keywords)
+                print(f"  📄 Page Type Detection:")
+                print(f"     URL: {url}")
+                print(f"     Type: {page_info['page_type']}")
+                print(f"     Strategy: {page_info['strategy']}")
+                print(f"     {page_info['explanation']}")
 
-                # Get internal link suggestions (FIX: was missing)
-                internal_links = wp.get_internal_link_suggestions(keywords)
-
-                # Get affiliate links for this update if available
-                affiliate_links = []
-                if affiliate_mgr:
-                    affiliate_links = affiliate_mgr.get_all_links()
-
-                # Generate updated article
-                article_data = content_gen.generate_article(
-                    topic_title=title,
-                    keywords=keywords,
-                    research=research,
-                    meta_description=f"Updated: {title}",
-                    existing_content=existing_content,
-                    internal_links=internal_links,  # FIX: Add internal links
-                    affiliate_links=affiliate_links
-                )
-
-                # Update the post with new content
-                publish_result = wp.update_post(
-                    post_id,
-                    title=article_data.get('title', title),
-                    content=article_data['content'],
-                    meta_title=article_data.get('meta_title'),  # FIX: Add meta title
-                    meta_description=article_data.get('meta_description'),  # FIX: Add meta description
-                    categories=article_data.get('categories', []),
-                    tags=article_data.get('tags', [])
-                )
-
-                # Update affiliate link usage if any were added
-                if affiliate_mgr and affiliate_links:
-                    # Count how many affiliate links appear in the new content
-                    for link in affiliate_links:
-                        if link['url'] in article_data['content']:
-                            affiliate_mgr.increment_usage(link['id'])
-
-                # FIX: Handle PublishResult properly
-                if publish_result.success:
-                    result['post_id'] = post_id
+                if page_info['should_skip']:
+                    # Skip this page type (date archives, search, etc.)
                     result['success'] = True
-                    state_mgr.mark_completed(action_data['id'], post_id)
+                    result['skipped'] = True
+                    result['reason'] = page_info['explanation']
+                    state_mgr.mark_completed(action_data['id'], None)
+                    print(f"  ⏭️  Skipping: {page_info['explanation']}")
+
+                elif page_info['strategy'] == UpdateStrategy.META_ONLY.value:
+                    # CATEGORY or TAG - Update SEO meta only
+                    print(f"  🏷️  Meta-only update for {page_info['page_type']}")
+
+                    if page_info['page_type'] == PageType.CATEGORY.value:
+                        category = wp.find_category_by_url(url)
+                        if not category:
+                            raise Exception(f"Category not found: {url}")
+
+                        category_id = category['id']
+                        current_name = category.get('name', '')
+                        keywords = action_data.get('keywords', [])
+
+                        # Generate optimized SEO meta (not full content)
+                        meta_title = f"{current_name} | {site_name}" if keywords else current_name
+                        meta_description = f"Explore our comprehensive {current_name.lower()} content. {' '.join(keywords[:3])}"
+
+                        publish_result = wp.update_category_meta(
+                            category_id,
+                            meta_title=meta_title,
+                            meta_description=meta_description
+                        )
+
+                    elif page_info['page_type'] == PageType.TAG.value:
+                        tag = wp.find_tag_by_url(url)
+                        if not tag:
+                            raise Exception(f"Tag not found: {url}")
+
+                        tag_id = tag['id']
+                        current_name = tag.get('name', '')
+                        keywords = action_data.get('keywords', [])
+
+                        # Generate optimized SEO meta (not full content)
+                        meta_title = f"{current_name} Articles | {site_name}"
+                        meta_description = f"Browse all articles tagged with {current_name.lower()}. {' '.join(keywords[:3])}"
+
+                        publish_result = wp.update_tag_meta(
+                            tag_id,
+                            meta_title=meta_title,
+                            meta_description=meta_description
+                        )
+
+                    # Handle result
+                    if publish_result.success:
+                        result['post_id'] = publish_result.post_id
+                        result['success'] = True
+                        result['meta_only'] = True
+                        state_mgr.mark_completed(action_data['id'], publish_result.post_id)
+                        print(f"  ✅ Meta updated successfully")
+                    else:
+                        result['error'] = publish_result.error
+                        result['success'] = False
+
                 else:
-                    result['error'] = publish_result.error
-                    result['success'] = False
+                    # FULL CONTENT UPDATE - For posts and pages
+                    print(f"  📝 Full content update for post/page")
+
+                    post = wp.find_post_by_url(url)
+                    if not post:
+                        raise Exception(f"Post not found: {url}")
+
+                    post_id = post['id']
+                    existing_content = post.get('content', {}).get('rendered', '')
+                    title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
+                    keywords = action_data.get('keywords', [])
+
+                    # Generate improved content using generate_article with existing_content
+                    # First do research
+                    research = content_gen.research_topic(title, keywords)
+
+                    # Get internal link suggestions
+                    internal_links = wp.get_internal_link_suggestions(keywords)
+
+                    # Get affiliate links for this update if available
+                    affiliate_links = []
+                    if affiliate_mgr:
+                        affiliate_links = affiliate_mgr.get_all_links()
+
+                    # Generate updated article
+                    article_data = content_gen.generate_article(
+                        topic_title=title,
+                        keywords=keywords,
+                        research=research,
+                        meta_description=f"Updated: {title}",
+                        existing_content=existing_content,
+                        internal_links=internal_links,
+                        affiliate_links=affiliate_links
+                    )
+
+                    # Update the post with new content
+                    publish_result = wp.update_post(
+                        post_id,
+                        title=article_data.get('title', title),
+                        content=article_data['content'],
+                        meta_title=article_data.get('meta_title'),
+                        meta_description=article_data.get('meta_description'),
+                        categories=article_data.get('categories', []),
+                        tags=article_data.get('tags', [])
+                    )
+
+                    # Update affiliate link usage if any were added
+                    if affiliate_mgr and affiliate_links:
+                        # Count how many affiliate links appear in the new content
+                        for link in affiliate_links:
+                            if link['url'] in article_data['content']:
+                                affiliate_mgr.increment_usage(link['id'])
+
+                    # Handle result
+                    if publish_result.success:
+                        result['post_id'] = post_id
+                        result['success'] = True
+                        state_mgr.mark_completed(action_data['id'], post_id)
+                        print(f"  ✅ Content updated successfully")
+                    else:
+                        result['error'] = publish_result.error
+                        result['success'] = False
 
             else:
                 result['error'] = f"Unsupported action type: {action_data['action_type']}"

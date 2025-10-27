@@ -414,9 +414,188 @@ class WordPressPublisher:
                 error=str(e)
             )
     
+    def find_category_by_url(self, url: str) -> Optional[Dict]:
+        """
+        Find a category by its URL.
+
+        Args:
+            url: The category URL (e.g., https://site.com/category/bobcats/)
+
+        Returns:
+            Category dict or None if not found
+        """
+        # Extract slug from URL
+        # Pattern: /category/slug/ or /category/slug
+        import re
+        match = re.search(r'/category/([^/]+)', url)
+        if not match:
+            return None
+
+        slug = match.group(1)
+
+        try:
+            response, categories = self._make_request_with_retry(
+                'GET',
+                f"{self.api_base}/categories",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+
+            if categories:
+                return categories[0]
+            return None
+
+        except Exception as e:
+            print(f"Error finding category by URL {url}: {e}")
+            return None
+
+    def find_tag_by_url(self, url: str) -> Optional[Dict]:
+        """
+        Find a tag by its URL.
+
+        Args:
+            url: The tag URL (e.g., https://site.com/tag/recipes/)
+
+        Returns:
+            Tag dict or None if not found
+        """
+        # Extract slug from URL
+        import re
+        match = re.search(r'/tag/([^/]+)', url)
+        if not match:
+            return None
+
+        slug = match.group(1)
+
+        try:
+            response, tags = self._make_request_with_retry(
+                'GET',
+                f"{self.api_base}/tags",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+
+            if tags:
+                return tags[0]
+            return None
+
+        except Exception as e:
+            print(f"Error finding tag by URL {url}: {e}")
+            return None
+
+    def update_category_meta(
+        self,
+        category_id: int,
+        meta_title: str = None,
+        meta_description: str = None
+    ) -> PublishResult:
+        """
+        Update ONLY the SEO meta for a category (cannot update content/description).
+
+        Categories are taxonomy terms and don't have editable content like posts.
+        We can only update their SEO metadata (title tag, meta description).
+
+        Args:
+            category_id: The category ID
+            meta_title: SEO title tag (uses Yoast if available)
+            meta_description: SEO meta description (uses Yoast if available)
+
+        Returns:
+            PublishResult
+        """
+        try:
+            update_data = {"meta": {}}
+
+            # Try to update Yoast SEO meta
+            if meta_title:
+                update_data["meta"]["_yoast_wpseo_title"] = meta_title
+            if meta_description:
+                update_data["meta"]["_yoast_wpseo_desc"] = meta_description
+
+            response, result_data = self._make_request_with_retry(
+                'POST',
+                f"{self.api_base}/categories/{category_id}",
+                auth=self.auth,
+                json=update_data,
+                timeout=30
+            )
+            self._rate_limit()
+
+            return PublishResult(
+                success=True,
+                action="update_category_meta",
+                url=result_data.get('link', ''),
+                post_id=category_id
+            )
+
+        except Exception as e:
+            return PublishResult(
+                success=False,
+                action="update_category_meta",
+                url="",
+                post_id=category_id,
+                error=str(e)
+            )
+
+    def update_tag_meta(
+        self,
+        tag_id: int,
+        meta_title: str = None,
+        meta_description: str = None
+    ) -> PublishResult:
+        """
+        Update ONLY the SEO meta for a tag (cannot update content/description).
+
+        Tags are taxonomy terms and don't have editable content like posts.
+        We can only update their SEO metadata (title tag, meta description).
+
+        Args:
+            tag_id: The tag ID
+            meta_title: SEO title tag (uses Yoast if available)
+            meta_description: SEO meta description (uses Yoast if available)
+
+        Returns:
+            PublishResult
+        """
+        try:
+            update_data = {"meta": {}}
+
+            # Try to update Yoast SEO meta
+            if meta_title:
+                update_data["meta"]["_yoast_wpseo_title"] = meta_title
+            if meta_description:
+                update_data["meta"]["_yoast_wpseo_desc"] = meta_description
+
+            response, result_data = self._make_request_with_retry(
+                'POST',
+                f"{self.api_base}/tags/{tag_id}",
+                auth=self.auth,
+                json=update_data,
+                timeout=30
+            )
+            self._rate_limit()
+
+            return PublishResult(
+                success=True,
+                action="update_tag_meta",
+                url=result_data.get('link', ''),
+                post_id=tag_id
+            )
+
+        except Exception as e:
+            return PublishResult(
+                success=False,
+                action="update_tag_meta",
+                url="",
+                post_id=tag_id,
+                error=str(e)
+            )
+
     def create_301_redirect(
-        self, 
-        source_url: str, 
+        self,
+        source_url: str,
         target_url: str
     ) -> PublishResult:
         """Create a 301 redirect (requires Redirection plugin)."""
