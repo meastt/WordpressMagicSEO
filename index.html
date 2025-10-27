@@ -99,11 +99,75 @@
         }
 
         /* Dashboard View */
+        .dashboard-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .dashboard-subtitle {
+            font-size: 16px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 24px;
-            margin-bottom: 32px;
+            margin-bottom: 48px;
+        }
+
+        .quick-create-section {
+            margin-top: 48px;
+            padding-top: 48px;
+            border-top: 2px solid #e8e8e8;
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+
+        .section-description {
+            font-size: 14px;
+            color: #888;
+            margin: 0;
+        }
+
+        .quick-create-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 32px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .quick-create-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .quick-create-actions .btn-secondary {
+            flex: 1;
+        }
+
+        .quick-create-actions .btn-primary {
+            flex: 2;
         }
 
         .site-card {
@@ -251,17 +315,129 @@
         }
 
         /* Execute View */
+        .execute-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .execute-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .execute-subtitle {
+            font-size: 15px;
+            color: #666;
+        }
+
         .execute-container {
             max-width: 800px;
             margin: 0 auto;
         }
 
         .workflow-step {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 24px;
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 16px;
+            padding: 28px;
             margin-bottom: 24px;
-            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .workflow-step:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .continue-panel {
+            margin-top: 20px;
+            padding: 24px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .continue-panel-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .continue-panel-content {
+            flex: 1;
+        }
+
+        .continue-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1565c0;
+            margin: 0 0 8px 0;
+        }
+
+        .continue-panel-text {
+            font-size: 14px;
+            color: #333;
+            margin: 0 0 16px 0;
+        }
+
+        .continue-panel-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .required-badge {
+            display: inline-block;
+            background: #f44336;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .optional-badge {
+            display: inline-block;
+            background: #9e9e9e;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .file-upload-area.enhanced {
+            border: 3px dashed #d0d0d0;
+            padding: 40px;
+        }
+
+        .file-upload-area.enhanced.optional {
+            border-color: #e8e8e8;
+            background: #fafafa;
+        }
+
+        .file-upload-area.enhanced .upload-text {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-upload-area.enhanced .upload-text strong {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .file-upload-area.enhanced .upload-text span {
+            font-size: 13px;
+            color: #888;
         }
 
         .step-header {
@@ -320,9 +496,24 @@
         }
 
         .help-text {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .help-text strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .help-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
         }
 
         .file-upload-area {
@@ -435,21 +626,216 @@
         }
 
         /* Settings View */
+        .settings-header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e8e8e8;
+        }
+
+        .settings-page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .settings-page-subtitle {
+            font-size: 15px;
+            color: #666;
+            margin: 0;
+        }
+
         .settings-section {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 24px;
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 16px;
+            padding: 32px;
             margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .settings-section:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         }
 
         .settings-title {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 24px;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .input-with-button input {
+            flex: 1;
+        }
+
+        .btn-save {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .settings-status {
+            margin-top: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .settings-status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .settings-status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .sites-config-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .site-config-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .site-config-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .site-config-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .site-config-status {
+            font-size: 12px;
+            color: #4caf50;
+        }
+
+        .feature-status-box {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 24px;
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 12px;
+            border: 2px solid #ffb74d;
+        }
+
+        .status-icon {
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+
+        .status-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e65100;
+            margin: 0 0 8px 0;
+        }
+
+        .status-content p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .state-management-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .state-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .state-card:hover {
+            transform: translateY(-4px);
+            border-color: #667eea;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .state-card.danger {
+            border-color: #ffcdd2;
+        }
+
+        .state-card.danger:hover {
+            border-color: #f44336;
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.15);
+        }
+
+        .state-card-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .state-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .state-card-desc {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .loading-placeholder {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-style: italic;
         }
 
         /* Loading and Results */
@@ -1279,11 +1665,9 @@
         <div class="content-area">
             <!-- Dashboard View -->
             <div id="dashboard-view" class="view active">
-                <div style="margin-bottom: 32px; text-align: center;">
-                    <h1 style="font-size: 32px; font-weight: 700; color: #333; margin-bottom: 12px;">
-                        Your SEO Portfolio
-                    </h1>
-                    <p style="font-size: 16px; color: #666; max-width: 600px; margin: 0 auto;">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Your SEO Portfolio</h1>
+                    <p class="dashboard-subtitle">
                         Track and manage AI-powered SEO optimizations across all your WordPress sites
                     </p>
                 </div>
@@ -1292,21 +1676,16 @@
                 </div>
 
                 <!-- Quick Create Card -->
-                <div style="margin-top: 40px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2 style="margin: 0; color: #333;">⚡ Quick Create Content</h2>
-                        <span class="tooltip-trigger" style="font-size: 18px;">ℹ️
-                            <span class="tooltip-content">Create custom posts without GSC data</span>
-                        </span>
+                <div class="quick-create-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">⚡ Quick Create Content</h2>
+                            <p class="section-description">Generate AI content without GSC data - just enter your topics</p>
+                        </div>
                     </div>
-                    <div style="background: #f8f9fa; border-radius: 12px; padding: 32px; border: 2px solid #e0e0e0;">
+                    <div class="quick-create-card">
                         <div class="form-group">
-                            <label>
-                                Select Site
-                                <span class="tooltip-trigger">ℹ️
-                                    <span class="tooltip-content">Choose which WordPress site to publish to</span>
-                                </span>
-                            </label>
+                            <label>Target WordPress Site</label>
                             <select id="quick_create_site" class="form-control">
                                 <option value="">-- Select a site --</option>
                             </select>
@@ -1316,17 +1695,17 @@
                             <!-- Dynamic post forms will be added here -->
                         </div>
 
-                        <div style="display: flex; gap: 12px; margin-top: 20px;">
-                            <button type="button" class="btn-secondary" onclick="addQuickCreateForm()" style="flex: 1;">
+                        <div class="quick-create-actions">
+                            <button type="button" class="btn-secondary" onclick="addQuickCreateForm()">
                                 ➕ Add Another Post
                             </button>
-                            <button type="button" class="btn-primary" onclick="submitQuickCreate()" style="flex: 2;">
+                            <button type="button" class="btn-primary" onclick="submitQuickCreate()">
                                 ✨ Create Posts with AI
                             </button>
                         </div>
 
-                        <div class="alert alert-info" style="margin-top: 20px; margin-bottom: 0;">
-                            💡 <strong>Tip:</strong> Enter topics and keywords for AI-generated content. The system will research and create SEO-optimized articles automatically.
+                        <div class="alert alert-info">
+                            💡 <strong>How it works:</strong> Enter your topic and target keywords. The AI will research the topic and create a fully SEO-optimized article ready for publishing.
                         </div>
                     </div>
                 </div>
@@ -1335,39 +1714,40 @@
             <!-- Execute View -->
             <div id="execute-view" class="view">
                 <div class="execute-container">
-                    <h2 style="margin-bottom: 24px; color: #333; text-align: center;">AI-Powered SEO Execution</h2>
+                    <div class="execute-header">
+                        <h2 class="execute-title">🚀 AI-Powered SEO Execution</h2>
+                        <p class="execute-subtitle">Upload your data, let AI analyze it, and execute strategic improvements</p>
+                    </div>
 
                     <!-- Step 1: Select Site -->
                     <div class="workflow-step">
                         <div class="step-header">
                             <div class="step-number">1</div>
-                            <div class="step-title">Select Site</div>
+                            <div class="step-title">Select WordPress Site</div>
                         </div>
                         <div class="form-group">
-                            <label for="exec_site_selector">
-                                Choose a site to optimize
-                                <span class="tooltip-trigger">ℹ️
-                                    <span class="tooltip-content">Sites are configured via Vercel environment variables</span>
-                                </span>
-                            </label>
+                            <label for="exec_site_selector">Choose a site to optimize</label>
                             <select id="exec_site_selector">
                                 <option value="">-- Select a site --</option>
                             </select>
+                            <div class="help-text">Sites are configured in your Vercel environment variables</div>
                         </div>
 
                         <!-- Continue Execution Panel (shown when site has pending actions) -->
-                        <div id="continue_panel" style="display: none; margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 8px;">
-                            <h4 style="color: #2e7d32; margin-bottom: 12px;">✅ Existing Action Plan Found</h4>
-                            <p style="margin-bottom: 16px; color: #333;">This site has pending actions. You can continue executing them.</p>
-                            <div class="form-group">
-                                <label for="continue_limit">Batch Size (optional)</label>
-                                <input type="number" id="continue_limit" min="1" placeholder="Leave empty for all">
-                                <div class="help-text">Execute a specific number of actions, or leave empty to run all</div>
-                            </div>
-                            <div style="display: flex; gap: 12px;">
-                                <button class="btn-small btn-primary" onclick="continueExecution()" style="flex: 2;">▶️ Continue Execution</button>
-                                <button class="btn-small btn-secondary" onclick="viewCurrentPlan()">👁️ View Plan</button>
-                                <button class="btn-small btn-secondary" onclick="deleteCurrentPlan()">🗑️ Delete</button>
+                        <div id="continue_panel" class="continue-panel" style="display: none;">
+                            <div class="continue-panel-icon">📋</div>
+                            <div class="continue-panel-content">
+                                <h4 class="continue-panel-title">Existing Action Plan Found</h4>
+                                <p class="continue-panel-text">This site has pending actions ready to execute.</p>
+                                <div class="form-group" style="margin: 16px 0;">
+                                    <label for="continue_limit">Batch Size (Optional)</label>
+                                    <input type="number" id="continue_limit" min="1" placeholder="Leave empty to run all pending actions">
+                                </div>
+                                <div class="continue-panel-actions">
+                                    <button class="btn-small btn-primary" onclick="continueExecution()">▶️ Continue Execution</button>
+                                    <button class="btn-small btn-secondary" onclick="viewCurrentPlan()">👁️ View Plan</button>
+                                    <button class="btn-small btn-secondary" onclick="deleteCurrentPlan()">🗑️ Delete Plan</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1376,39 +1756,40 @@
                     <div class="workflow-step">
                         <div class="step-header">
                             <div class="step-number">2</div>
-                            <div class="step-title">Upload Data</div>
+                            <div class="step-title">Upload Analytics Data</div>
                         </div>
 
                         <div class="form-group">
-                            <label>
-                                Google Search Console Data (Required)
-                                <span class="tooltip-trigger">ℹ️
-                                    <span class="tooltip-content">Go to GSC → Performance → Export → Download CSV</span>
-                                </span>
-                            </label>
-                            <div class="file-upload-area" onclick="document.getElementById('gsc_file_input').click()">
+                            <label>Google Search Console Data <span class="required-badge">Required</span></label>
+                            <div class="file-upload-area enhanced" onclick="document.getElementById('gsc_file_input').click()">
                                 <input type="file" id="gsc_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('gsc')">
                                 <div class="upload-icon">📊</div>
-                                <div class="upload-text">Click to upload GSC CSV/Excel</div>
+                                <div class="upload-text">
+                                    <strong>Click or drag to upload GSC data</strong>
+                                    <span>CSV or Excel format accepted</span>
+                                </div>
                                 <div id="gsc_file_name" class="file-name-display"></div>
                             </div>
-                            <div class="help-text">📅 Export 12 months of data from Google Search Console. Include queries, pages, clicks, impressions, CTR, and position data.</div>
+                            <div class="help-text">
+                                <strong>How to export:</strong> GSC → Performance → Export → Download CSV<br>
+                                <strong>Data needed:</strong> Last 12 months with queries, pages, clicks, impressions, CTR, and position
+                            </div>
                         </div>
 
                         <div class="form-group">
-                            <label>
-                                Google Analytics 4 Data (Optional)
-                                <span class="tooltip-trigger">ℹ️
-                                    <span class="tooltip-content">Adds engagement metrics for deeper insights</span>
-                                </span>
-                            </label>
-                            <div class="file-upload-area" onclick="document.getElementById('ga4_file_input').click()">
+                            <label>Google Analytics 4 Data <span class="optional-badge">Optional</span></label>
+                            <div class="file-upload-area enhanced optional" onclick="document.getElementById('ga4_file_input').click()">
                                 <input type="file" id="ga4_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('ga4')">
                                 <div class="upload-icon">📈</div>
-                                <div class="upload-text">Click to upload GA4 CSV/Excel</div>
+                                <div class="upload-text">
+                                    <strong>Upload GA4 data for deeper insights</strong>
+                                    <span>Adds engagement metrics to the analysis</span>
+                                </div>
                                 <div id="ga4_file_name" class="file-name-display"></div>
                             </div>
-                            <div class="help-text">💡 Optional: Include engagement rate, bounce rate, and session duration metrics from GA4 for more comprehensive analysis.</div>
+                            <div class="help-text">
+                                Include engagement rate, bounce rate, and session duration for more comprehensive analysis
+                            </div>
                         </div>
                     </div>
 
@@ -1472,36 +1853,74 @@
 
             <!-- Settings View -->
             <div id="settings-view" class="view">
-                <h2 style="margin-bottom: 24px; color: #333;">Settings</h2>
+                <div class="settings-header">
+                    <h2 class="settings-page-title">⚙️ Settings & Configuration</h2>
+                    <p class="settings-page-subtitle">Configure your WordPress sites and API credentials</p>
+                </div>
 
                 <!-- API Configuration -->
                 <div class="settings-section">
                     <div class="settings-title">🔑 API Configuration</div>
+                    <div class="settings-description">Configure your Anthropic API key for AI-powered content generation</div>
                     <div class="form-group">
                         <label for="settings_anthropic_key">Anthropic API Key</label>
-                        <input type="password" id="settings_anthropic_key" placeholder="sk-ant-api03-...">
-                        <div class="help-text">Get your API key from console.anthropic.com or set ANTHROPIC_API_KEY in Vercel</div>
+                        <div class="input-with-button">
+                            <input type="password" id="settings_anthropic_key" placeholder="sk-ant-api03-...">
+                            <button class="btn-save" onclick="saveApiKey()">💾 Save</button>
+                        </div>
+                        <div class="help-text">
+                            <strong>Where to get your key:</strong> Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a><br>
+                            <strong>Alternative:</strong> Set ANTHROPIC_API_KEY as an environment variable in Vercel
+                        </div>
+                    </div>
+                    <div id="api_key_status" class="settings-status" style="display: none;"></div>
+                </div>
+
+                <!-- WordPress Sites -->
+                <div class="settings-section">
+                    <div class="settings-title">🌐 WordPress Sites</div>
+                    <div class="settings-description">Your sites are automatically loaded from Vercel environment variables</div>
+                    <div id="sites_list" class="sites-config-list">
+                        <div class="loading-placeholder">Loading sites...</div>
+                    </div>
+                    <div class="help-text">
+                        <strong>To add new sites:</strong> Configure them as environment variables in Vercel (WORDPRESS_SITE_NAME_URL and WORDPRESS_SITE_NAME_USER_PASS)
                     </div>
                 </div>
 
                 <!-- Affiliate Links -->
                 <div class="settings-section">
                     <div class="settings-title">🔗 Affiliate Links</div>
-                    <div class="alert alert-info">
-                        ℹ️ Affiliate links are automatically added to content during execution. Upload your links for each site separately.
+                    <div class="settings-description">Configure affiliate links that will be automatically inserted into your content</div>
+                    <div class="feature-status-box">
+                        <div class="status-icon">🚧</div>
+                        <div class="status-content">
+                            <h4>Coming in Next Update</h4>
+                            <p>Affiliate link management interface is currently in development. For now, affiliate links can be configured via the backend API.</p>
+                        </div>
                     </div>
-                    <button class="btn-small btn-primary" onclick="alert('Affiliate link management coming soon')">
-                        Manage Affiliate Links
-                    </button>
                 </div>
 
                 <!-- State Management -->
                 <div class="settings-section">
-                    <div class="settings-title">💾 State Management</div>
-                    <p style="margin-bottom: 16px; color: #666;">Manage saved action plans and state for your sites.</p>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn-small btn-secondary" onclick="alert('Coming soon')">Export All States</button>
-                        <button class="btn-small btn-secondary" onclick="alert('Coming soon')">Clear All States</button>
+                    <div class="settings-title">💾 Action Plans & State</div>
+                    <div class="settings-description">Manage saved action plans and execution state for your sites</div>
+                    <div class="state-management-grid">
+                        <div class="state-card" onclick="exportAllStates()">
+                            <div class="state-card-icon">📥</div>
+                            <div class="state-card-title">Export States</div>
+                            <div class="state-card-desc">Download all action plans as JSON</div>
+                        </div>
+                        <div class="state-card" onclick="viewAllStates()">
+                            <div class="state-card-icon">📊</div>
+                            <div class="state-card-title">View States</div>
+                            <div class="state-card-desc">Review all saved action plans</div>
+                        </div>
+                        <div class="state-card danger" onclick="confirmClearAllStates()">
+                            <div class="state-card-icon">🗑️</div>
+                            <div class="state-card-title">Clear All</div>
+                            <div class="state-card-desc">Delete all saved states</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1813,24 +2232,24 @@
                     <div class="site-stats">
                         <div class="stat-box">
                             <div class="stat-value">${site.total_actions || 0}</div>
-                            <div class="stat-label">Total</div>
+                            <div class="stat-label">Actions</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-value">${site.completed_actions || 0}</div>
-                            <div class="stat-label">Done</div>
+                            <div class="stat-label">Completed</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-value">${site.pending_actions || 0}</div>
-                            <div class="stat-label">Pending</div>
+                            <div class="stat-label">Remaining</div>
                         </div>
                     </div>
                     <div class="site-actions">
                         <button class="btn-small btn-primary" onclick="event.stopPropagation(); selectSiteAndExecute('${site.name}')">
-                            ${site.pending_actions > 0 ? '▶️ Continue' : '🚀 Start'}
+                            ${site.pending_actions > 0 ? '▶️ Continue Execution' : '🚀 Start New'}
                         </button>
                         ${site.pending_actions > 0 ? `
                             <button class="btn-small btn-secondary" onclick="event.stopPropagation(); viewSitePlan('${site.name}')">
-                                👁️ View
+                                👁️ View Plan
                             </button>
                         ` : ''}
                     </div>
@@ -2459,20 +2878,27 @@
                 // Close any open modals
                 closeActionPlanModal();
 
-                // Reload sites data and refresh
+                // Reload sites data and refresh - MUST complete before triggering change event
                 await loadSites();
                 renderDashboard();
 
-                hideLoading();
-
-                // Show success toast instead of alert
-                showToast('Plan Deleted', `Action plan for ${siteName} has been removed`, 'success');
-
-                // Refresh the continue panel state
+                // Now refresh the continue panel state after data is loaded
                 const siteSelector = document.getElementById('exec_site_selector');
                 if (siteSelector && siteSelector.value === siteName) {
+                    // Manually hide the continue panel since the site no longer has pending actions
+                    const continuePanel = document.getElementById('continue_panel');
+                    if (continuePanel) {
+                        continuePanel.style.display = 'none';
+                    }
+
+                    // Dispatch change event to update UI properly
                     siteSelector.dispatchEvent(new Event('change'));
                 }
+
+                hideLoading();
+
+                // Show success toast
+                showToast('Plan Deleted', `Action plan for ${siteName} has been removed. You can now create a new analysis.`, 'success')
 
             } catch (error) {
                 hideLoading();
@@ -2996,6 +3422,129 @@
             await loadSites();
             renderDashboard();
         }
+
+        // =================================================================
+        // SETTINGS FUNCTIONS
+        // =================================================================
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('settings_anthropic_key').value;
+            const statusEl = document.getElementById('api_key_status');
+
+            if (!apiKey) {
+                statusEl.textContent = 'Please enter an API key';
+                statusEl.className = 'settings-status error';
+                statusEl.style.display = 'block';
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('anthropic_api_key', apiKey);
+
+            statusEl.textContent = '✅ API key saved successfully! It will be used for future requests.';
+            statusEl.className = 'settings-status success';
+            statusEl.style.display = 'block';
+
+            showToast('Settings Saved', 'API key has been saved to local storage', 'success');
+
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+
+        function exportAllStates() {
+            fetch(`${API_BASE}/state/export`)
+                .then(response => response.json())
+                .then(data => {
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `seo-states-${new Date().toISOString().split('T')[0]}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showToast('Export Complete', 'States downloaded successfully', 'success');
+                })
+                .catch(error => {
+                    showToast('Export Failed', error.message, 'error');
+                });
+        }
+
+        function viewAllStates() {
+            fetch(`${API_BASE}/sites`)
+                .then(response => response.json())
+                .then(data => {
+                    const summary = data.sites.map(site =>
+                        `${site.name}: ${site.total_actions} total, ${site.completed_actions} completed, ${site.pending_actions} pending`
+                    ).join('\n');
+                    alert(`📊 Site States:\n\n${summary || 'No sites found'}`);
+                })
+                .catch(error => {
+                    showToast('Failed to Load', error.message, 'error');
+                });
+        }
+
+        function confirmClearAllStates() {
+            if (confirm('⚠️ Warning: This will delete ALL saved action plans for ALL sites. This cannot be undone.\n\nAre you absolutely sure?')) {
+                if (confirm('This is your last chance. Delete everything?')) {
+                    clearAllStates();
+                }
+            }
+        }
+
+        async function clearAllStates() {
+            try {
+                const response = await fetch(`${API_BASE}/state/clear-all`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('States Cleared', 'All action plans have been deleted', 'success');
+                    await loadSites();
+                    renderDashboard();
+                } else {
+                    showToast('Clear Failed', data.error || 'Unknown error', 'error');
+                }
+            } catch (error) {
+                showToast('Clear Failed', error.message, 'error');
+            }
+        }
+
+        // Populate sites list in settings on view switch
+        function populateSettingsSites() {
+            const sitesList = document.getElementById('sites_list');
+            if (!sitesList) return;
+
+            if (sitesData.length === 0) {
+                sitesList.innerHTML = '<div class="loading-placeholder">No sites configured yet</div>';
+                return;
+            }
+
+            sitesList.innerHTML = sitesData.map(site => `
+                <div class="site-config-item">
+                    <div>
+                        <div class="site-config-name">🌐 ${site.name}</div>
+                        <div class="site-config-status">✓ Configured</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update switchView to populate settings when opened
+        const originalSwitchView = switchView;
+        switchView = function(viewName) {
+            originalSwitchView(viewName);
+            if (viewName === 'settings') {
+                populateSettingsSites();
+                // Load saved API key if exists
+                const savedKey = localStorage.getItem('anthropic_api_key');
+                if (savedKey) {
+                    document.getElementById('settings_anthropic_key').value = savedKey;
+                }
+            }
+        };
     </script>
 </body>
 </html>
