@@ -188,9 +188,14 @@ def analyze_only():
         })
     
     except Exception as e:
+        import traceback
+        error_traceback = traceback.format_exc()
+        print(f"❌ ANALYSIS ERROR: {str(e)}")
+        print(f"Full traceback:\n{error_traceback}")
         return jsonify({
             "error": "Analysis failed",
-            "details": str(e)
+            "details": str(e),
+            "traceback": error_traceback
         }), 500
 
 
