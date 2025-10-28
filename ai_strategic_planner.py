@@ -239,15 +239,18 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 
         try:
             # Call Claude for strategic analysis
+            # Note: Anthropic SDK uses httpx timeout format
+            print(f"  🤖 Calling Claude AI for strategic planning...")
+            print(f"  📊 Analyzing {len(merged_data)} data rows")
             message = self.client.messages.create(
                 model=self.model,
                 max_tokens=4096,
-                timeout=120.0,  # 2 minute timeout
                 messages=[{
                     "role": "user",
                     "content": prompt
                 }]
             )
+            print(f"  ✅ Claude AI analysis complete")
             
             # Extract response
             response_text = message.content[0].text.strip()
@@ -298,8 +301,14 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
             return actions
             
         except anthropic.APIError as e:
+            import traceback
+            print(f"❌ Anthropic API Error: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
             raise Exception(f"Anthropic API error: {str(e)}")
         except Exception as e:
+            import traceback
+            print(f"❌ Strategic Planning Error: {str(e)}")
+            print(f"Traceback: {traceback.format_exc()}")
             raise Exception(f"Strategic planning failed: {str(e)}")
     
     def _summarize_gsc(self, df: pd.DataFrame, top_n: int = 50) -> str:
