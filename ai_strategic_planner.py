@@ -85,9 +85,9 @@ class AIStrategicPlanner:
         if completed_actions is None:
             completed_actions = []
         
-        # Prepare data summaries for AI
-        gsc_summary = self._summarize_gsc(merged_data)
-        ga4_summary = self._summarize_ga4(merged_data)
+        # Prepare data summaries for AI (reduced to 25 pages to prevent prompt bloat)
+        gsc_summary = self._summarize_gsc(merged_data, top_n=25)
+        ga4_summary = self._summarize_ga4(merged_data, top_n=25)
         completed_urls = [a.get('url') for a in completed_actions if a.get('url')]
 
         # Add current date context for year-aware recommendations
@@ -128,7 +128,7 @@ Current Month: {current_month}
 ---
 
 **YOUR TASK:**
-Create a prioritized content action plan with 20-30 actions.
+Create a prioritized content action plan with 12-18 actions.
 
 **ACTION TYPES:**
 1. **update** - Refresh existing content (fix intent mismatch, add trending info, improve quality)
@@ -178,7 +178,7 @@ Create a prioritized content action plan with 20-30 actions.
    - Seasonal content out of season
 
 **OUTPUT FORMAT:**
-Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critical).
+Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critical).
 
 [
   {{
@@ -233,7 +233,7 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
 - Align with niche trends (reference specific trends)
 - **CRITICAL:** Check ALL titles for old years - flag for immediate update to {current_year}
 - Look for patterns like "2023", "2024" in URLs/titles - these need year updates
-- Provide 20-30 diverse actions (mix of updates, creates, deletes, redirects)
+- Provide 12-18 diverse actions (mix of updates, creates, deletes, redirects)
 - Prioritize year updates as HIGH PRIORITY (score 8.0+)
 - Return ONLY the JSON array, no other text"""
 
@@ -241,7 +241,8 @@ Return a JSON array of 20-30 actions, sorted by priority_score (10 = most critic
             # Call Claude for strategic analysis
             message = self.client.messages.create(
                 model=self.model,
-                max_tokens=8000,
+                max_tokens=4096,
+                timeout=120.0,  # 2 minute timeout
                 messages=[{
                     "role": "user",
                     "content": prompt
