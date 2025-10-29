@@ -190,11 +190,26 @@ Create a prioritized content action plan with 12-18 actions.
 **OUTPUT FORMAT:**
 Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critical).
 
-**CRITICAL FOR REDIRECTS:**
-- **redirect_target is REQUIRED** for all redirect_301 actions
-- redirect_target must be a full URL of an existing page on the site
-- Choose the BEST page to redirect to (highest traffic, most comprehensive, best title)
-- Example: Redirect puma-vs-jaguar → cougar-vs-mountain-lion (keep the best one)
+**JSON STRUCTURE - REQUIRED FIELDS:**
+```
+{
+  "id": "action_XXX",
+  "action_type": "update" | "create" | "redirect_301" | "delete",
+  "url": "https://...",  // Source URL (required for update/redirect/delete)
+  "title": "...",  // Required for update/create
+  "keywords": [...],
+  "priority_score": 0-10,
+  "reasoning": "...",
+  "estimated_impact": "high" | "medium" | "low",
+  "redirect_target": "https://..."  // **MANDATORY for redirect_301** - execution will FAIL without this!
+}
+```
+
+**⚠️ CRITICAL FOR redirect_301 ACTIONS:**
+- **redirect_target is ABSOLUTELY REQUIRED** - the action will FAIL during execution without it!
+- redirect_target must be a full URL: `"redirect_target": "https://tigertribe.net/cougar-vs-mountain-lion/"`
+- Look at the GSC data to find the BEST page to redirect to (higher traffic, better content)
+- Example: puma-vs-jaguar (694 impressions) → cougar-vs-mountain-lion (744 impressions) ✓
 
 [
   {{
@@ -237,33 +252,41 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
     "title": null,
     "keywords": [],
     "priority_score": 8.0,
-    "reasoning": "Old year version (2023) competing with current {current_year} version. Has 450 impressions showing SEO value. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. redirect_301 preserves link equity.",
+    "reasoning": "Old year version (2023) competing with current {current_year} version. Has 450 impressions showing SEO value. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. redirect_301 preserves link equity. Redirect TO: best-griddles-{current_year} (the updated version).",
     "estimated_impact": "high",
-    "redirect_target": "https://example.com/best-griddles-{current_year}"
+    "redirect_target": "https://example.com/best-griddles-{current_year}"  // ← REQUIRED! Must be present!
   }},
   {{
     "id": "action_005",
     "action_type": "redirect_301",
-    "url": "https://example.com/puma-vs-lion",
+    "url": "https://example.com/puma-vs-jaguar",
     "title": null,
     "keywords": [],
     "priority_score": 7.8,
-    "reasoning": "DUPLICATE CONTENT: Puma and Mountain Lion are the same species. Has 320 impressions (SEO value present). Competing with /mountain-lion-vs-lion page for same keywords causing cannibalization. redirect_301 to main mountain lion page to consolidate authority.",
-    "estimated_impact": "medium",
-    "redirect_target": "https://example.com/mountain-lion-vs-lion"
+    "reasoning": "DUPLICATE CONTENT: Puma and Mountain Lion are the same species. From GSC data: puma-vs-jaguar has 694 impressions, cougar-vs-mountain-lion has 744 impressions. Redirect lower traffic page to higher traffic page. Redirect TO: cougar-vs-mountain-lion (has more traffic).",
+    "estimated_impact": "high",
+    "redirect_target": "https://example.com/cougar-vs-mountain-lion"  // ← REQUIRED! Must specify exact target URL!
   }}
 ]
+
+**FINAL CHECKLIST BEFORE RETURNING:**
+□ Are all redirect_301 actions complete? Check each one:
+  - Does it have action_type: "redirect_301"? ✓
+  - Does it have a url (source)? ✓
+  - Does it have a redirect_target (destination)? ✓ **THIS IS MANDATORY!**
+  - Is redirect_target a full URL like "https://tigertribe.net/page-name/"? ✓
 
 **IMPORTANT:**
 - Be SPECIFIC in reasoning (cite exact numbers from data)
 - Consider BOTH search performance (GSC) AND user behavior (GA4)
 - Align with niche trends (reference specific trends)
 - **CRITICAL:** Check ALL titles for old years - flag for immediate update to {current_year}
-- Look for patterns like "2023", "2024" in URLs/titles - these need year updates
+- **🚨 REDIRECT TARGET REQUIRED:** Every redirect_301 MUST have redirect_target field with full URL
+  - Example: `"redirect_target": "https://tigertribe.net/cougar-vs-mountain-lion/"`
+  - WITHOUT this field, the redirect will FAIL during execution
+  - Look at GSC data to choose the best target (higher impressions = better target)
 - **redirect_301 over DELETE:** Any page with impressions/traffic should use redirect_301, not DELETE
 - **Find duplicates:** Look for same topics/species with different names (puma=mountain lion=cougar)
-- **MANDATORY FOR REDIRECTS:** Every redirect_301 action MUST include "redirect_target" with the full URL
-- **Choose redirect target wisely:** Pick the page with better title, more traffic, or more comprehensive content
 - Provide 12-18 diverse actions (mix of updates, creates, redirect_301, and rarely deletes)
 - Include multiple redirect_301 actions if you find cannibalization
 - **Use "redirect_301" as the action_type** (not "redirect")
