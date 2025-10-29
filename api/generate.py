@@ -837,6 +837,49 @@ def execute_selected_actions():
                                         affiliate_mgr.increment_usage(link['id'])
                         else:
                             result['error'] = publish_result.error
+
+                elif action_data['action_type'] == 'redirect_301':
+                    # Create 301 redirect
+                    source_url = action_data['url']
+                    target_url = action_data.get('redirect_target')
+
+                    if not target_url:
+                        result['error'] = 'redirect_target is required for redirect_301 actions'
+                    else:
+                        print(f"Creating 301 redirect: {source_url} -> {target_url}")
+
+                        redirect_result = wp.create_301_redirect(source_url, target_url)
+
+                        if redirect_result.success:
+                            result['success'] = True
+                            result['source_url'] = source_url
+                            result['target_url'] = target_url
+                            state_mgr.mark_completed(action_data['id'], None)
+                            print(f"✓ Redirect created successfully")
+                        else:
+                            result['error'] = redirect_result.error
+                            print(f"✗ Redirect failed: {redirect_result.error}")
+
+                elif action_data['action_type'] == 'delete':
+                    # Delete post
+                    post = wp.find_post_by_url(action_data['url'])
+                    if not post:
+                        result['error'] = f"Post not found: {action_data['url']}"
+                    else:
+                        post_id = post['id']
+                        print(f"Deleting post ID {post_id}: {action_data['url']}")
+
+                        delete_result = wp.delete_post(post_id, force=True)
+
+                        if delete_result.success:
+                            result['success'] = True
+                            result['post_id'] = post_id
+                            state_mgr.mark_completed(action_data['id'], post_id)
+                            print(f"✓ Post deleted successfully")
+                        else:
+                            result['error'] = delete_result.error
+                            print(f"✗ Delete failed: {delete_result.error}")
+
                 else:
                     result['error'] = f"Unsupported action type: {action_data['action_type']}"
 
