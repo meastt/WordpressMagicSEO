@@ -381,7 +381,22 @@ class SEOAutomationPipeline:
             print(f"  ✓ Saved {len(plan_data)} actions to state tracker")
 
         # Get summary from current plan
-        total_urls = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
+        try:
+            total_urls = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not calculate total URLs: {e}")
+            total_urls = 0
+
+        try:
+            # Count actions that modify existing URLs (not creates)
+            existing_url_actions = len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect', 'redirect_301']])
+            urls_not_requiring_action = max(0, total_urls - existing_url_actions)
+            analysis_coverage_percent = round((len(self.action_plan) / total_urls * 100) if total_urls > 0 else 0, 1)
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not calculate coverage stats: {e}")
+            urls_not_requiring_action = 0
+            analysis_coverage_percent = 0
+
         plan_summary = {
             'total_actions': len(self.action_plan),
             'deletes': len([a for a in self.action_plan if a.action_type.value == 'delete']),
@@ -392,8 +407,8 @@ class SEOAutomationPipeline:
             'medium_priority': len([a for a in self.action_plan if 3 <= a.priority_score < 7]),
             'low_priority': len([a for a in self.action_plan if a.priority_score < 3]),
             'total_urls_analyzed': total_urls,
-            'urls_not_requiring_action': total_urls - len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect', 'redirect_301']]),
-            'analysis_coverage_percent': round((len(self.action_plan) / total_urls * 100) if total_urls > 0 else 0, 1),
+            'urls_not_requiring_action': urls_not_requiring_action,
+            'analysis_coverage_percent': analysis_coverage_percent,
         }
 
         print(f"  ✓ Total actions planned: {plan_summary['total_actions']}")
