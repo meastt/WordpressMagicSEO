@@ -701,46 +701,65 @@ def execute_selected_actions():
             if action_id in action_data_override:
                 frontend_data = action_data_override[action_id]
                 # Merge frontend data, prioritizing it for missing fields
+                # For redirect_target, always prefer frontend value if it exists (even if empty, to catch errors)
                 for key, value in frontend_data.items():
-                    if value and not action.get(key):  # Only override if current value is missing/empty
-                        action[key] = value
+                    if key == 'redirect_target':
+                        # Always use frontend redirect_target if provided (even if state has a value)
+                        if value is not None and value != '':
+                            action[key] = value
+                        elif action.get(key) is None or action.get(key) == '':
+                            # Only keep state value if frontend doesn't provide one
+                            pass
+                    else:
+                        # For other fields, only override if current value is missing/empty
+                        if value and not action.get(key):
+                            action[key] = value
 
         # Validate redirect_301 actions have redirect_target before execution
+        import re
         for action in actions_to_execute:
             if action.get('action_type') in ['redirect_301', 'redirect']:
-                if not action.get('redirect_target'):
+                redirect_target = action.get('redirect_target')
+                if not redirect_target or redirect_target.strip() == '':
                     # Try to extract from reasoning if available
                     reasoning = action.get('reasoning', '')
                     source_url = action.get('url', '')
                     
                     # Try to find redirect target in reasoning using common patterns
-                    import re
                     patterns = [
                         r'redirect(?:_301)?\s+to\s+([^\s,.;\n]+)',
                         r'consolidate\s+(?:authority\s+)?to\s+([^\s,.;\n]+)',
                         r'redirect\s+TO:\s*([^\s,.;\n]+)',
+                        r'redirect\s+(?:to|TO)\s+(?:https?://)?([^\s,.;\n/]+/[^\s,.;\n]*)',  # Match URLs in reasoning
                     ]
                     
                     target_found = None
                     for pattern in patterns:
                         match = re.search(pattern, reasoning, re.IGNORECASE)
                         if match:
-                            potential_target = match.group(1).strip()
+                            potential_target = match.group(1).strip().rstrip('/.,;')
                             # Try to make it a full URL if it looks like a slug
                             if not potential_target.startswith('http'):
                                 # Assume same domain as source
-                                base_url = '/'.join(source_url.split('/')[:3])  # Get domain
-                                potential_target = f"{base_url}/{potential_target.lstrip('/')}"
-                            target_found = potential_target
-                            break
+                                try:
+                                    base_url = '/'.join(source_url.split('/')[:3])  # Get domain
+                                    potential_target = f"{base_url}/{potential_target.lstrip('/')}"
+                                except:
+                                    potential_target = None
+                            if potential_target and potential_target.startswith('http'):
+                                target_found = potential_target
+                                break
                     
                     if target_found:
                         print(f"  ⚠️  Auto-populated missing redirect_target for {source_url}: {target_found}")
                         action['redirect_target'] = target_found
                     else:
                         print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
+                        print(f"     Action data keys: {list(action.keys())}")
+                        print(f"     Frontend override keys: {list(action_data_override.get(action.get('id'), {}).keys())}")
                         print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
-                        # Still let it through to execution so user gets proper error message
+                        # Fail fast - don't proceed if redirect_target is missing
+                        # The execution handler will return proper error message
 
         # Initialize services
         wp = WordPressPublisher(
@@ -892,12 +911,24 @@ def execute_selected_actions():
                     source_url = action_data['url']
                     target_url = action_data.get('redirect_target')
 
-                    if not target_url:
+                    if not target_url or target_url.strip() == '':
                         result['error'] = f'redirect_target is required for redirect_301 actions. Source URL: {source_url}. Please check the action plan and ensure redirect_target is set.'
                         print(f"  ❌ Redirect failed - missing redirect_target for {source_url}")
-                        print(f"     Action data: {action_data}")
+                        print(f"     Action data keys: {list(action_data.keys())}")
+                        print(f"     redirect_target value: {repr(target_url)}")
                     else:
+                        # Normalize target URL
+                        target_url = target_url.strip()
+                        
+                        # Validate target URL format
+                        if not target_url.startswith('http') and not target_url.startswith('/'):
+                            # It might be a slug without leading slash, add it
+                            target_url = '/' + target_url.lstrip('/')
+                        
                         print(f"Creating 301 redirect: {source_url} -> {target_url}")
+                        print(f"  Action ID: {action_data.get('id')}")
+                        print(f"  Source URL: {source_url}")
+                        print(f"  Target URL: {target_url}")
 
                         redirect_result = wp.create_301_redirect(source_url, target_url)
 
@@ -905,11 +936,14 @@ def execute_selected_actions():
                             result['success'] = True
                             result['source_url'] = source_url
                             result['target_url'] = target_url
+                            result['redirect_path'] = redirect_result.url  # Shows the actual paths used
                             state_mgr.mark_completed(action_data['id'], None)
-                            print(f"✓ Redirect created successfully")
+                            print(f"✓ Redirect created successfully: {redirect_result.url}")
                         else:
                             result['error'] = redirect_result.error
                             print(f"✗ Redirect failed: {redirect_result.error}")
+                            print(f"     Source: {source_url}")
+                            print(f"     Target: {target_url}")
 
                 elif action_data['action_type'] == 'delete':
                     # Delete post

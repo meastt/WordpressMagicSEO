@@ -601,9 +601,67 @@ class WordPressPublisher:
         """Create a 301 redirect (requires Redirection plugin)."""
         
         try:
-            # Strip domain from URLs to get paths
-            source_path = source_url.replace(self.site_url, '')
-            target_path = target_url.replace(self.site_url, '')
+            from urllib.parse import urlparse
+            
+            # Validate target URL exists and is not empty
+            if not target_url or target_url.strip() == '':
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error="Target URL is empty"
+                )
+            
+            # Normalize URLs: ensure they have proper format
+            # If target_url doesn't start with http, it might be relative - make it absolute
+            if not target_url.startswith('http'):
+                # It's a relative path, prepend site URL
+                target_url = f"{self.site_url.rstrip('/')}/{target_url.lstrip('/')}"
+            
+            # Extract paths from URLs more robustly
+            # Parse URLs to extract paths
+            source_parsed = urlparse(source_url)
+            target_parsed = urlparse(target_url)
+            
+            # Get paths - ensure they start with /
+            source_path = source_parsed.path
+            if not source_path.startswith('/'):
+                source_path = '/' + source_path
+            
+            target_path = target_parsed.path
+            if not target_path.startswith('/'):
+                target_path = '/' + target_path
+            
+            # Normalize paths (remove trailing slashes except root)
+            source_path = source_path.rstrip('/') or '/'
+            target_path = target_path.rstrip('/') or '/'
+            
+            # Validate target path is not empty or root (unless that's intentional)
+            if not target_path or target_path == '/':
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error=f"Invalid target URL: {target_url} (extracted path is empty or root)"
+                )
+            
+            print(f"Creating redirect: {source_path} -> {target_path}")
+            print(f"  Source URL: {source_url}")
+            print(f"  Target URL: {target_url}")
+            
+            # Optional: Verify target page exists (warn but don't fail)
+            try:
+                # Try to find the target page/post to warn if it doesn't exist
+                # This uses the target_path, so we need to extract the slug
+                target_slug = target_path.strip('/').split('/')[-1]
+                if target_slug:
+                    target_post = self.find_post_by_url(target_url)
+                    if not target_post:
+                        print(f"  ⚠️  WARNING: Target URL '{target_url}' does not appear to exist on the site!")
+                        print(f"     The redirect will still be created, but users will be redirected to a 404 page.")
+            except Exception as e:
+                # Don't fail on verification - just log it
+                print(f"  ⚠️  Could not verify target URL exists: {e}")
             
             redirect_data = {
                 "url": source_path,
@@ -620,8 +678,26 @@ class WordPressPublisher:
                 json=redirect_data,
                 timeout=30
             )
+            
+            # Check for HTTP errors
+            if response.status_code not in [200, 201]:
+                error_text = response.text
+                try:
+                    error_json = response.json()
+                    error_text = error_json.get('message', error_text)
+                except:
+                    pass
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error=f"WordPress API error ({response.status_code}): {error_text}"
+                )
+            
             response.raise_for_status()
             self._rate_limit()
+            
+            result_data = response.json() if response.content else {}
             
             return PublishResult(
                 success=True,
@@ -629,12 +705,19 @@ class WordPressPublisher:
                 url=f"{source_path} -> {target_path}"
             )
             
+        except requests.exceptions.RequestException as e:
+            return PublishResult(
+                success=False,
+                action="redirect",
+                url=source_url,
+                error=f"Request failed: {str(e)}"
+            )
         except Exception as e:
             return PublishResult(
                 success=False,
                 action="redirect",
                 url=source_url,
-                error=str(e)
+                error=f"Error creating redirect: {str(e)}"
             )
     
     def get_internal_link_suggestions(
