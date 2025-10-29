@@ -663,6 +663,8 @@ def execute_selected_actions():
         data = request.get_json()
         site_name = data.get('site_name')
         action_ids = data.get('action_ids', [])
+        # Optional: frontend can send full action data as fallback
+        action_data_override = data.get('actions', {})  # Dict mapping action_id -> action_data
 
         if not site_name:
             return jsonify({"error": "site_name required"}), 400
@@ -685,13 +687,60 @@ def execute_selected_actions():
 
         # Get the requested actions by ID
         all_actions = state_mgr.state.get('current_plan', [])
-        actions_to_execute = [a for a in all_actions if a.get('id') in action_ids]
+        actions_to_execute = [a.copy() for a in all_actions if a.get('id') in action_ids]
 
         if not actions_to_execute:
             return jsonify({
                 "error": "No matching actions found",
                 "requested_ids": action_ids
             }), 404
+
+        # Merge in any action data from frontend (if provided) to override missing fields
+        for action in actions_to_execute:
+            action_id = action.get('id')
+            if action_id in action_data_override:
+                frontend_data = action_data_override[action_id]
+                # Merge frontend data, prioritizing it for missing fields
+                for key, value in frontend_data.items():
+                    if value and not action.get(key):  # Only override if current value is missing/empty
+                        action[key] = value
+
+        # Validate redirect_301 actions have redirect_target before execution
+        for action in actions_to_execute:
+            if action.get('action_type') in ['redirect_301', 'redirect']:
+                if not action.get('redirect_target'):
+                    # Try to extract from reasoning if available
+                    reasoning = action.get('reasoning', '')
+                    source_url = action.get('url', '')
+                    
+                    # Try to find redirect target in reasoning using common patterns
+                    import re
+                    patterns = [
+                        r'redirect(?:_301)?\s+to\s+([^\s,.;\n]+)',
+                        r'consolidate\s+(?:authority\s+)?to\s+([^\s,.;\n]+)',
+                        r'redirect\s+TO:\s*([^\s,.;\n]+)',
+                    ]
+                    
+                    target_found = None
+                    for pattern in patterns:
+                        match = re.search(pattern, reasoning, re.IGNORECASE)
+                        if match:
+                            potential_target = match.group(1).strip()
+                            # Try to make it a full URL if it looks like a slug
+                            if not potential_target.startswith('http'):
+                                # Assume same domain as source
+                                base_url = '/'.join(source_url.split('/')[:3])  # Get domain
+                                potential_target = f"{base_url}/{potential_target.lstrip('/')}"
+                            target_found = potential_target
+                            break
+                    
+                    if target_found:
+                        print(f"  ⚠️  Auto-populated missing redirect_target for {source_url}: {target_found}")
+                        action['redirect_target'] = target_found
+                    else:
+                        print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
+                        print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
+                        # Still let it through to execution so user gets proper error message
 
         # Initialize services
         wp = WordPressPublisher(
@@ -844,7 +893,9 @@ def execute_selected_actions():
                     target_url = action_data.get('redirect_target')
 
                     if not target_url:
-                        result['error'] = 'redirect_target is required for redirect_301 actions'
+                        result['error'] = f'redirect_target is required for redirect_301 actions. Source URL: {source_url}. Please check the action plan and ensure redirect_target is set.'
+                        print(f"  ❌ Redirect failed - missing redirect_target for {source_url}")
+                        print(f"     Action data: {action_data}")
                     else:
                         print(f"Creating 301 redirect: {source_url} -> {target_url}")
 
