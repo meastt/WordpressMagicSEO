@@ -190,6 +190,12 @@ Create a prioritized content action plan with 12-18 actions.
 **OUTPUT FORMAT:**
 Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critical).
 
+**CRITICAL FOR REDIRECTS:**
+- **redirect_target is REQUIRED** for all redirect_301 actions
+- redirect_target must be a full URL of an existing page on the site
+- Choose the BEST page to redirect to (highest traffic, most comprehensive, best title)
+- Example: Redirect puma-vs-jaguar → cougar-vs-mountain-lion (keep the best one)
+
 [
   {{
     "id": "action_001",
@@ -256,6 +262,8 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 - Look for patterns like "2023", "2024" in URLs/titles - these need year updates
 - **redirect_301 over DELETE:** Any page with impressions/traffic should use redirect_301, not DELETE
 - **Find duplicates:** Look for same topics/species with different names (puma=mountain lion=cougar)
+- **MANDATORY FOR REDIRECTS:** Every redirect_301 action MUST include "redirect_target" with the full URL
+- **Choose redirect target wisely:** Pick the page with better title, more traffic, or more comprehensive content
 - Provide 12-18 diverse actions (mix of updates, creates, redirect_301, and rarely deletes)
 - Include multiple redirect_301 actions if you find cannibalization
 - **Use "redirect_301" as the action_type** (not "redirect")
@@ -312,13 +320,20 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
                     action['keywords'] = []
                 if 'title' not in action:
                     action['title'] = 'Untitled'
-                
+
                 # Set default status
                 action['status'] = 'pending'
-                
-                # Ensure redirect_target for redirect actions
-                if action['action_type'] == 'redirect' and 'redirect_target' not in action:
-                    action['redirect_target'] = None
+
+                # CRITICAL: Validate redirect_target for redirect actions
+                if action['action_type'] in ['redirect', 'redirect_301']:
+                    if not action.get('redirect_target'):
+                        print(f"  ⚠️  WARNING: redirect_301 action missing redirect_target!")
+                        print(f"     URL: {action.get('url')}")
+                        print(f"     Reasoning: {action.get('reasoning')[:100]}...")
+                        print(f"     This action will FAIL during execution - AI must provide redirect_target")
+                        action['redirect_target'] = None  # Mark as invalid
+                    else:
+                        print(f"  ✓ Redirect validated: {action.get('url')} → {action.get('redirect_target')}")
             
             # Sort by priority
             actions.sort(key=lambda x: x.get('priority_score', 0), reverse=True)
