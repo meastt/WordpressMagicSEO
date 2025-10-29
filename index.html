@@ -2930,6 +2930,20 @@
 
                 // Reload sites data and refresh - MUST complete before triggering change event
                 await loadSites();
+                
+                // After loading sites, manually update the deleted site's data to reflect zero actions
+                // This ensures the UI updates immediately even if backend has slight delay
+                const siteIndex = sitesData.findIndex(s => s.name === siteName);
+                if (siteIndex !== -1) {
+                    sitesData[siteIndex].pending_actions = 0;
+                    sitesData[siteIndex].total_actions = 0;
+                    sitesData[siteIndex].completed_actions = 0;
+                }
+                
+                // Re-populate site selectors with updated data
+                populateSiteSelectors();
+                
+                // Re-render dashboard with updated site data
                 renderDashboard();
 
                 // Now refresh the continue panel state after data is loaded
