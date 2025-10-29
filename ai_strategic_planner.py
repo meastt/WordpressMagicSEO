@@ -133,8 +133,15 @@ Create a prioritized content action plan with 12-18 actions.
 **ACTION TYPES:**
 1. **update** - Refresh existing content (fix intent mismatch, add trending info, improve quality)
 2. **create** - New content for trending topics or gaps
-3. **delete** - Remove low-value content (cannibalization, outdated, thin)
-4. **redirect** - Consolidate duplicate/similar content
+3. **redirect** - Consolidate duplicate/similar content (PREFERRED over delete for SEO)
+4. **delete** - Remove ONLY truly worthless content (spam, broken, no value)
+
+**CRITICAL: DELETE vs REDIRECT Decision:**
+- Has ANY traffic/impressions/backlinks? → **REDIRECT** (preserve SEO value)
+- Duplicate/similar content? → **REDIRECT** to best version
+- Old year versions? → **REDIRECT** to current year version
+- Only DELETE if: Zero traffic, no backlinks, truly spam/broken content
+- **Default to REDIRECT** - it's safer and preserves link equity
 
 **PRIORITIZATION CRITERIA:**
 - **Business Impact** = (impressions × engagement_rate × trend_alignment)
@@ -161,14 +168,17 @@ Create a prioritized content action plan with 12-18 actions.
    - High bounce rate (>70%) = UX or content quality problem
    - Low engagement time (<30s) = Thin/unhelpful content
 
-5. **Cannibalization & Duplicate Content** (MEDIUM-HIGH PRIORITY)
-   - Multiple pages targeting same keywords
+5. **Cannibalization & Duplicate Content** (HIGH PRIORITY - Use REDIRECT actions)
+   - Multiple pages targeting same keywords → **REDIRECT weaker to stronger**
    - **SEMANTIC DUPLICATES:** Pages about same topic with different titles/years
      * Example: "Best Griddles 2023" and "Top Griddles 2024" are DUPLICATES
-     * Consolidate to single updated page with current year
-   - Look for URL patterns: same topic, different years (redirect old → new)
+     * Action: REDIRECT old year → current year (UPDATE the kept page)
+   - **SPECIES DUPLICATES:** Pages about same animals with different names
+     * Example: "Puma vs X", "Mountain Lion vs X", "Cougar vs X" are DUPLICATES (same animal!)
+     * Action: REDIRECT all variants → one canonical version
+   - Look for URL patterns: same topic, different years (REDIRECT old → new)
    - Multiple "best X" or "top X" guides for same product category
-   - Consolidate into one strong, updated page
+   - **ALWAYS use REDIRECT actions** - never DELETE content with traffic/impressions
 
 6. **Outdated Content** (HIGH PRIORITY for year updates, otherwise MEDIUM)
    - Topics declining in niche research
@@ -221,9 +231,20 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
     "title": null,
     "keywords": [],
     "priority_score": 8.0,
-    "reasoning": "Old year version (2023) competing with current {current_year} version. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. Redirect to /best-griddles-{current_year}.",
+    "reasoning": "Old year version (2023) competing with current {current_year} version. Has 450 impressions showing SEO value. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. REDIRECT preserves link equity.",
     "estimated_impact": "high",
     "redirect_target": "https://example.com/best-griddles-{current_year}"
+  }},
+  {{
+    "id": "action_005",
+    "action_type": "redirect",
+    "url": "https://example.com/puma-vs-lion",
+    "title": null,
+    "keywords": [],
+    "priority_score": 7.8,
+    "reasoning": "DUPLICATE CONTENT: Puma and Mountain Lion are the same species. Has 320 impressions (SEO value present). Competing with /mountain-lion-vs-lion page for same keywords causing cannibalization. REDIRECT to main mountain lion page to consolidate authority.",
+    "estimated_impact": "medium",
+    "redirect_target": "https://example.com/mountain-lion-vs-lion"
   }}
 ]
 
@@ -233,7 +254,10 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 - Align with niche trends (reference specific trends)
 - **CRITICAL:** Check ALL titles for old years - flag for immediate update to {current_year}
 - Look for patterns like "2023", "2024" in URLs/titles - these need year updates
-- Provide 12-18 diverse actions (mix of updates, creates, deletes, redirects)
+- **REDIRECT over DELETE:** Any page with impressions/traffic should use REDIRECT, not DELETE
+- **Find duplicates:** Look for same topics/species with different names (puma=mountain lion=cougar)
+- Provide 12-18 diverse actions (mix of updates, creates, redirects, and rarely deletes)
+- Include multiple REDIRECT actions if you find cannibalization
 - Prioritize year updates as HIGH PRIORITY (score 8.0+)
 - Return ONLY the JSON array, no other text"""
 
