@@ -133,15 +133,15 @@ Create a prioritized content action plan with 12-18 actions.
 **ACTION TYPES:**
 1. **update** - Refresh existing content (fix intent mismatch, add trending info, improve quality)
 2. **create** - New content for trending topics or gaps
-3. **redirect** - Consolidate duplicate/similar content (PREFERRED over delete for SEO)
+3. **redirect_301** - Consolidate duplicate/similar content (PREFERRED over delete for SEO)
 4. **delete** - Remove ONLY truly worthless content (spam, broken, no value)
 
 **CRITICAL: DELETE vs REDIRECT Decision:**
-- Has ANY traffic/impressions/backlinks? → **REDIRECT** (preserve SEO value)
-- Duplicate/similar content? → **REDIRECT** to best version
-- Old year versions? → **REDIRECT** to current year version
+- Has ANY traffic/impressions/backlinks? → **redirect_301** (preserve SEO value)
+- Duplicate/similar content? → **redirect_301** to best version
+- Old year versions? → **redirect_301** to current year version
 - Only DELETE if: Zero traffic, no backlinks, truly spam/broken content
-- **Default to REDIRECT** - it's safer and preserves link equity
+- **Default to redirect_301** - it's safer and preserves link equity
 
 **PRIORITIZATION CRITERIA:**
 - **Business Impact** = (impressions × engagement_rate × trend_alignment)
@@ -168,17 +168,17 @@ Create a prioritized content action plan with 12-18 actions.
    - High bounce rate (>70%) = UX or content quality problem
    - Low engagement time (<30s) = Thin/unhelpful content
 
-5. **Cannibalization & Duplicate Content** (HIGH PRIORITY - Use REDIRECT actions)
-   - Multiple pages targeting same keywords → **REDIRECT weaker to stronger**
+5. **Cannibalization & Duplicate Content** (HIGH PRIORITY - Use redirect_301 actions)
+   - Multiple pages targeting same keywords → **redirect_301 weaker to stronger**
    - **SEMANTIC DUPLICATES:** Pages about same topic with different titles/years
      * Example: "Best Griddles 2023" and "Top Griddles 2024" are DUPLICATES
-     * Action: REDIRECT old year → current year (UPDATE the kept page)
+     * Action: redirect_301 old year → current year (UPDATE the kept page)
    - **SPECIES DUPLICATES:** Pages about same animals with different names
      * Example: "Puma vs X", "Mountain Lion vs X", "Cougar vs X" are DUPLICATES (same animal!)
-     * Action: REDIRECT all variants → one canonical version
-   - Look for URL patterns: same topic, different years (REDIRECT old → new)
+     * Action: redirect_301 all variants → one canonical version
+   - Look for URL patterns: same topic, different years (redirect_301 old → new)
    - Multiple "best X" or "top X" guides for same product category
-   - **ALWAYS use REDIRECT actions** - never DELETE content with traffic/impressions
+   - **ALWAYS use redirect_301 actions** - never DELETE content with traffic/impressions
 
 6. **Outdated Content** (HIGH PRIORITY for year updates, otherwise MEDIUM)
    - Topics declining in niche research
@@ -226,23 +226,23 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
   }},
   {{
     "id": "action_004",
-    "action_type": "redirect",
+    "action_type": "redirect_301",
     "url": "https://example.com/best-griddles-2023",
     "title": null,
     "keywords": [],
     "priority_score": 8.0,
-    "reasoning": "Old year version (2023) competing with current {current_year} version. Has 450 impressions showing SEO value. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. REDIRECT preserves link equity.",
+    "reasoning": "Old year version (2023) competing with current {current_year} version. Has 450 impressions showing SEO value. Consolidate to avoid keyword cannibalization and maintain authority on single updated page. redirect_301 preserves link equity.",
     "estimated_impact": "high",
     "redirect_target": "https://example.com/best-griddles-{current_year}"
   }},
   {{
     "id": "action_005",
-    "action_type": "redirect",
+    "action_type": "redirect_301",
     "url": "https://example.com/puma-vs-lion",
     "title": null,
     "keywords": [],
     "priority_score": 7.8,
-    "reasoning": "DUPLICATE CONTENT: Puma and Mountain Lion are the same species. Has 320 impressions (SEO value present). Competing with /mountain-lion-vs-lion page for same keywords causing cannibalization. REDIRECT to main mountain lion page to consolidate authority.",
+    "reasoning": "DUPLICATE CONTENT: Puma and Mountain Lion are the same species. Has 320 impressions (SEO value present). Competing with /mountain-lion-vs-lion page for same keywords causing cannibalization. redirect_301 to main mountain lion page to consolidate authority.",
     "estimated_impact": "medium",
     "redirect_target": "https://example.com/mountain-lion-vs-lion"
   }}
@@ -254,10 +254,11 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 - Align with niche trends (reference specific trends)
 - **CRITICAL:** Check ALL titles for old years - flag for immediate update to {current_year}
 - Look for patterns like "2023", "2024" in URLs/titles - these need year updates
-- **REDIRECT over DELETE:** Any page with impressions/traffic should use REDIRECT, not DELETE
+- **redirect_301 over DELETE:** Any page with impressions/traffic should use redirect_301, not DELETE
 - **Find duplicates:** Look for same topics/species with different names (puma=mountain lion=cougar)
-- Provide 12-18 diverse actions (mix of updates, creates, redirects, and rarely deletes)
-- Include multiple REDIRECT actions if you find cannibalization
+- Provide 12-18 diverse actions (mix of updates, creates, redirect_301, and rarely deletes)
+- Include multiple redirect_301 actions if you find cannibalization
+- **Use "redirect_301" as the action_type** (not "redirect")
 - Prioritize year updates as HIGH PRIORITY (score 8.0+)
 - Return ONLY the JSON array, no other text"""
 
