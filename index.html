@@ -2709,12 +2709,17 @@
             console.log('actionsToExecute:', actionsToExecute);
             console.log('executionCallback exists:', !!executionCallback);
 
+            // CRITICAL: Save callback and actions BEFORE closeConfirmationModal() clears them!
+            const callback = executionCallback;
+            const actions = [...actionsToExecute];
+
             closeConfirmationModal();
-            if (executionCallback && actionsToExecute.length > 0) {
-                console.log('Calling executionCallback with', actionsToExecute.length, 'actions');
-                executionCallback(actionsToExecute);
+
+            if (callback && actions.length > 0) {
+                console.log('Calling executionCallback with', actions.length, 'actions');
+                callback(actions);
             } else {
-                console.log('NOT calling executionCallback - callback:', !!executionCallback, 'actions:', actionsToExecute.length);
+                console.log('NOT calling executionCallback - callback:', !!callback, 'actions:', actions.length);
             }
         }
 
