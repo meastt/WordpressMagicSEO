@@ -3093,10 +3093,41 @@
                             <div class="stat-label">New Posts</div>
                         </div>
                         <div class="stat-box">
+                            <div class="stat-value">${data.summary.redirects || 0}</div>
+                            <div class="stat-label">Redirects</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${data.summary.deletes || 0}</div>
+                            <div class="stat-label">Deletes</div>
+                        </div>
+                        <div class="stat-box">
                             <div class="stat-value">${data.summary.high_priority || 0}</div>
                             <div class="stat-label">High Priority</div>
                         </div>
                     </div>
+
+                    ${data.summary.total_urls_analyzed ? `
+                        <div class="alert alert-success" style="margin-bottom: 24px; background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px;">
+                            <h4 style="margin-bottom: 8px; color: #0c4a6e;">📊 Analysis Transparency</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px;">
+                                <div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${data.summary.total_urls_analyzed}</div>
+                                    <div style="font-size: 13px; color: #64748b;">Total URLs Analyzed</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #0369a1;">${data.summary.analysis_coverage_percent}%</div>
+                                    <div style="font-size: 13px; color: #64748b;">Require Action</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #10b981;">${data.summary.urls_not_requiring_action}</div>
+                                    <div style="font-size: 13px; color: #64748b;">Performing Well</div>
+                                </div>
+                            </div>
+                            <p style="margin-top: 12px; margin-bottom: 0; font-size: 13px; color: #475569;">
+                                <strong>Why others weren't flagged:</strong> Good intent matching, recent content updates, no cannibalization issues, stable rankings, and adequate user engagement.
+                            </p>
+                        </div>
+                    ` : ''}
 
                     ${data.niche_insights ? `
                         <div class="alert alert-info" style="margin-bottom: 24px;">

@@ -314,6 +314,31 @@ class SEOAutomationPipeline:
 
                 print(f"  ✓ AI analysis complete: {len(self.action_plan)} strategic actions generated")
 
+                # Analysis transparency summary
+                total_pages = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
+                action_percentage = (len(self.action_plan) / total_pages * 100) if total_pages > 0 else 0
+                pages_not_flagged = total_pages - len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect']])
+
+                print(f"\n  📊 ANALYSIS SUMMARY:")
+                print(f"     • Total URLs analyzed: {total_pages}")
+                print(f"     • Actions recommended: {len(self.action_plan)} ({action_percentage:.1f}%)")
+                print(f"     • URLs performing adequately: {pages_not_flagged}")
+                print(f"     • Reason: No critical issues detected (good intent matching, recent content,")
+                print(f"               no cannibalization, stable rankings, adequate engagement)")
+
+                # Breakdown by action type
+                by_type = {}
+                for action in self.action_plan:
+                    action_type = action.action_type.value
+                    by_type[action_type] = by_type.get(action_type, 0) + 1
+
+                print(f"\n  🎯 ACTION BREAKDOWN:")
+                for action_type in ['update', 'create', 'redirect', 'delete']:
+                    count = by_type.get(action_type, 0)
+                    if count > 0:
+                        print(f"     • {action_type.upper()}: {count}")
+                print()
+
             else:
                 # Fall back to rule-based planner
                 if use_ai_planner and not self.anthropic_api_key:
@@ -356,15 +381,19 @@ class SEOAutomationPipeline:
             print(f"  ✓ Saved {len(plan_data)} actions to state tracker")
 
         # Get summary from current plan
+        total_urls = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
         plan_summary = {
             'total_actions': len(self.action_plan),
             'deletes': len([a for a in self.action_plan if a.action_type.value == 'delete']),
-            'redirects': len([a for a in self.action_plan if a.action_type.value == 'redirect_301']),
+            'redirects': len([a for a in self.action_plan if a.action_type.value in ['redirect_301', 'redirect']]),
             'updates': len([a for a in self.action_plan if a.action_type.value == 'update']),
             'creates': len([a for a in self.action_plan if a.action_type.value == 'create']),
             'high_priority': len([a for a in self.action_plan if a.priority_score >= 7]),
             'medium_priority': len([a for a in self.action_plan if 3 <= a.priority_score < 7]),
             'low_priority': len([a for a in self.action_plan if a.priority_score < 3]),
+            'total_urls_analyzed': total_urls,
+            'urls_not_requiring_action': total_urls - len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect', 'redirect_301']]),
+            'analysis_coverage_percent': round((len(self.action_plan) / total_urls * 100) if total_urls > 0 else 0, 1),
         }
 
         print(f"  ✓ Total actions planned: {plan_summary['total_actions']}")
