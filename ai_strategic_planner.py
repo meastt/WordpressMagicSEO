@@ -192,7 +192,7 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 
 **JSON STRUCTURE - REQUIRED FIELDS:**
 ```
-{
+{{
   "id": "action_XXX",
   "action_type": "update" | "create" | "redirect_301" | "delete",
   "url": "https://...",  // Source URL (required for update/redirect/delete)
@@ -202,7 +202,7 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
   "reasoning": "...",
   "estimated_impact": "high" | "medium" | "low",
   "redirect_target": "https://..."  // **MANDATORY for redirect_301** - execution will FAIL without this!
-}
+}}
 ```
 
 **⚠️ CRITICAL FOR redirect_301 ACTIONS:**
