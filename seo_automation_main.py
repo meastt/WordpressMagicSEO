@@ -299,8 +299,13 @@ class SEOAutomationPipeline:
                 from strategic_planner import ActionItem, ActionType
                 self.action_plan = []
                 for action_data in ai_plan:
+                    # Map 'redirect' to 'redirect_301' for backwards compatibility
+                    action_type_str = action_data['action_type']
+                    if action_type_str == 'redirect':
+                        action_type_str = 'redirect_301'
+
                     action = ActionItem(
-                        action_type=ActionType(action_data['action_type']),
+                        action_type=ActionType(action_type_str),
                         url=action_data.get('url', ''),
                         title=action_data.get('title', ''),
                         keywords=action_data.get('keywords', []),
