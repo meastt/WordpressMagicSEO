@@ -89,7 +89,10 @@ class SEOAutomationPipeline:
             if not all([gsc_csv_path, site_url, wp_username, wp_app_password]):
                 raise ValueError("Must provide either site_name OR all individual parameters")
             
-            self.site_name = site_url  # Use URL as identifier
+            # Extract domain from URL for site_name (e.g., "https://example.com" -> "example.com")
+            from urllib.parse import urlparse
+            parsed = urlparse(site_url)
+            self.site_name = parsed.netloc or site_url  # Use domain only as identifier
             self.gsc_csv_path = gsc_csv_path
             self.ga4_csv_path = ga4_csv_path
             self.site_url = site_url
@@ -443,7 +446,7 @@ class SEOAutomationPipeline:
 
             # Return the analysis results
             return {
-                'site': self.site_url,
+                'site': self.site_name,
                 'summary': plan_summary,
                 'action_plan': [
                     {
@@ -577,7 +580,7 @@ class SEOAutomationPipeline:
 
         # Return comprehensive results
         return {
-            'site': self.site_url,
+            'site': self.site_name,
             'summary': plan_summary,
             'execution_summary': summary,
             'stats': {
