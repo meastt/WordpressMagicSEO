@@ -2789,12 +2789,25 @@
 
                     console.log(`Executing action ${completed + 1}/${actions.length}: ${action.title || action.url}`);
 
+                    // Build actions map for fallback (in case state is missing redirect_target)
+                    const actionsMap = {};
+                    actionsMap[action.id] = {
+                        id: action.id,
+                        action_type: action.action_type,
+                        url: action.url,
+                        redirect_target: action.redirect_target,
+                        title: action.title,
+                        keywords: action.keywords,
+                        reasoning: action.reasoning
+                    };
+
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             site_name: siteName,
-                            action_ids: [action.id]
+                            action_ids: [action.id],
+                            actions: actionsMap  // Send full action data as fallback
                         })
                     });
 
