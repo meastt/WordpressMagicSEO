@@ -2685,10 +2685,14 @@
         function updateConfirmationSummary() {
             const creates = actionsToExecute.filter(a => a.action_type === 'create').length;
             const updates = actionsToExecute.filter(a => a.action_type === 'update').length;
+            const redirects = actionsToExecute.filter(a => a.action_type === 'redirect_301').length;
+            const deletes = actionsToExecute.filter(a => a.action_type === 'delete').length;
 
             const parts = [];
             if (creates > 0) parts.push(`${creates} create${creates > 1 ? 's' : ''}`);
             if (updates > 0) parts.push(`${updates} update${updates > 1 ? 's' : ''}`);
+            if (redirects > 0) parts.push(`${redirects} redirect${redirects > 1 ? 's' : ''}`);
+            if (deletes > 0) parts.push(`${deletes} delete${deletes > 1 ? 's' : ''}`);
 
             document.getElementById('confirmation_summary').textContent =
                 `Total: ${actionsToExecute.length} action${actionsToExecute.length > 1 ? 's' : ''} (${parts.join(', ')})`;
@@ -2701,9 +2705,16 @@
         }
 
         function confirmExecution() {
+            console.log('=== confirmExecution CALLED ===');
+            console.log('actionsToExecute:', actionsToExecute);
+            console.log('executionCallback exists:', !!executionCallback);
+
             closeConfirmationModal();
             if (executionCallback && actionsToExecute.length > 0) {
+                console.log('Calling executionCallback with', actionsToExecute.length, 'actions');
                 executionCallback(actionsToExecute);
+            } else {
+                console.log('NOT calling executionCallback - callback:', !!executionCallback, 'actions:', actionsToExecute.length);
             }
         }
 
@@ -2712,28 +2723,42 @@
         // =================================================================
 
         function executeSelectedActions() {
+            console.log('=== executeSelectedActions CALLED ===');
+            console.log('selectedActionIds:', selectedActionIds);
+
             if (selectedActionIds.size === 0) {
+                console.log('No actions selected, showing warning');
                 showToast('No Selection', 'Please select at least one action to execute', 'warning');
                 return;
             }
 
             const selectedActions = currentPlanData.filter(a => selectedActionIds.has(a.id));
+            console.log('selectedActions:', selectedActions);
 
             // Show confirmation modal first
+            console.log('Showing confirmation modal');
             showConfirmationModal(selectedActions, async (confirmedActions) => {
+                console.log('Confirmation modal callback triggered with actions:', confirmedActions);
                 closeActionPlanModal();
                 // Small delay to ensure modal closes before loading overlay shows
                 await new Promise(resolve => setTimeout(resolve, 100));
+                console.log('Starting executeActionsSequentially');
                 await executeActionsSequentially(confirmedActions);
             });
         }
 
         async function executeActionsSequentially(actions) {
-            const siteName = document.getElementById('exec_site_selector').value;
+            console.log('=== executeActionsSequentially START ===');
+            console.log('Actions to execute:', actions);
 
+            const siteName = document.getElementById('exec_site_selector').value;
+            console.log('Site name:', siteName);
+
+            console.log('Calling showLoading...');
             showLoading('Executing actions...', true);
             let completed = 0;
             let errors = [];
+            console.log('showLoading called, starting execution loop');
 
             // Update progress immediately to show we're starting
             updateProgress(0, actions.length);
