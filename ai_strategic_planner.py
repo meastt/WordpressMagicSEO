@@ -325,7 +325,10 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
                     actions = json.loads(json_match.group())
                 else:
                     raise ValueError(f"Could not parse JSON from response: {e}")
-            
+
+            # Auto-populate missing redirect_target fields from reasoning text
+            self._auto_populate_redirect_targets(actions, merged_data)
+
             # Validate and normalize actions
             for action in actions:
                 # Ensure required fields
@@ -465,7 +468,170 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
             
         except Exception as e:
             return f"Error summarizing GA4 data: {e}"
-    
+
+    def _auto_populate_redirect_targets(self, actions: List[Dict], merged_data: pd.DataFrame) -> None:
+        """
+        Auto-populate missing redirect_target fields by parsing reasoning text.
+
+        When AI generates redirect_301 actions without redirect_target, this function:
+        1. Extracts target page hints from reasoning text
+        2. Searches available URLs in GSC data for matches
+        3. Auto-populates redirect_target with best match
+
+        This is a safety net for when prompt engineering doesn't work - the AI
+        consistently mentions the target page in reasoning, so we can extract it.
+
+        Args:
+            actions: List of action dictionaries (modified in place)
+            merged_data: DataFrame with GSC data containing available URLs
+        """
+        import re
+        from difflib import SequenceMatcher
+
+        # Get all available URLs from GSC data
+        available_urls = []
+        if 'page' in merged_data.columns:
+            available_urls = merged_data['page'].unique().tolist()
+
+        if not available_urls:
+            print("  ⚠️  No URLs available for redirect target matching")
+            return
+
+        print(f"  🔍 Auto-populating redirect targets from {len(available_urls)} available URLs...")
+
+        redirect_count = 0
+        populated_count = 0
+
+        for action in actions:
+            # Only process redirect_301 actions missing redirect_target
+            if action.get('action_type') not in ['redirect_301', 'redirect']:
+                continue
+
+            redirect_count += 1
+
+            if action.get('redirect_target'):
+                # Already has target, skip
+                print(f"  ✓ Redirect already has target: {action.get('url')} → {action.get('redirect_target')}")
+                populated_count += 1
+                continue
+
+            reasoning = action.get('reasoning', '')
+            source_url = action.get('url', '')
+
+            print(f"\n  🔧 Processing redirect without target:")
+            print(f"     Source: {source_url}")
+            print(f"     Reasoning: {reasoning[:150]}...")
+
+            # Extract potential target hints from reasoning
+            # Patterns to look for:
+            # - "redirect to X"
+            # - "redirect_301 to X"
+            # - "consolidate to X"
+            # - "Redirect TO: X"
+            # - URL slug patterns like "cougar-vs-mountain-lion"
+
+            target_hints = []
+
+            # Pattern 1: "redirect to X" or "redirect_301 to X"
+            redirect_patterns = [
+                r'redirect(?:_301)?\s+to\s+([^\.,;\n]+)',
+                r'consolidate\s+(?:authority\s+)?to\s+([^\.,;\n]+)',
+                r'redirect\s+TO:\s*([^\.,;\n]+)',
+                r'redirect_301\s+to\s+([^\.,;\n]+)',
+            ]
+
+            for pattern in redirect_patterns:
+                matches = re.findall(pattern, reasoning, re.IGNORECASE)
+                target_hints.extend(matches)
+
+            # Pattern 2: Look for URL-like slug patterns (words with hyphens)
+            # e.g., "cougar-vs-mountain-lion" or "best-griddles-2025"
+            url_slug_pattern = r'\b([a-z0-9]+-[a-z0-9-]+)\b'
+            slug_matches = re.findall(url_slug_pattern, reasoning.lower())
+            target_hints.extend(slug_matches)
+
+            # Pattern 3: Look for year patterns for "current year version"
+            # If reasoning mentions year updates, look for URLs with current year
+            if 'year' in reasoning.lower() or '2025' in reasoning or '2024' in reasoning:
+                from datetime import datetime
+                current_year = str(datetime.now().year)
+                target_hints.append(current_year)
+
+            if not target_hints:
+                print(f"     ❌ No target hints found in reasoning")
+                continue
+
+            # Clean up hints (remove extra whitespace, parentheses, etc.)
+            cleaned_hints = []
+            for h in target_hints:
+                if h.strip():
+                    # Remove common noise words and punctuation
+                    cleaned = h.strip().lower()
+                    cleaned = cleaned.replace('(', '').replace(')', '')
+                    cleaned = cleaned.replace('the ', '').replace('a ', '')
+                    cleaned = cleaned.strip()
+                    if len(cleaned) > 2:  # Ignore very short hints
+                        cleaned_hints.append(cleaned)
+
+            target_hints = cleaned_hints
+            print(f"     Target hints found: {target_hints[:5]}")  # Show first 5
+
+            # Find best matching URL
+            best_match = None
+            best_score = 0.0
+            best_hint = None
+
+            for url in available_urls:
+                # Skip the source URL itself
+                if url == source_url:
+                    continue
+
+                url_lower = url.lower()
+
+                # Extract URL slug for better matching
+                url_slug = url.split('/')[-2] if url.endswith('/') else url.split('/')[-1]
+                url_slug = url_slug.lower()
+
+                for hint in target_hints:
+                    score = 0.0
+
+                    # Method 1: Exact slug match (best possible match)
+                    if hint == url_slug:
+                        score = 1.0
+                    # Method 2: Hint is contained in URL slug
+                    elif hint in url_slug:
+                        score = 0.9
+                    # Method 3: URL slug is contained in hint
+                    elif url_slug in hint:
+                        score = 0.85
+                    # Method 4: Hint is contained anywhere in URL
+                    elif hint in url_lower:
+                        score = 0.8
+                    # Method 5: Fuzzy matching for similar slugs
+                    else:
+                        similarity = SequenceMatcher(None, hint, url_slug).ratio()
+                        if similarity > 0.7:
+                            score = similarity * 0.7  # Scale down fuzzy matches
+
+                    if score > best_score:
+                        best_score = score
+                        best_match = url
+                        best_hint = hint
+
+            # Only accept matches above threshold
+            if best_match and best_score >= 0.7:
+                action['redirect_target'] = best_match
+                populated_count += 1
+                print(f"     ✅ Auto-populated redirect_target: {best_match}")
+                print(f"        Matched hint: '{best_hint}' (score: {best_score:.2f})")
+            else:
+                print(f"     ❌ No suitable match found (best score: {best_score:.2f})")
+                if best_match:
+                    print(f"        Best candidate was: {best_match}")
+                action['redirect_target'] = None
+
+        print(f"\n  📊 Redirect target population: {populated_count}/{redirect_count} redirects have targets")
+
     def format_plan_summary(self, actions: List[Dict]) -> str:
         """
         Format action plan as human-readable summary.
