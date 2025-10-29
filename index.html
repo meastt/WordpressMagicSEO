@@ -2478,9 +2478,11 @@
         let currentPlanData = [];
         let selectedActionIds = new Set();
         let showPendingOnly = false;
+        let currentActionPlanSiteName = null;  // Store site name for execution
 
         async function openActionPlanModal(siteName) {
             try {
+                currentActionPlanSiteName = siteName;  // Save site name for later execution
                 showLoading('Loading action plan...');
 
                 const response = await fetch(`${API_BASE}/plan/${siteName}`);
@@ -2756,8 +2758,16 @@
             console.log('=== executeActionsSequentially START ===');
             console.log('Actions to execute:', actions);
 
-            const siteName = document.getElementById('exec_site_selector').value;
+            // Use stored site name from action plan modal, fallback to selector
+            const siteName = currentActionPlanSiteName || document.getElementById('exec_site_selector').value;
             console.log('Site name:', siteName);
+            console.log('Source: currentActionPlanSiteName =', currentActionPlanSiteName);
+
+            if (!siteName) {
+                hideLoading();
+                showToast('Error', 'No site selected. Please try again.', 'error');
+                return;
+            }
 
             console.log('Calling showLoading...');
             showLoading('Executing actions...', true);
