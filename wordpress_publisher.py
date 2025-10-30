@@ -213,7 +213,7 @@ class WordPressPublisher:
         return posts
     
     def find_post_by_url(self, url: str) -> Optional[Dict]:
-        """Find a post by its URL."""
+        """Find a post by its URL. Returns None if not found."""
         # Extract slug from URL
         slug = url.rstrip('/').split('/')[-1]
         
@@ -234,6 +234,72 @@ class WordPressPublisher:
         except Exception as e:
             print(f"Error finding post by URL {url}: {e}")
             return None
+    
+    def find_page_by_url(self, url: str) -> Optional[Dict]:
+        """Find a WordPress page (not post) by its URL."""
+        # Extract slug from URL
+        slug = url.rstrip('/').split('/')[-1]
+        
+        try:
+            response = requests.get(
+                f"{self.api_base}/pages",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            pages = response.json()
+            
+            if pages:
+                return pages[0]
+            return None
+            
+        except Exception as e:
+            print(f"Error finding page by URL {url}: {e}")
+            return None
+    
+    def find_post_or_page_by_url(self, url: str) -> Optional[Dict]:
+        """Find either a post or page by URL. Returns dict with 'type' field indicating 'post' or 'page'."""
+        # Extract slug from URL
+        slug = url.rstrip('/').split('/')[-1]
+        
+        # Try posts first
+        try:
+            response = requests.get(
+                f"{self.api_base}/posts",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            posts = response.json()
+            
+            if posts:
+                result = posts[0].copy()
+                result['_wp_type'] = 'post'
+                return result
+        except Exception as e:
+            pass
+        
+        # Try pages
+        try:
+            response = requests.get(
+                f"{self.api_base}/pages",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            pages = response.json()
+            
+            if pages:
+                result = pages[0].copy()
+                result['_wp_type'] = 'page'
+                return result
+        except Exception as e:
+            pass
+        
+        return None
     
     def create_post(
         self, 

@@ -12,6 +12,7 @@ from flask_cors import CORS
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import requests
 from seo_automation_main import SEOAutomationPipeline
 from affiliate_link_manager import AffiliateLinkManager
 from affiliate_link_updater import AffiliateLinkUpdater
@@ -969,52 +970,183 @@ def execute_selected_actions():
                         result['error'] = publish_result.error
 
                 elif action_data['action_type'] == 'update':
-                    # Update existing post
-                    post = wp.find_post_by_url(action_data['url'])
-                    if not post:
-                        result['error'] = f"Post not found: {action_data['url']}"
-                    else:
-                        post_id = post['id']
-                        existing_content = post.get('content', {}).get('rendered', '')
-                        title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
-                        keywords = action_data.get('keywords', [])
+                    # SMART UPDATE: Detect page type and route appropriately
+                    from page_type_detector import PageTypeDetector, PageType, UpdateStrategy
 
-                        research = content_gen.research_topic(title, keywords)
-                        internal_links = wp.get_internal_link_suggestions(keywords)
-                        affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+                    url = action_data['url']
+                    page_info = PageTypeDetector.get_update_info(url)
 
-                        article_data = content_gen.generate_article(
-                            topic_title=title,
-                            keywords=keywords,
-                            research=research,
-                            meta_description=f"Updated: {title}",
-                            existing_content=existing_content,
-                            internal_links=internal_links,
-                            affiliate_links=affiliate_links
-                        )
+                    print(f"  📄 Page Type Detection:")
+                    print(f"     URL: {url}")
+                    print(f"     Type: {page_info['page_type']}")
+                    print(f"     Strategy: {page_info['strategy']}")
+                    print(f"     {page_info['explanation']}")
 
-                        publish_result = wp.update_post(
-                            post_id,
-                            title=article_data.get('title', title),
-                            content=article_data['content'],
-                            meta_title=article_data.get('meta_title'),
-                            meta_description=article_data.get('meta_description'),
-                            categories=article_data.get('categories', []),
-                            tags=article_data.get('tags', [])
-                        )
+                    if page_info['should_skip']:
+                        # Skip this page type (date archives, search, etc.)
+                        result['success'] = True
+                        result['skipped'] = True
+                        result['reason'] = page_info['explanation']
+                        state_mgr.mark_completed(action_data['id'], None)
+                        print(f"  ⏭️  Skipping: {page_info['explanation']}")
 
-                        if publish_result.success:
-                            result['post_id'] = post_id
+                    elif page_info['strategy'] == UpdateStrategy.META_ONLY.value:
+                        # META_ONLY update - Categories, Tags, Homepage, Author
+                        print(f"  🏷️  Meta-only update for {page_info['page_type']}")
+
+                        if page_info['page_type'] == PageType.HOMEPAGE.value:
+                            # Homepage handling (same as execute-next)
                             result['success'] = True
-                            state_mgr.mark_completed(action_data['id'], post_id)
+                            result['skipped'] = True
+                            result['reason'] = 'Homepage meta updates handled in execute-next endpoint'
+                            print(f"  ⚠️  Homepage updates should use execute-next endpoint")
 
-                            # Update affiliate usage
-                            if affiliate_mgr and affiliate_links:
-                                for link in affiliate_links:
-                                    if link['url'] in article_data['content']:
-                                        affiliate_mgr.increment_usage(link['id'])
+                        elif page_info['page_type'] == PageType.CATEGORY.value:
+                            category = wp.find_category_by_url(url)
+                            if not category:
+                                result['error'] = f"Category not found: {url}"
+                            else:
+                                category_id = category['id']
+                                current_name = category.get('name', '')
+                                keywords = action_data.get('keywords', [])
+
+                                meta_title = f"{current_name} | {site_name}" if keywords else current_name
+                                meta_description = f"Explore our comprehensive {current_name.lower()} content. {' '.join(keywords[:3])}"
+
+                                publish_result = wp.update_category_meta(
+                                    category_id,
+                                    meta_title=meta_title,
+                                    meta_description=meta_description
+                                )
+
+                                if publish_result.success:
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    state_mgr.mark_completed(action_data['id'], category_id)
+                                else:
+                                    result['error'] = publish_result.error
+
+                        elif page_info['page_type'] == PageType.TAG.value:
+                            tag = wp.find_tag_by_url(url)
+                            if not tag:
+                                result['error'] = f"Tag not found: {url}"
+                            else:
+                                tag_id = tag['id']
+                                current_name = tag.get('name', '')
+                                keywords = action_data.get('keywords', [])
+
+                                meta_title = f"{current_name} Articles | {site_name}"
+                                meta_description = f"Browse all articles tagged with {current_name.lower()}. {' '.join(keywords[:3])}"
+
+                                publish_result = wp.update_tag_meta(
+                                    tag_id,
+                                    meta_title=meta_title,
+                                    meta_description=meta_description
+                                )
+
+                                if publish_result.success:
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    state_mgr.mark_completed(action_data['id'], tag_id)
+                                else:
+                                    result['error'] = publish_result.error
+
+                        elif page_info['page_type'] == PageType.AUTHOR.value:
+                            result['success'] = True
+                            result['skipped'] = True
+                            result['reason'] = 'Author archives require custom WordPress setup for SEO meta updates'
+                            state_mgr.mark_completed(action_data['id'], None)
+
+                    else:
+                        # FULL CONTENT UPDATE - For posts only (not WordPress pages)
+                        print(f"  📝 Full content update for post/page")
+                        
+                        # Find post or page - check both endpoints
+                        found_item = wp.find_post_or_page_by_url(url)
+                        if not found_item:
+                            result['error'] = f"Post or page not found: {url}"
                         else:
-                            result['error'] = publish_result.error
+                            item_type = found_item.get('_wp_type', 'post')
+                            item_id = found_item['id']
+                            
+                            # CRITICAL SAFETY CHECK: If it's a WordPress PAGE (not POST), 
+                            # only update SEO meta, NOT content (to avoid breaking static pages)
+                            if item_type == 'page':
+                                print(f"  ⚠️  WordPress PAGE detected - switching to meta-only update for safety")
+                                print(f"     WordPress pages (like /about/, /contact/) should only have SEO meta updated, not content")
+                                
+                                keywords = action_data.get('keywords', [])
+                                title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                                
+                                meta_title = title if title else found_item.get('title', {}).get('rendered', '')
+                                meta_description = action_data.get('reasoning', '')
+                                if keywords:
+                                    meta_description = f"{', '.join(keywords[:3])}. {meta_description[:100]}" if meta_description else f"Learn about {', '.join(keywords[:3])}"
+                                else:
+                                    meta_description = meta_description[:155] if meta_description else "Learn more about our content."
+                                
+                                # Update ONLY meta fields, NOT content or title
+                                publish_result = wp.update_post(
+                                    item_id,
+                                    title=None,
+                                    content=None,  # NEVER update page content
+                                    meta_title=meta_title,
+                                    meta_description=meta_description
+                                )
+                                
+                                if publish_result.success:
+                                    result['post_id'] = item_id
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    result['wp_page'] = True
+                                    state_mgr.mark_completed(action_data['id'], item_id)
+                                    print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
+                                else:
+                                    result['error'] = publish_result.error
+                            
+                            else:
+                                # It's a POST - safe to do full content update
+                                post_id = item_id
+                                existing_content = found_item.get('content', {}).get('rendered', '')
+                                title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                                keywords = action_data.get('keywords', [])
+
+                                research = content_gen.research_topic(title, keywords)
+                                internal_links = wp.get_internal_link_suggestions(keywords)
+                                affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+
+                                article_data = content_gen.generate_article(
+                                    topic_title=title,
+                                    keywords=keywords,
+                                    research=research,
+                                    meta_description=f"Updated: {title}",
+                                    existing_content=existing_content,
+                                    internal_links=internal_links,
+                                    affiliate_links=affiliate_links
+                                )
+
+                                publish_result = wp.update_post(
+                                    post_id,
+                                    title=article_data.get('title', title),
+                                    content=article_data['content'],
+                                    meta_title=article_data.get('meta_title'),
+                                    meta_description=article_data.get('meta_description'),
+                                    categories=article_data.get('categories', []),
+                                    tags=article_data.get('tags', [])
+                                )
+
+                                if publish_result.success:
+                                    result['post_id'] = post_id
+                                    result['success'] = True
+                                    state_mgr.mark_completed(action_data['id'], post_id)
+
+                                    # Update affiliate usage
+                                    if affiliate_mgr and affiliate_links:
+                                        for link in affiliate_links:
+                                            if link['url'] in article_data['content']:
+                                                affiliate_mgr.increment_usage(link['id'])
+                                else:
+                                    result['error'] = publish_result.error
 
                 elif action_data['action_type'] == 'redirect_301':
                     # Create 301 redirect
@@ -1557,6 +1689,27 @@ def execute_next_action():
                             state_mgr.mark_completed(action_data['id'], None)
                             print(f"  ⚠️  Skipping homepage update - could not find editable homepage page/post")
 
+                    elif page_info['page_type'] == PageType.AUTHOR.value:
+                        # AUTHOR archive - Update SEO meta only
+                        print(f"  👤 Author archive detected - updating SEO meta only")
+                        
+                        # Extract author slug from URL
+                        import re
+                        match = re.search(r'/author/([^/]+)', url)
+                        if not match:
+                            raise Exception(f"Invalid author URL: {url}")
+                        
+                        author_slug = match.group(1)
+                        
+                        # WordPress doesn't have a direct REST API for author meta
+                        # This would require a custom endpoint or plugin
+                        # For now, skip with explanation
+                        result['success'] = True
+                        result['skipped'] = True
+                        result['reason'] = 'Author archives require custom WordPress setup for SEO meta updates'
+                        state_mgr.mark_completed(action_data['id'], None)
+                        print(f"  ⚠️  Author archive SEO updates require custom WordPress configuration")
+
                     elif page_info['page_type'] == PageType.CATEGORY.value:
                         category = wp.find_category_by_url(url)
                         if not category:
@@ -1609,14 +1762,58 @@ def execute_next_action():
                 else:
                     # FULL CONTENT UPDATE - For posts and pages
                     print(f"  📝 Full content update for post/page")
-
-                    post = wp.find_post_by_url(url)
-                    if not post:
-                        raise Exception(f"Post not found: {url}")
-
-                    post_id = post['id']
-                    existing_content = post.get('content', {}).get('rendered', '')
-                    title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
+                    
+                    # Find post or page - check both endpoints
+                    found_item = wp.find_post_or_page_by_url(url)
+                    if not found_item:
+                        raise Exception(f"Post or page not found: {url}")
+                    
+                    item_type = found_item.get('_wp_type', 'post')
+                    item_id = found_item['id']
+                    
+                    # CRITICAL SAFETY CHECK: If it's a WordPress PAGE (not POST), 
+                    # only update SEO meta, NOT content (to avoid breaking static pages)
+                    if item_type == 'page':
+                        print(f"  ⚠️  WordPress PAGE detected - switching to meta-only update for safety")
+                        print(f"     WordPress pages (like /about/, /contact/) should only have SEO meta updated, not content")
+                        
+                        keywords = action_data.get('keywords', [])
+                        title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                        
+                        # Generate SEO meta only
+                        meta_title = title if title else found_item.get('title', {}).get('rendered', '')
+                        meta_description = action_data.get('reasoning', '')
+                        if keywords:
+                            meta_description = f"{', '.join(keywords[:3])}. {meta_description[:100]}" if meta_description else f"Learn about {', '.join(keywords[:3])}"
+                        else:
+                            meta_description = meta_description[:155] if meta_description else "Learn more about our content."
+                        
+                        # Update ONLY meta fields, NOT content or title
+                        publish_result = wp.update_post(
+                            item_id,
+                            title=None,  # Don't update title
+                            content=None,  # NEVER update page content
+                            meta_title=meta_title,
+                            meta_description=meta_description
+                        )
+                        
+                        if publish_result.success:
+                            result['post_id'] = item_id
+                            result['success'] = True
+                            result['meta_only'] = True
+                            result['wp_page'] = True
+                            state_mgr.mark_completed(action_data['id'], item_id)
+                            print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
+                        else:
+                            result['error'] = publish_result.error
+                            result['success'] = False
+                        
+                        results.append(result)
+                        continue
+                    
+                    # It's a POST - safe to do full content update
+                    existing_content = found_item.get('content', {}).get('rendered', '')
+                    title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
                     keywords = action_data.get('keywords', [])
 
                     # Generate improved content using generate_article with existing_content
@@ -1644,7 +1841,7 @@ def execute_next_action():
 
                     # Update the post with new content
                     publish_result = wp.update_post(
-                        post_id,
+                        item_id,
                         title=article_data.get('title', title),
                         content=article_data['content'],
                         meta_title=article_data.get('meta_title'),
