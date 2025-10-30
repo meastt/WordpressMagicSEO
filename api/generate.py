@@ -701,15 +701,14 @@ def execute_selected_actions():
             if action_id in action_data_override:
                 frontend_data = action_data_override[action_id]
                 # Merge frontend data, prioritizing it for missing fields
-                # For redirect_target, always prefer frontend value if it exists (even if empty, to catch errors)
+                # For redirect_target, use frontend value if it's valid, otherwise preserve state value
                 for key, value in frontend_data.items():
                     if key == 'redirect_target':
-                        # Always use frontend redirect_target if provided (even if state has a value)
-                        if value is not None and value != '':
+                        # Use frontend redirect_target only if it's a valid non-empty value
+                        if value is not None and value != '' and str(value).strip() != '':
                             action[key] = value
-                        elif action.get(key) is None or action.get(key) == '':
-                            # Only keep state value if frontend doesn't provide one
-                            pass
+                        # If frontend value is empty/None, preserve state value (don't override)
+                        # The state value (if it exists) will remain in action[key]
                     else:
                         # For other fields, only override if current value is missing/empty
                         if value and not action.get(key):

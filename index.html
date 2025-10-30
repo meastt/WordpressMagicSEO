@@ -2791,15 +2791,19 @@
 
                     // Build actions map for fallback (in case state is missing redirect_target)
                     const actionsMap = {};
-                    actionsMap[action.id] = {
+                    const actionData = {
                         id: action.id,
                         action_type: action.action_type,
                         url: action.url,
-                        redirect_target: action.redirect_target,
                         title: action.title,
                         keywords: action.keywords,
                         reasoning: action.reasoning
                     };
+                    // Only include redirect_target if it has a value (don't send null/undefined)
+                    if (action.redirect_target && typeof action.redirect_target === 'string' && action.redirect_target.trim() !== '') {
+                        actionData.redirect_target = action.redirect_target;
+                    }
+                    actionsMap[action.id] = actionData;
 
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
