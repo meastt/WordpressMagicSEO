@@ -2186,11 +2186,21 @@
                 const response = await fetch(`${API_BASE}/sites`);
                 if (response.ok) {
                     const data = await response.json();
-                    sitesData = data.sites;
+                    sitesData = data.sites || [];
+                    console.log('Loaded sites:', sitesData);
+                    renderDashboard();
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('Failed to load sites - API error:', response.status, errorData);
+                    // Show sites even if API fails (empty array)
+                    sitesData = [];
                     renderDashboard();
                 }
             } catch (e) {
                 console.error('Failed to load sites:', e);
+                // Show empty state even if fetch fails
+                sitesData = [];
+                renderDashboard();
             }
         }
 

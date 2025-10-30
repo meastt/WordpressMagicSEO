@@ -13,9 +13,15 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import requests
-from seo_automation_main import SEOAutomationPipeline
-from affiliate_link_manager import AffiliateLinkManager
-from affiliate_link_updater import AffiliateLinkUpdater
+
+# Lazy imports to avoid loading heavy modules at function startup
+try:
+    from seo_automation_main import SEOAutomationPipeline
+    from affiliate_link_manager import AffiliateLinkManager
+    from affiliate_link_updater import AffiliateLinkUpdater
+except ImportError as e:
+    print(f"⚠️  Warning: Some modules failed to import: {e}")
+    # These will be imported inside functions that need them
 
 app = Flask(__name__)
 CORS(app)
@@ -1905,32 +1911,55 @@ def list_sites_endpoint():
     List all configured sites with their current status.
     Returns site names and pending action counts.
     """
+    import traceback
     try:
         from config import list_sites
         from state_manager import StateManager
 
-        sites = list_sites()
+        # Get list of sites
+        try:
+            sites = list_sites()
+        except Exception as config_error:
+            print(f"❌ ERROR loading sites config: {config_error}")
+            print(f"Traceback: {traceback.format_exc()}")
+            # Return empty list if config fails
+            return jsonify({
+                "sites": [],
+                "total_sites": 0,
+                "error": "Failed to load site configuration",
+                "details": str(config_error)
+            }), 200  # Return 200 so frontend can handle empty state
+        
+        if not sites or len(sites) == 0:
+            return jsonify({
+                "sites": [],
+                "total_sites": 0
+            })
+
         site_status = []
 
         for site_name in sites:
-            state_mgr = StateManager(site_name)
-            # Force reload state to get latest data
-            state_mgr.state = state_mgr._load()
-            stats = state_mgr.get_stats()
-            
-            print(f"DEBUG SITES: {site_name}")
-            print(f"DEBUG SITES: State file: {state_mgr.state_file}")
-            print(f"DEBUG SITES: Plan length: {len(state_mgr.state.get('current_plan', []))}")
-            print(f"DEBUG SITES: Stats: {stats}")
-            print(f"DEBUG SITES: State keys: {list(state_mgr.state.keys())}")
-            print(f"DEBUG SITES: Current plan: {state_mgr.state.get('current_plan', [])[:2]}...")  # Show first 2 actions
-            
-            site_status.append({
-                'name': site_name,
-                'pending_actions': stats.get('pending', 0),
-                'completed_actions': stats.get('completed', 0),
-                'total_actions': stats.get('total_actions', 0)
-            })
+            try:
+                state_mgr = StateManager(site_name)
+                # Force reload state to get latest data
+                state_mgr.state = state_mgr._load()
+                stats = state_mgr.get_stats()
+                
+                site_status.append({
+                    'name': site_name,
+                    'pending_actions': stats.get('pending', 0),
+                    'completed_actions': stats.get('completed', 0),
+                    'total_actions': stats.get('total_actions', 0)
+                })
+            except Exception as site_error:
+                # If state loading fails for a site, still include it with zero stats
+                print(f"  ⚠️  Error loading state for {site_name}: {site_error}")
+                site_status.append({
+                    'name': site_name,
+                    'pending_actions': 0,
+                    'completed_actions': 0,
+                    'total_actions': 0
+                })
 
         return jsonify({
             "sites": site_status,
@@ -1938,9 +1967,13 @@ def list_sites_endpoint():
         })
 
     except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"❌ ERROR in /api/sites: {e}")
+        print(f"Traceback: {error_trace}")
         return jsonify({
             "error": "Failed to load sites",
-            "details": str(e)
+            "details": str(e),
+            "trace": error_trace
         }), 500
 
 
