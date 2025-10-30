@@ -698,8 +698,19 @@ def execute_selected_actions():
         # Merge in any action data from frontend (if provided) to override missing fields
         for action in actions_to_execute:
             action_id = action.get('id')
+            action_type = action.get('action_type')
+            
+            # Debug logging for redirect actions
+            if action_type in ['redirect_301', 'redirect']:
+                print(f"  🔍 Processing redirect action {action_id}:")
+                print(f"     State redirect_target: {repr(action.get('redirect_target'))}")
+            
             if action_id in action_data_override:
                 frontend_data = action_data_override[action_id]
+                
+                if action_type in ['redirect_301', 'redirect']:
+                    print(f"     Frontend redirect_target: {repr(frontend_data.get('redirect_target'))}")
+                
                 # Merge frontend data, prioritizing it for missing fields
                 # For redirect_target, use frontend value if it's valid, otherwise preserve state value
                 for key, value in frontend_data.items():
@@ -707,12 +718,21 @@ def execute_selected_actions():
                         # Use frontend redirect_target only if it's a valid non-empty value
                         if value is not None and value != '' and str(value).strip() != '':
                             action[key] = value
+                            if action_type in ['redirect_301', 'redirect']:
+                                print(f"     ✅ Using frontend redirect_target: {value}")
                         # If frontend value is empty/None, preserve state value (don't override)
                         # The state value (if it exists) will remain in action[key]
+                        elif action_type in ['redirect_301', 'redirect']:
+                            print(f"     📌 Preserving state redirect_target: {repr(action.get('redirect_target'))}")
                     else:
                         # For other fields, only override if current value is missing/empty
                         if value and not action.get(key):
                             action[key] = value
+            
+            # If redirect_target is missing AND not in frontend override, check state
+            if action_type in ['redirect_301', 'redirect']:
+                if not action.get('redirect_target'):
+                    print(f"     ⚠️  redirect_target missing after merge, will try AI selection")
 
         # Validate redirect_301 actions have redirect_target before execution
         # Use AI-based selection if targets are missing
@@ -790,6 +810,50 @@ def execute_selected_actions():
                         
             except Exception as e:
                 print(f"  ⚠️  AI-based redirect target selection failed: {e}")
+                import traceback
+                traceback.print_exc()
+        elif redirect_actions_needing_targets:
+            # merged_data not available - try to get URLs from WordPress
+            print(f"  ⚠️  Merged data not available, trying to load URLs from WordPress for AI selection...")
+            try:
+                wp_temp = WordPressPublisher(
+                    site_config['url'],
+                    site_config['wp_username'],
+                    site_config['wp_app_password'],
+                    rate_limit_delay=0.5
+                )
+                posts = wp_temp.get_all_posts()
+                available_urls = [post.get('link', '') for post in posts if post.get('link')]
+                
+                if available_urls:
+                    print(f"  ✓ Loaded {len(available_urls)} URLs from WordPress")
+                    from ai_strategic_planner import AIStrategicPlanner
+                    ai_planner = AIStrategicPlanner(anthropic_key)
+                    
+                    # Create simple URL list with default metrics
+                    urls_with_metrics = [
+                        {'url': url, 'impressions': 100, 'clicks': 10, 'ctr': 0.1, 'position': 20.0}
+                        for url in available_urls[:100]  # Limit to top 100
+                    ]
+                    
+                    for action in redirect_actions_needing_targets:
+                        source_url = action.get('url', '')
+                        reasoning = action.get('reasoning', '')
+                        
+                        if not source_url:
+                            continue
+                        
+                        selected_target = ai_planner._ai_select_redirect_target(
+                            source_url=source_url,
+                            reasoning=reasoning,
+                            available_urls=urls_with_metrics
+                        )
+                        
+                        if selected_target:
+                            action['redirect_target'] = selected_target
+                            print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+            except Exception as e:
+                print(f"  ⚠️  Could not load URLs from WordPress for AI selection: {e}")
                 import traceback
                 traceback.print_exc()
         

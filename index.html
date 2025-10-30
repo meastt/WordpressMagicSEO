@@ -2799,11 +2799,20 @@
                         keywords: action.keywords,
                         reasoning: action.reasoning
                     };
-                    // Only include redirect_target if it has a value (don't send null/undefined)
-                    if (action.redirect_target && typeof action.redirect_target === 'string' && action.redirect_target.trim() !== '') {
-                        actionData.redirect_target = action.redirect_target;
+                    // Include redirect_target if it exists (even if empty, so backend can use AI fallback)
+                    if (action.redirect_target !== undefined) {
+                        actionData.redirect_target = action.redirect_target || '';
                     }
                     actionsMap[action.id] = actionData;
+                    
+                    // Debug logging for redirect actions
+                    if (action.action_type === 'redirect_301') {
+                        console.log(`Redirect action ${action.id}:`, {
+                            url: action.url,
+                            redirect_target: action.redirect_target,
+                            has_redirect_target: !!action.redirect_target
+                        });
+                    }
 
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
