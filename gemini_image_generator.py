@@ -12,6 +12,12 @@ from typing import List, Dict, Optional, Tuple
 
 try:
     from google import genai
+    # Try to import PersonGeneration enum if available
+    try:
+        from google.genai import types as genai_types
+        PersonGeneration = genai_types.PersonGeneration
+    except (ImportError, AttributeError):
+        PersonGeneration = None
 except ImportError:
     raise ImportError(
         "google-genai package is required. Install it with: pip install google-genai"
@@ -36,7 +42,7 @@ class GeminiImageGenerator:
         prompt: str,
         aspect_ratio: str = "16:9",
         output_mime_type: str = "image/jpeg",
-        person_generation: str = "ALLOW_ALL",
+        person_generation: str = None,
         image_size: str = "1K"
     ) -> Optional[bytes]:
         """
@@ -46,24 +52,35 @@ class GeminiImageGenerator:
             prompt: Description of the image to generate
             aspect_ratio: Image aspect ratio (16:9, 1:1, 9:16, 4:3, 3:4)
             output_mime_type: Output image format (image/jpeg, image/png)
-            person_generation: Person generation setting (ALLOW_ALL, ALLOW_ADULT, BLOCK_ALL)
+            person_generation: Person generation setting (optional, omit if not supported)
             image_size: Image size (1K, 2K)
             
         Returns:
             Image bytes or None if generation fails
         """
         try:
+            # Build config dict - only include person_generation if enum is available
+            config_dict = {
+                "number_of_images": 1,
+                "output_mime_type": output_mime_type,
+                "aspect_ratio": aspect_ratio,
+                "image_size": image_size,
+            }
+            
+            # Only add person_generation if enum is available and value is provided
+            # For now, omit it entirely as it seems to cause issues
+            # if PersonGeneration and person_generation:
+            #     try:
+            #         # Try to use enum value if available
+            #         config_dict["person_generation"] = getattr(PersonGeneration, person_generation, None)
+            #     except Exception:
+            #         pass  # Skip if enum not available
+            
             # Generate image using the SDK
             result = self.client.models.generate_images(
                 model=self.model,
                 prompt=prompt,
-                config=dict(
-                    number_of_images=1,
-                    output_mime_type=output_mime_type,
-                    person_generation=person_generation,
-                    aspect_ratio=aspect_ratio,
-                    image_size=image_size,
-                ),
+                config=config_dict,
             )
             
             # Check if images were generated
@@ -80,8 +97,26 @@ class GeminiImageGenerator:
             # Convert image to bytes
             # The GeneratedImage object has an .image property (PIL Image)
             # We'll save it to a BytesIO buffer to get bytes
+            pil_image = generated_image.image
+            
+            # Ensure image is in RGB mode for JPEG (convert RGBA/P to RGB if needed)
+            if pil_image.mode in ('RGBA', 'LA', 'P'):
+                # Create a white background for transparency
+                rgb_image = pil_image.convert('RGB')
+                pil_image = rgb_image
+            elif pil_image.mode != 'RGB':
+                pil_image = pil_image.convert('RGB')
+            
+            # Determine format
+            format_map = {
+                'image/jpeg': 'JPEG',
+                'image/png': 'PNG',
+                'image/jpg': 'JPEG'
+            }
+            save_format = format_map.get(output_mime_type.lower(), 'JPEG')
+            
             image_buffer = io.BytesIO()
-            generated_image.image.save(image_buffer, format=output_mime_type.split('/')[1].upper())
+            pil_image.save(image_buffer, format=save_format, quality=95)
             image_bytes = image_buffer.getvalue()
             
             return image_bytes
