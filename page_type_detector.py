@@ -13,6 +13,7 @@ class PageType(Enum):
     """WordPress page types."""
     POST = "post"           # Regular blog post - full content update
     PAGE = "page"           # Static page - full content update
+    HOMEPAGE = "homepage"   # Homepage - SEO meta only (never update content!)
     CATEGORY = "category"   # Category archive - SEO meta only
     TAG = "tag"             # Tag archive - SEO meta only
     AUTHOR = "author"       # Author archive - SEO meta only
@@ -61,9 +62,18 @@ class PageTypeDetector:
             detect_page_type("https://site.com/category/bobcats/") -> PageType.CATEGORY
             detect_page_type("https://site.com/my-post/") -> PageType.POST (or PAGE)
             detect_page_type("https://site.com/tag/recipes/") -> PageType.TAG
+            detect_page_type("https://site.com/") -> PageType.HOMEPAGE
         """
         if not url:
             return PageType.UNKNOWN
+
+        # Check for homepage first (root URL)
+        # Homepage URLs end with just "/" or domain only
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        path = parsed.path.rstrip('/')
+        if not path or path == '':
+            return PageType.HOMEPAGE
 
         # Check against known patterns
         for page_type, patterns in PageTypeDetector.PATTERNS.items():
@@ -89,6 +99,7 @@ class PageTypeDetector:
         strategy_map = {
             PageType.POST: UpdateStrategy.FULL_CONTENT,
             PageType.PAGE: UpdateStrategy.FULL_CONTENT,
+            PageType.HOMEPAGE: UpdateStrategy.META_ONLY,  # Homepage: SEO meta only, NEVER content
             PageType.CATEGORY: UpdateStrategy.META_ONLY,
             PageType.TAG: UpdateStrategy.META_ONLY,
             PageType.AUTHOR: UpdateStrategy.META_ONLY,
@@ -161,6 +172,8 @@ class PageTypeDetector:
                 "Regular blog post - can update full content and SEO meta",
             (PageType.PAGE, UpdateStrategy.FULL_CONTENT):
                 "Static page - can update full content and SEO meta",
+            (PageType.HOMEPAGE, UpdateStrategy.META_ONLY):
+                "Homepage - can ONLY update SEO meta (title, description, meta tags). Content will NOT be modified for safety.",
             (PageType.CATEGORY, UpdateStrategy.META_ONLY):
                 "Category archive - can only update SEO title, description, and meta tags (no content body)",
             (PageType.TAG, UpdateStrategy.META_ONLY):

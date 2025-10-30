@@ -1465,10 +1465,99 @@ def execute_next_action():
                     print(f"  ⏭️  Skipping: {page_info['explanation']}")
 
                 elif page_info['strategy'] == UpdateStrategy.META_ONLY.value:
-                    # CATEGORY or TAG - Update SEO meta only
+                    # META_ONLY update - Categories, Tags, or HOMEPAGE
                     print(f"  🏷️  Meta-only update for {page_info['page_type']}")
 
-                    if page_info['page_type'] == PageType.CATEGORY.value:
+                    if page_info['page_type'] == PageType.HOMEPAGE.value:
+                        # HOMEPAGE: Only update SEO meta, NEVER content
+                        print(f"  🏠 Homepage detected - updating SEO meta only (content will NOT be modified)")
+                        
+                        # Find homepage (could be a page or post set as homepage)
+                        homepage_post = None
+                        
+                        # Try to find by checking if it's a page with slug matching homepage
+                        # WordPress homepage could be:
+                        # 1. A static page set as homepage
+                        # 2. The blog index (posts page)
+                        # 3. A custom page template
+                        
+                        # First, try to find any page/post that matches the homepage URL
+                        try:
+                            # Check pages endpoint
+                            pages_response = requests.get(
+                                f"{wp.api_base}/pages",
+                                auth=wp.auth,
+                                params={'per_page': 100},
+                                timeout=30
+                            )
+                            if pages_response.status_code == 200:
+                                pages = pages_response.json()
+                                # Look for page that might be homepage
+                                # Homepage is often the first page or has a specific slug
+                                for page in pages:
+                                    page_link = page.get('link', '').rstrip('/')
+                                    site_url = site_config['url'].rstrip('/')
+                                    if page_link == site_url or page_link == f"{site_url}/":
+                                        homepage_post = page
+                                        break
+                        except Exception as e:
+                            print(f"  ⚠️  Could not fetch pages: {e}")
+                        
+                        # If not found in pages, try finding the front page
+                        if not homepage_post:
+                            try:
+                                # WordPress might have a setting for homepage
+                                # Try to get the front page option via REST API
+                                # Or search posts if blog is homepage
+                                posts = wp.get_all_posts()
+                                # Blog homepage doesn't have a specific post, but we can update site meta
+                                # For now, if we can't find a specific page, we'll skip
+                                print(f"  ⚠️  Could not find specific homepage page/post")
+                            except Exception as e:
+                                print(f"  ⚠️  Error finding homepage: {e}")
+                        
+                        if homepage_post:
+                            homepage_id = homepage_post['id']
+                            keywords = action_data.get('keywords', [])
+                            title = action_data.get('title', '') or homepage_post.get('title', {}).get('rendered', '')
+                            
+                            # Generate SEO meta based on reasoning/keywords
+                            # Don't generate article content - just meta
+                            meta_title = title if title else f"{site_name} | Wild Cat Conservation & Species Guide 2025"
+                            meta_description = action_data.get('reasoning', '')
+                            if keywords:
+                                meta_description = f"Explore {', '.join(keywords[:3])} and more wild cat conservation content. {meta_description[:100]}"
+                            else:
+                                meta_description = meta_description[:155] if meta_description else f"Learn about wild cat conservation, species identification guides, and 2025 conservation trends."
+                            
+                            # Update ONLY meta fields, NOT content
+                            publish_result = wp.update_post(
+                                homepage_id,
+                                title=None,  # Don't update title
+                                content=None,  # NEVER update homepage content
+                                meta_title=meta_title,
+                                meta_description=meta_description
+                            )
+                            
+                            if publish_result.success:
+                                result['post_id'] = homepage_id
+                                result['success'] = True
+                                result['meta_only'] = True
+                                result['homepage'] = True
+                                state_mgr.mark_completed(action_data['id'], homepage_id)
+                                print(f"  ✅ Homepage SEO meta updated successfully (content preserved)")
+                            else:
+                                result['error'] = publish_result.error
+                                result['success'] = False
+                        else:
+                            # Couldn't find homepage page/post - skip with warning
+                            result['success'] = True
+                            result['skipped'] = True
+                            result['reason'] = 'Homepage not found as editable page/post - skipping for safety'
+                            state_mgr.mark_completed(action_data['id'], None)
+                            print(f"  ⚠️  Skipping homepage update - could not find editable homepage page/post")
+
+                    elif page_info['page_type'] == PageType.CATEGORY.value:
                         category = wp.find_category_by_url(url)
                         if not category:
                             raise Exception(f"Category not found: {url}")
