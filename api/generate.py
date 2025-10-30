@@ -673,6 +673,7 @@ def execute_selected_actions():
         # Optional: frontend can send full action data as fallback
         action_data_override = data.get('actions', {})  # Dict mapping action_id -> action_data
         generate_images = data.get('generate_images', False)  # Image generation flag
+        print(f"🖼️  Image generation flag received: {generate_images}")
 
         if not site_name:
             return jsonify({"error": "site_name required"}), 400
