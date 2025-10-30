@@ -672,6 +672,7 @@ def execute_selected_actions():
         action_ids = data.get('action_ids', [])
         # Optional: frontend can send full action data as fallback
         action_data_override = data.get('actions', {})  # Dict mapping action_id -> action_data
+        generate_images = data.get('generate_images', False)  # Image generation flag
 
         if not site_name:
             return jsonify({"error": "site_name required"}), 400
@@ -953,6 +954,32 @@ def execute_selected_actions():
                         affiliate_links=affiliate_links
                     )
 
+                    # Generate images if requested
+                    if generate_images:
+                        try:
+                            from gemini_image_generator import GeminiImageGenerator
+                            gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                            if gemini_key:
+                                print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                image_gen = GeminiImageGenerator(gemini_key)
+                                updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                    content=article_data['content'],
+                                    article_title=article_data.get('title', title),
+                                    keywords=keywords,
+                                    wp_publisher=wp,
+                                    upload_to_wordpress=True
+                                )
+                                article_data['content'] = updated_content
+                                if image_info:
+                                    print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                            else:
+                                print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                        except Exception as e:
+                            print(f"  ⚠️  Image generation failed: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            # Continue without images if generation fails
+
                     publish_result = wp.create_post(
                         title=article_data.get('title', title),
                         content=article_data['content'],
@@ -1130,6 +1157,32 @@ def execute_selected_actions():
                                     internal_links=internal_links,
                                     affiliate_links=affiliate_links
                                 )
+
+                                # Generate images if requested
+                                if generate_images:
+                                    try:
+                                        from gemini_image_generator import GeminiImageGenerator
+                                        gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                                        if gemini_key:
+                                            print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                            image_gen = GeminiImageGenerator(gemini_key)
+                                            updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                                content=article_data['content'],
+                                                article_title=article_data.get('title', title),
+                                                keywords=keywords,
+                                                wp_publisher=wp,
+                                                upload_to_wordpress=True
+                                            )
+                                            article_data['content'] = updated_content
+                                            if image_info:
+                                                print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                                        else:
+                                            print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                                    except Exception as e:
+                                        print(f"  ⚠️  Image generation failed: {e}")
+                                        import traceback
+                                        traceback.print_exc()
+                                        # Continue without images if generation fails
 
                                 publish_result = wp.update_post(
                                     post_id,
@@ -1334,6 +1387,32 @@ def quick_create_post():
                 affiliate_links=affiliate_links
             )
 
+            # Generate images if requested
+            generate_images = data.get('generate_images', False)
+            if generate_images:
+                try:
+                    from gemini_image_generator import GeminiImageGenerator
+                    gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                    if gemini_key:
+                        print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                        image_gen = GeminiImageGenerator(gemini_key)
+                        updated_content, image_info = image_gen.replace_placeholders_with_images(
+                            content=article_data['content'],
+                            article_title=article_data.get('title', title),
+                            keywords=keywords,
+                            wp_publisher=wp,
+                            upload_to_wordpress=True
+                        )
+                        article_data['content'] = updated_content
+                        if image_info:
+                            print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                    else:
+                        print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                except Exception as e:
+                    print(f"  ⚠️  Image generation failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+
             publish_result = wp.create_post(
                 title=article_data.get('title', title),
                 content=article_data['content'],
@@ -1396,6 +1475,7 @@ def execute_next_action():
 
     site_name = data.get('site_name') if data else None
     print(f"Site name: {site_name}")
+    generate_images = data.get('generate_images', False) if data else False  # Image generation flag
 
     if not site_name:
         return jsonify({"error": "site_name required"}), 400
@@ -1552,16 +1632,41 @@ def execute_next_action():
                     keywords=keywords,
                     research=research,
                     meta_description=f"Learn about {title}",
-                    internal_links=internal_links,  # FIX: Add internal links
+                    internal_links=internal_links,
                     affiliate_links=affiliate_links
                 )
+
+                # Generate images if requested
+                if generate_images:
+                    try:
+                        from gemini_image_generator import GeminiImageGenerator
+                        gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                        if gemini_key:
+                            print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                            image_gen = GeminiImageGenerator(gemini_key)
+                            updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                content=article_data['content'],
+                                article_title=article_data.get('title', title),
+                                keywords=keywords,
+                                wp_publisher=wp,
+                                upload_to_wordpress=True
+                            )
+                            article_data['content'] = updated_content
+                            if image_info:
+                                print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                        else:
+                            print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                    except Exception as e:
+                        print(f"  ⚠️  Image generation failed: {e}")
+                        import traceback
+                        traceback.print_exc()
 
                 # Create the post
                 publish_result = wp.create_post(
                     title=article_data.get('title', title),
                     content=article_data['content'],
-                    meta_title=article_data.get('meta_title'),  # FIX: Add meta title
-                    meta_description=article_data.get('meta_description'),  # FIX: Add meta description
+                    meta_title=article_data.get('meta_title'),
+                    meta_description=article_data.get('meta_description'),
                     categories=article_data.get('categories', []),
                     tags=article_data.get('tags', [])
                 )
@@ -1843,6 +1948,32 @@ def execute_next_action():
                             internal_links=internal_links,
                             affiliate_links=affiliate_links
                         )
+
+                        # Generate images if requested
+                        if generate_images:
+                            try:
+                                from gemini_image_generator import GeminiImageGenerator
+                                gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                                if gemini_key:
+                                    print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                    image_gen = GeminiImageGenerator(gemini_key)
+                                    updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                        content=article_data['content'],
+                                        article_title=article_data.get('title', title),
+                                        keywords=keywords,
+                                        wp_publisher=wp,
+                                        upload_to_wordpress=True
+                                    )
+                                    article_data['content'] = updated_content
+                                    if image_info:
+                                        print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                                else:
+                                    print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                            except Exception as e:
+                                print(f"  ⚠️  Image generation failed: {e}")
+                                import traceback
+                                traceback.print_exc()
+                                # Continue without images if generation fails
 
                         # Update the post with new content
                         publish_result = wp.update_post(

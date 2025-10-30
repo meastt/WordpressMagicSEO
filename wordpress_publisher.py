@@ -516,6 +516,68 @@ class WordPressPublisher:
             print(f"Error finding category by URL {url}: {e}")
             return None
 
+    def upload_image(
+        self,
+        image_bytes: bytes,
+        filename: str,
+        alt_text: str = "",
+        title: str = "",
+        caption: str = ""
+    ) -> Optional[Dict]:
+        """
+        Upload an image to WordPress media library.
+        
+        Args:
+            image_bytes: Image file bytes
+            filename: Filename for the image
+            alt_text: Alt text for accessibility
+            title: Image title
+            caption: Image caption
+            
+        Returns:
+            Dict with 'id', 'url', 'title' or None if upload fails
+        """
+        try:
+            import base64
+            
+            # WordPress REST API requires multipart/form-data for media uploads
+            # We need to use the /wp/v2/media endpoint with proper authentication
+            
+            # Prepare file data
+            files = {
+                'file': (filename, image_bytes, 'image/jpeg')
+            }
+            
+            # Prepare post data
+            data = {}
+            if title:
+                data['title'] = title
+            if caption:
+                data['caption'] = caption
+            if alt_text:
+                data['alt_text'] = alt_text
+            
+            response = requests.post(
+                f"{self.api_base}/media",
+                auth=self.auth,
+                files=files,
+                data=data,
+                timeout=60
+            )
+            response.raise_for_status()
+            
+            result = response.json()
+            
+            return {
+                'id': result.get('id'),
+                'url': result.get('source_url') or result.get('url'),
+                'title': result.get('title', {}).get('rendered', title) if isinstance(result.get('title'), dict) else result.get('title', title)
+            }
+            
+        except Exception as e:
+            print(f"Error uploading image to WordPress: {e}")
+            return None
+    
     def find_tag_by_url(self, url: str) -> Optional[Dict]:
         """
         Find a tag by its URL.

@@ -865,28 +865,17 @@
         }
 
         .spinner {
-            border: 5px solid rgba(102, 126, 234, 0.1);
-            border-top: 5px solid #667eea;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            animation: spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            width: 50px;
+            height: 50px;
             margin: 0 auto 24px;
-            position: relative;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         .spinner::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(118, 75, 162, 0.2);
-            border-bottom: 5px solid #764ba2;
-            border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+            display: none; /* Remove the nested circle */
         }
 
         @keyframes spin {
@@ -1990,6 +1979,17 @@
                 <div class="confirmation-summary">
                     <strong>Summary:</strong> <span id="confirmation_summary"></span>
                 </div>
+                
+                <!-- Image Generation Toggle -->
+                <div style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                        <input type="checkbox" id="generate_images_toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                        <div>
+                            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">🖼️ Generate AI Images</div>
+                            <div style="font-size: 13px; color: #666;">Automatically generate images using Google Gemini AI for image placeholders in content</div>
+                        </div>
+                    </label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
@@ -2834,13 +2834,17 @@
                         });
                     }
 
+                    // Check if image generation is enabled
+                    const generateImages = document.getElementById('generate_images_toggle')?.checked || false;
+                    
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             site_name: siteName,
                             action_ids: [action.id],
-                            actions: actionsMap  // Send full action data as fallback
+                            actions: actionsMap,  // Send full action data as fallback
+                            generate_images: generateImages  // Pass image generation flag
                         })
                     });
 
