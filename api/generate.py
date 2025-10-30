@@ -715,50 +715,97 @@ def execute_selected_actions():
                             action[key] = value
 
         # Validate redirect_301 actions have redirect_target before execution
-        import re
+        # Use AI-based selection if targets are missing
+        import pandas as pd
+        
+        # Get merged data for AI-based redirect target selection
+        merged_data_df = None
+        try:
+            merged_data = state_mgr.state.get('merged_data')
+            if merged_data:
+                if isinstance(merged_data, pd.DataFrame):
+                    merged_data_df = merged_data
+                elif isinstance(merged_data, list):
+                    # Convert list of dicts to DataFrame
+                    merged_data_df = pd.DataFrame(merged_data)
+                elif isinstance(merged_data, dict) and 'page' in merged_data:
+                    # Single row dict
+                    merged_data_df = pd.DataFrame([merged_data])
+        except Exception as e:
+            print(f"  ⚠️  Could not load merged data for AI selection: {e}")
+        
+        # Process redirect actions missing targets
+        redirect_actions_needing_targets = [
+            action for action in actions_to_execute
+            if action.get('action_type') in ['redirect_301', 'redirect']
+            and (not action.get('redirect_target') or action.get('redirect_target', '').strip() == '')
+        ]
+        
+        if redirect_actions_needing_targets and merged_data_df is not None and 'page' in merged_data_df.columns:
+            # Use AI-based selection for missing redirect targets
+            print(f"  🤖 Using AI to select redirect targets for {len(redirect_actions_needing_targets)} actions...")
+            from ai_strategic_planner import AIStrategicPlanner
+            
+            try:
+                ai_planner = AIStrategicPlanner(anthropic_key)
+                
+                for action in redirect_actions_needing_targets:
+                    source_url = action.get('url', '')
+                    reasoning = action.get('reasoning', '')
+                    
+                    if not source_url:
+                        continue
+                    
+                    # Get URLs with performance metrics
+                    by_page = merged_data_df.groupby('page').agg({
+                        'impressions': 'sum',
+                        'clicks': 'sum',
+                        'ctr': 'mean',
+                        'position': 'mean'
+                    }).reset_index()
+                    by_page = by_page.sort_values('impressions', ascending=False)
+                    
+                    urls_with_metrics = []
+                    for _, row in by_page.iterrows():
+                        urls_with_metrics.append({
+                            'url': row['page'],
+                            'impressions': int(row['impressions']),
+                            'clicks': int(row['clicks']),
+                            'ctr': row['ctr'],
+                            'position': row['position']
+                        })
+                    
+                    # Use AI to select best target
+                    selected_target = ai_planner._ai_select_redirect_target(
+                        source_url=source_url,
+                        reasoning=reasoning,
+                        available_urls=urls_with_metrics
+                    )
+                    
+                    if selected_target:
+                        action['redirect_target'] = selected_target
+                        print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+                    else:
+                        print(f"     ❌ AI could not select target for {source_url}")
+                        
+            except Exception as e:
+                print(f"  ⚠️  AI-based redirect target selection failed: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        # Final validation - check if any redirect actions still lack targets
         for action in actions_to_execute:
             if action.get('action_type') in ['redirect_301', 'redirect']:
                 redirect_target = action.get('redirect_target')
                 if not redirect_target or redirect_target.strip() == '':
-                    # Try to extract from reasoning if available
-                    reasoning = action.get('reasoning', '')
                     source_url = action.get('url', '')
-                    
-                    # Try to find redirect target in reasoning using common patterns
-                    patterns = [
-                        r'redirect(?:_301)?\s+to\s+([^\s,.;\n]+)',
-                        r'consolidate\s+(?:authority\s+)?to\s+([^\s,.;\n]+)',
-                        r'redirect\s+TO:\s*([^\s,.;\n]+)',
-                        r'redirect\s+(?:to|TO)\s+(?:https?://)?([^\s,.;\n/]+/[^\s,.;\n]*)',  # Match URLs in reasoning
-                    ]
-                    
-                    target_found = None
-                    for pattern in patterns:
-                        match = re.search(pattern, reasoning, re.IGNORECASE)
-                        if match:
-                            potential_target = match.group(1).strip().rstrip('/.,;')
-                            # Try to make it a full URL if it looks like a slug
-                            if not potential_target.startswith('http'):
-                                # Assume same domain as source
-                                try:
-                                    base_url = '/'.join(source_url.split('/')[:3])  # Get domain
-                                    potential_target = f"{base_url}/{potential_target.lstrip('/')}"
-                                except:
-                                    potential_target = None
-                            if potential_target and potential_target.startswith('http'):
-                                target_found = potential_target
-                                break
-                    
-                    if target_found:
-                        print(f"  ⚠️  Auto-populated missing redirect_target for {source_url}: {target_found}")
-                        action['redirect_target'] = target_found
-                    else:
-                        print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
-                        print(f"     Action data keys: {list(action.keys())}")
-                        print(f"     Frontend override keys: {list(action_data_override.get(action.get('id'), {}).keys())}")
-                        print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
-                        # Fail fast - don't proceed if redirect_target is missing
-                        # The execution handler will return proper error message
+                    reasoning = action.get('reasoning', '')
+                    print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
+                    print(f"     Action data keys: {list(action.keys())}")
+                    print(f"     Frontend override keys: {list(action_data_override.get(action.get('id'), {}).keys())}")
+                    print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
+                    # Fail fast - don't proceed if redirect_target is missing
+                    # The execution handler will return proper error message
 
         # Initialize services
         wp = WordPressPublisher(
