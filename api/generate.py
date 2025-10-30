@@ -1813,65 +1813,64 @@ def execute_next_action():
                         else:
                             result['error'] = publish_result.error
                             result['success'] = False
-                        
-                        results.append(result)
-                        continue
+                        # WordPress page handled - no need to generate article content
                     
-                    # It's a POST - safe to do full content update
-                    existing_content = found_item.get('content', {}).get('rendered', '')
-                    title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
-                    keywords = action_data.get('keywords', [])
-
-                    # Generate improved content using generate_article with existing_content
-                    # First do research
-                    research = content_gen.research_topic(title, keywords)
-
-                    # Get internal link suggestions
-                    internal_links = wp.get_internal_link_suggestions(keywords)
-
-                    # Get affiliate links for this update if available
-                    affiliate_links = []
-                    if affiliate_mgr:
-                        affiliate_links = affiliate_mgr.get_all_links()
-
-                    # Generate updated article
-                    article_data = content_gen.generate_article(
-                        topic_title=title,
-                        keywords=keywords,
-                        research=research,
-                        meta_description=f"Updated: {title}",
-                        existing_content=existing_content,
-                        internal_links=internal_links,
-                        affiliate_links=affiliate_links
-                    )
-
-                    # Update the post with new content
-                    publish_result = wp.update_post(
-                        item_id,
-                        title=article_data.get('title', title),
-                        content=article_data['content'],
-                        meta_title=article_data.get('meta_title'),
-                        meta_description=article_data.get('meta_description'),
-                        categories=article_data.get('categories', []),
-                        tags=article_data.get('tags', [])
-                    )
-
-                    # Update affiliate link usage if any were added
-                    if affiliate_mgr and affiliate_links:
-                        # Count how many affiliate links appear in the new content
-                        for link in affiliate_links:
-                            if link['url'] in article_data['content']:
-                                affiliate_mgr.increment_usage(link['id'])
-
-                    # Handle result
-                    if publish_result.success:
-                        result['post_id'] = post_id
-                        result['success'] = True
-                        state_mgr.mark_completed(action_data['id'], post_id)
-                        print(f"  ✅ Content updated successfully")
                     else:
-                        result['error'] = publish_result.error
-                        result['success'] = False
+                        # It's a POST - safe to do full content update
+                        existing_content = found_item.get('content', {}).get('rendered', '')
+                        title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                        keywords = action_data.get('keywords', [])
+
+                        # Generate improved content using generate_article with existing_content
+                        # First do research
+                        research = content_gen.research_topic(title, keywords)
+
+                        # Get internal link suggestions
+                        internal_links = wp.get_internal_link_suggestions(keywords)
+
+                        # Get affiliate links for this update if available
+                        affiliate_links = []
+                        if affiliate_mgr:
+                            affiliate_links = affiliate_mgr.get_all_links()
+
+                        # Generate updated article
+                        article_data = content_gen.generate_article(
+                            topic_title=title,
+                            keywords=keywords,
+                            research=research,
+                            meta_description=f"Updated: {title}",
+                            existing_content=existing_content,
+                            internal_links=internal_links,
+                            affiliate_links=affiliate_links
+                        )
+
+                        # Update the post with new content
+                        publish_result = wp.update_post(
+                            item_id,
+                            title=article_data.get('title', title),
+                            content=article_data['content'],
+                            meta_title=article_data.get('meta_title'),
+                            meta_description=article_data.get('meta_description'),
+                            categories=article_data.get('categories', []),
+                            tags=article_data.get('tags', [])
+                        )
+
+                        # Update affiliate link usage if any were added
+                        if affiliate_mgr and affiliate_links:
+                            # Count how many affiliate links appear in the new content
+                            for link in affiliate_links:
+                                if link['url'] in article_data['content']:
+                                    affiliate_mgr.increment_usage(link['id'])
+
+                        # Handle result
+                        if publish_result.success:
+                            result['post_id'] = item_id
+                            result['success'] = True
+                            state_mgr.mark_completed(action_data['id'], item_id)
+                            print(f"  ✅ Content updated successfully")
+                        else:
+                            result['error'] = publish_result.error
+                            result['success'] = False
 
             else:
                 result['error'] = f"Unsupported action type: {action_data['action_type']}"
