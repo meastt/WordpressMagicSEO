@@ -59,6 +59,8 @@ class GeminiImageGenerator:
             Image bytes or None if generation fails
         """
         try:
+            print(f"  📝 Generating image with prompt: {prompt[:100]}...")
+            
             # Build config dict - only include person_generation if enum is available
             config_dict = {
                 "number_of_images": 1,
@@ -67,14 +69,7 @@ class GeminiImageGenerator:
                 "image_size": image_size,
             }
             
-            # Only add person_generation if enum is available and value is provided
-            # For now, omit it entirely as it seems to cause issues
-            # if PersonGeneration and person_generation:
-            #     try:
-            #         # Try to use enum value if available
-            #         config_dict["person_generation"] = getattr(PersonGeneration, person_generation, None)
-            #     except Exception:
-            #         pass  # Skip if enum not available
+            print(f"  ⚙️  Config: {config_dict}")
             
             # Generate image using the SDK
             result = self.client.models.generate_images(
@@ -83,21 +78,65 @@ class GeminiImageGenerator:
                 config=config_dict,
             )
             
+            print(f"  ✅ API call successful")
+            print(f"  📊 Result type: {type(result)}")
+            print(f"  📊 Result attributes: {dir(result)}")
+            
             # Check if images were generated
-            if not result.generated_images:
-                print("⚠️  No images generated.")
+            if not hasattr(result, 'generated_images') or not result.generated_images:
+                print(f"⚠️  No images generated. Result: {result}")
                 return None
+            
+            print(f"  📸 Found {len(result.generated_images)} generated images")
             
             if len(result.generated_images) != 1:
                 print(f"⚠️  Expected 1 image, got {len(result.generated_images)}")
             
             # Get the first generated image
             generated_image = result.generated_images[0]
+            print(f"  📸 Generated image type: {type(generated_image)}")
+            print(f"  📸 Generated image attributes: {dir(generated_image)}")
             
-            # Convert image to bytes
-            # The GeneratedImage object has an .image property (PIL Image)
-            # We'll save it to a BytesIO buffer to get bytes
-            pil_image = generated_image.image
+            # Try different ways to access the image
+            pil_image = None
+            
+            # Method 1: Check if .image attribute exists (PIL Image)
+            if hasattr(generated_image, 'image'):
+                pil_image = generated_image.image
+                print(f"  ✅ Found .image attribute (PIL Image)")
+            # Method 2: Check if .bytes attribute exists (raw bytes)
+            elif hasattr(generated_image, 'bytes'):
+                print(f"  ✅ Found .bytes attribute, returning directly")
+                return generated_image.bytes
+            # Method 3: Check if it's bytes directly
+            elif isinstance(generated_image, bytes):
+                print(f"  ✅ Generated image is bytes directly")
+                return generated_image
+            # Method 4: Check if it's a dict with image data
+            elif isinstance(generated_image, dict):
+                if 'image' in generated_image:
+                    pil_image = generated_image['image']
+                elif 'imageBase64' in generated_image:
+                    import base64
+                    image_bytes = base64.b64decode(generated_image['imageBase64'])
+                    return image_bytes
+                elif 'imageUrl' in generated_image:
+                    import requests
+                    img_response = requests.get(generated_image['imageUrl'], timeout=30)
+                    img_response.raise_for_status()
+                    return img_response.content
+                else:
+                    print(f"⚠️  Dict format but no known image key: {list(generated_image.keys())}")
+                    return None
+            else:
+                print(f"⚠️  Unknown generated_image format: {type(generated_image)}")
+                return None
+            
+            if not pil_image:
+                print(f"⚠️  Could not extract PIL image from generated_image")
+                return None
+            
+            print(f"  🖼️  PIL Image mode: {pil_image.mode}, size: {pil_image.size}")
             
             # Ensure image is in RGB mode for JPEG (convert RGBA/P to RGB if needed)
             if pil_image.mode in ('RGBA', 'LA', 'P'):
@@ -119,6 +158,7 @@ class GeminiImageGenerator:
             pil_image.save(image_buffer, format=save_format, quality=95)
             image_bytes = image_buffer.getvalue()
             
+            print(f"  ✅ Successfully converted to bytes: {len(image_bytes)} bytes")
             return image_bytes
             
         except Exception as e:
@@ -216,9 +256,11 @@ class GeminiImageGenerator:
             
             if not image_bytes:
                 print(f"  ⚠️  Failed to generate image for: {description}")
-                # Replace with a simple alt text placeholder
-                img_tag = f'<img src="" alt="{description}" class="generated-image-placeholder" />'
-                replacements.append((placeholder_info['placeholder'], img_tag))
+                # Leave placeholder as-is or add a comment (don't create broken img tag)
+                # Option: Keep the placeholder so user knows image was intended
+                # replacements.append((placeholder_info['placeholder'], f'<!-- Image generation failed: {description} -->'))
+                # Option: Remove placeholder entirely
+                replacements.append((placeholder_info['placeholder'], ''))
                 continue
             
             # Upload to WordPress if requested
