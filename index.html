@@ -2184,23 +2184,33 @@
         async function loadSites() {
             try {
                 const response = await fetch(`${API_BASE}/sites`);
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await response.json().catch(() => null);
+                
+                if (response.ok && data) {
                     sitesData = data.sites || [];
                     console.log('Loaded sites:', sitesData);
+                    if (data.error) {
+                        console.warn('Sites loaded with warning:', data.error);
+                    }
                     renderDashboard();
                 } else {
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    console.error('Failed to load sites - API error:', response.status, errorData);
+                    const errorMsg = data?.error || data?.details || `HTTP ${response.status}`;
+                    console.error('Failed to load sites - API error:', response.status, errorMsg);
+                    console.error('Full error data:', data);
+                    
                     // Show sites even if API fails (empty array)
                     sitesData = [];
                     renderDashboard();
+                    
+                    // Show user-friendly error message
+                    showToast(`⚠️ Could not load sites: ${errorMsg}`, 'warning');
                 }
             } catch (e) {
                 console.error('Failed to load sites:', e);
                 // Show empty state even if fetch fails
                 sitesData = [];
                 renderDashboard();
+                showToast('⚠️ Failed to connect to server. Please refresh the page.', 'error');
             }
         }
 

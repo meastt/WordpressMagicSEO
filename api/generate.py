@@ -1912,9 +1912,39 @@ def list_sites_endpoint():
     Returns site names and pending action counts.
     """
     import traceback
+    
+    # Ultra-defensive error handling - always return valid JSON
     try:
-        from config import list_sites
-        from state_manager import StateManager
+        # Try to import modules
+        try:
+            from config import list_sites
+        except Exception as import_error:
+            print(f"❌ ERROR importing config: {import_error}")
+            return jsonify({
+                "sites": [],
+                "total_sites": 0,
+                "error": "Failed to import config module",
+                "details": str(import_error)
+            }), 200
+
+        try:
+            from state_manager import StateManager
+        except Exception as import_error:
+            print(f"❌ ERROR importing state_manager: {import_error}")
+            # Still return sites, just without stats
+            try:
+                sites = list_sites()
+                return jsonify({
+                    "sites": [{"name": site, "pending_actions": 0, "completed_actions": 0, "total_actions": 0} for site in sites],
+                    "total_sites": len(sites) if sites else 0,
+                    "warning": "State manager unavailable - stats not loaded"
+                }), 200
+            except:
+                return jsonify({
+                    "sites": [],
+                    "total_sites": 0,
+                    "error": "Failed to load sites"
+                }), 200
 
         # Get list of sites
         try:
@@ -1922,13 +1952,12 @@ def list_sites_endpoint():
         except Exception as config_error:
             print(f"❌ ERROR loading sites config: {config_error}")
             print(f"Traceback: {traceback.format_exc()}")
-            # Return empty list if config fails
             return jsonify({
                 "sites": [],
                 "total_sites": 0,
                 "error": "Failed to load site configuration",
                 "details": str(config_error)
-            }), 200  # Return 200 so frontend can handle empty state
+            }), 200
         
         if not sites or len(sites) == 0:
             return jsonify({
@@ -1947,9 +1976,9 @@ def list_sites_endpoint():
                 
                 site_status.append({
                     'name': site_name,
-                    'pending_actions': stats.get('pending', 0),
-                    'completed_actions': stats.get('completed', 0),
-                    'total_actions': stats.get('total_actions', 0)
+                    'pending_actions': stats.get('pending', 0) if stats else 0,
+                    'completed_actions': stats.get('completed', 0) if stats else 0,
+                    'total_actions': stats.get('total_actions', 0) if stats else 0
                 })
             except Exception as site_error:
                 # If state loading fails for a site, still include it with zero stats
@@ -1968,13 +1997,15 @@ def list_sites_endpoint():
 
     except Exception as e:
         error_trace = traceback.format_exc()
-        print(f"❌ ERROR in /api/sites: {e}")
+        print(f"❌ CRITICAL ERROR in /api/sites: {e}")
         print(f"Traceback: {error_trace}")
+        # Return 200 with empty sites instead of 500 to prevent frontend crash
         return jsonify({
+            "sites": [],
+            "total_sites": 0,
             "error": "Failed to load sites",
-            "details": str(e),
-            "trace": error_trace
-        }), 500
+            "details": str(e)
+        }), 200  # Changed to 200 so frontend can handle gracefully
 
 
 @app.route("/api/niche/<site_name>", methods=["GET"])
