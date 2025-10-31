@@ -747,10 +747,25 @@ def execute_selected_actions():
             if action.get('action_type') in ['redirect_301', 'redirect']
             and (not action.get('redirect_target') or action.get('redirect_target', '').strip() == '')
         ]
-        
+
+        print(f"\n{'='*80}")
+        print(f"🔍 REDIRECT TARGET SELECTION DIAGNOSTIC")
+        print(f"{'='*80}")
+        print(f"Total actions to execute: {len(actions_to_execute)}")
+        print(f"Redirect actions needing targets: {len(redirect_actions_needing_targets)}")
+        if redirect_actions_needing_targets:
+            for act in redirect_actions_needing_targets:
+                print(f"  - {act.get('url', 'NO URL')} (ID: {act.get('id', 'NO ID')})")
+                print(f"    Current redirect_target: {repr(act.get('redirect_target'))}")
+        print(f"Merged data available: {merged_data_df is not None}")
+        if merged_data_df is not None:
+            print(f"Merged data shape: {merged_data_df.shape}")
+            print(f"Merged data columns: {list(merged_data_df.columns)}")
+        print(f"{'='*80}\n")
+
         if redirect_actions_needing_targets and merged_data_df is not None and 'page' in merged_data_df.columns:
             # Use AI-based selection for missing redirect targets
-            print(f"  🤖 Using AI to select redirect targets for {len(redirect_actions_needing_targets)} actions...")
+            print(f"  🤖 Using AI to select redirect targets (with GSC data) for {len(redirect_actions_needing_targets)} actions...")
             from ai_strategic_planner import AIStrategicPlanner
             
             try:
@@ -791,9 +806,13 @@ def execute_selected_actions():
                     
                     if selected_target:
                         action['redirect_target'] = selected_target
-                        print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+                        print(f"     ✅ AI selected redirect target for {source_url}")
+                        print(f"        Target: {selected_target}")
+                        print(f"        Action ID: {action.get('id')}")
+                        print(f"        Verification: action['redirect_target'] = {repr(action.get('redirect_target'))}")
                     else:
                         print(f"     ❌ AI could not select target for {source_url}")
+                        print(f"        Reasoning: {reasoning[:200] if reasoning else 'No reasoning provided'}")
                         
             except Exception as e:
                 print(f"  ⚠️  AI-based redirect target selection failed: {e}")
@@ -801,7 +820,8 @@ def execute_selected_actions():
                 traceback.print_exc()
         elif redirect_actions_needing_targets:
             # merged_data not available - try to get URLs from WordPress
-            print(f"  ⚠️  Merged data not available, trying to load URLs from WordPress for AI selection...")
+            print(f"  ⚠️  Merged data not available (or missing 'page' column), trying to load URLs from WordPress for AI selection...")
+            print(f"     Redirect actions needing targets: {len(redirect_actions_needing_targets)}")
             try:
                 wp_temp = WordPressPublisher(
                     site_config['url'],
@@ -838,25 +858,44 @@ def execute_selected_actions():
                         
                         if selected_target:
                             action['redirect_target'] = selected_target
-                            print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+                            print(f"     ✅ AI selected redirect target (from WordPress URLs) for {source_url}")
+                            print(f"        Target: {selected_target}")
+                            print(f"        Action ID: {action.get('id')}")
+                            print(f"        Verification: action['redirect_target'] = {repr(action.get('redirect_target'))}")
             except Exception as e:
                 print(f"  ⚠️  Could not load URLs from WordPress for AI selection: {e}")
                 import traceback
                 traceback.print_exc()
         
         # Final validation - check if any redirect actions still lack targets
-        for action in actions_to_execute:
-            if action.get('action_type') in ['redirect_301', 'redirect']:
-                redirect_target = action.get('redirect_target')
-                if not redirect_target or redirect_target.strip() == '':
-                    source_url = action.get('url', '')
-                    reasoning = action.get('reasoning', '')
-                    print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
-                    print(f"     Action data keys: {list(action.keys())}")
-                    print(f"     Frontend override keys: {list(action_data_override.get(action.get('id'), {}).keys())}")
-                    print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
-                    # Fail fast - don't proceed if redirect_target is missing
-                    # The execution handler will return proper error message
+        print(f"\n{'='*80}")
+        print(f"🔍 REDIRECT TARGET FINAL VALIDATION")
+        print(f"{'='*80}")
+
+        redirect_actions_final = [a for a in actions_to_execute if a.get('action_type') in ['redirect_301', 'redirect']]
+        print(f"Total redirect actions: {len(redirect_actions_final)}")
+
+        for action in redirect_actions_final:
+            source_url = action.get('url', '')
+            redirect_target = action.get('redirect_target')
+            action_id = action.get('id', '')
+
+            print(f"\nAction ID: {action_id}")
+            print(f"  Source: {source_url}")
+            print(f"  Target: {repr(redirect_target)}")
+
+            if not redirect_target or redirect_target.strip() == '':
+                reasoning = action.get('reasoning', '')
+                print(f"  ❌ ERROR: Missing redirect_target!")
+                print(f"     Action data keys: {list(action.keys())}")
+                print(f"     Frontend override keys: {list(action_data_override.get(action_id, {}).keys())}")
+                print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
+                # Fail fast - don't proceed if redirect_target is missing
+                # The execution handler will return proper error message
+            else:
+                print(f"  ✅ Has valid redirect_target")
+
+        print(f"{'='*80}\n")
 
         # Initialize services
         wp = WordPressPublisher(
