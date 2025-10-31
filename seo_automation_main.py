@@ -252,8 +252,9 @@ class SEOAutomationPipeline:
         if use_existing_plan:
             # Convert stored actions back to ActionItem objects
             from strategic_planner import ActionItem, ActionType
+            import hashlib
             self.action_plan = []
-            for action_data in pending_actions_data:
+            for i, action_data in enumerate(pending_actions_data):
                 action = ActionItem(
                     action_type=ActionType(action_data['action_type']),
                     url=action_data.get('url', ''),
@@ -264,8 +265,14 @@ class SEOAutomationPipeline:
                     redirect_target=action_data.get('redirect_target', ''),
                     estimated_impact=action_data.get('estimated_impact', '')
                 )
-                # Store the ID for later tracking
-                action.id = action_data['id']
+                # Store the ID for later tracking - generate if missing
+                if 'id' in action_data:
+                    action.id = action_data['id']
+                else:
+                    # Generate a unique ID based on action content (same pattern as api/generate.py)
+                    id_string = f"{action_data.get('action_type', '')}_{action_data.get('url', '')}_{action_data.get('title', '')}_{i}"
+                    action.id = hashlib.md5(id_string.encode()).hexdigest()[:12]
+                    print(f"  ⚠️  Generated ID for action missing id: {action.id}")
                 self.action_plan.append(action)
         else:
             # No existing plan or user wants to regenerate
