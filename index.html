@@ -2906,7 +2906,27 @@
                         })
                     });
 
-                    const data = await response.json();
+                    // Get response text first to handle JSON parsing errors gracefully
+                    const responseText = await response.text();
+                    let data;
+                    
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (jsonError) {
+                        console.error(`JSON Parse Error for action ${action.title || action.url}:`, jsonError);
+                        console.error('Response text (first 500 chars):', responseText.substring(0, 500));
+                        
+                        // Try to extract error message from HTML if response is HTML
+                        const errorMatch = responseText.match(/error[^>]*>([^<]+)/i);
+                        const errorMsg = errorMatch ? errorMatch[1] : 'Invalid JSON response from server';
+                        
+                        errors.push({
+                            action: action.title || action.url,
+                            error: `JSON parsing error: ${errorMsg}. Response may be truncated or contain invalid characters.`
+                        });
+                        completed++;
+                        continue;
+                    }
 
                     if (!response.ok || data.results?.[0]?.error) {
                         errors.push({

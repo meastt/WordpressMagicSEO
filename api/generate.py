@@ -13,6 +13,7 @@ from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import requests
+import json
 
 # Lazy imports to avoid loading heavy modules at function startup
 try:
@@ -22,6 +23,26 @@ try:
 except ImportError as e:
     print(f"⚠️  Warning: Some modules failed to import: {e}")
     # These will be imported inside functions that need them
+
+
+def sanitize_for_json(value):
+    """
+    Sanitize a value to ensure it can be safely serialized to JSON.
+    Handles strings with unescaped quotes, special characters, etc.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        # Try to encode/decode to ensure valid UTF-8
+        try:
+            # Replace any problematic characters
+            value = value.encode('utf-8', errors='replace').decode('utf-8')
+            # Truncate very long strings that might cause JSON issues
+            if len(value) > 10000:
+                value = value[:10000] + "... [truncated]"
+        except Exception:
+            value = str(value)[:1000]  # Fallback truncation
+    return value
 
 app = Flask(__name__)
 CORS(app)
@@ -901,10 +922,10 @@ def execute_selected_actions():
         results = []
         for action_data in actions_to_execute:
             result = {
-                "action_id": action_data.get('id'),
-                "action_type": action_data.get('action_type'),
-                "url": action_data.get('url'),
-                "title": action_data.get('title'),
+                "action_id": sanitize_for_json(action_data.get('id')),
+                "action_type": sanitize_for_json(action_data.get('action_type')),
+                "url": sanitize_for_json(action_data.get('url')),
+                "title": sanitize_for_json(action_data.get('title')),
                 "success": False,
                 "error": None
             }
@@ -1001,7 +1022,7 @@ def execute_selected_actions():
                                 if link['url'] in article_data['content']:
                                     affiliate_mgr.increment_usage(link['id'])
                     else:
-                        result['error'] = publish_result.error
+                        result['error'] = sanitize_for_json(publish_result.error)
 
                 elif action_data['action_type'] == 'update':
                     # SMART UPDATE: Detect page type and route appropriately
@@ -1038,7 +1059,7 @@ def execute_selected_actions():
                         elif page_info['page_type'] == PageType.CATEGORY.value:
                             category = wp.find_category_by_url(url)
                             if not category:
-                                result['error'] = f"Category not found: {url}"
+                                result['error'] = sanitize_for_json(f"Category not found: {url}")
                             else:
                                 category_id = category['id']
                                 current_name = category.get('name', '')
@@ -1058,12 +1079,12 @@ def execute_selected_actions():
                                     result['meta_only'] = True
                                     state_mgr.mark_completed(action_data['id'], category_id)
                                 else:
-                                    result['error'] = publish_result.error
+                                    result['error'] = sanitize_for_json(publish_result.error)
 
                         elif page_info['page_type'] == PageType.TAG.value:
                             tag = wp.find_tag_by_url(url)
                             if not tag:
-                                result['error'] = f"Tag not found: {url}"
+                                result['error'] = sanitize_for_json(f"Tag not found: {url}")
                             else:
                                 tag_id = tag['id']
                                 current_name = tag.get('name', '')
@@ -1083,7 +1104,7 @@ def execute_selected_actions():
                                     result['meta_only'] = True
                                     state_mgr.mark_completed(action_data['id'], tag_id)
                                 else:
-                                    result['error'] = publish_result.error
+                                    result['error'] = sanitize_for_json(publish_result.error)
 
                         elif page_info['page_type'] == PageType.AUTHOR.value:
                             result['success'] = True
@@ -1098,7 +1119,7 @@ def execute_selected_actions():
                         # Find post or page - check both endpoints
                         found_item = wp.find_post_or_page_by_url(url)
                         if not found_item:
-                            result['error'] = f"Post or page not found: {url}"
+                            result['error'] = sanitize_for_json(f"Post or page not found: {url}")
                         else:
                             item_type = found_item.get('_wp_type', 'post')
                             item_id = found_item['id']
@@ -1136,7 +1157,7 @@ def execute_selected_actions():
                                     state_mgr.mark_completed(action_data['id'], item_id)
                                     print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
                                 else:
-                                    result['error'] = publish_result.error
+                                    result['error'] = sanitize_for_json(publish_result.error)
                             
                             else:
                                 # It's a POST - safe to do full content update
@@ -1206,7 +1227,7 @@ def execute_selected_actions():
                                             if link['url'] in article_data['content']:
                                                 affiliate_mgr.increment_usage(link['id'])
                                 else:
-                                    result['error'] = publish_result.error
+                                    result['error'] = sanitize_for_json(publish_result.error)
 
                 elif action_data['action_type'] == 'redirect_301':
                     # Create 301 redirect
@@ -1214,7 +1235,7 @@ def execute_selected_actions():
                     target_url = action_data.get('redirect_target')
 
                     if not target_url or target_url.strip() == '':
-                        result['error'] = f'redirect_target is required for redirect_301 actions. Source URL: {source_url}. Please check the action plan and ensure redirect_target is set.'
+                        result['error'] = sanitize_for_json(f'redirect_target is required for redirect_301 actions. Source URL: {source_url}. Please check the action plan and ensure redirect_target is set.')
                         print(f"  ❌ Redirect failed - missing redirect_target for {source_url}")
                         print(f"     Action data keys: {list(action_data.keys())}")
                         print(f"     redirect_target value: {repr(target_url)}")
@@ -1242,7 +1263,7 @@ def execute_selected_actions():
                             state_mgr.mark_completed(action_data['id'], None)
                             print(f"✓ Redirect created successfully: {redirect_result.url}")
                         else:
-                            result['error'] = redirect_result.error
+                            result['error'] = sanitize_for_json(redirect_result.error)
                             print(f"✗ Redirect failed: {redirect_result.error}")
                             print(f"     Source: {source_url}")
                             print(f"     Target: {target_url}")
@@ -1251,7 +1272,7 @@ def execute_selected_actions():
                     # Delete post
                     post = wp.find_post_by_url(action_data['url'])
                     if not post:
-                        result['error'] = f"Post not found: {action_data['url']}"
+                        result['error'] = sanitize_for_json(f"Post not found: {action_data['url']}")
                     else:
                         post_id = post['id']
                         print(f"Deleting post ID {post_id}: {action_data['url']}")
@@ -1264,14 +1285,14 @@ def execute_selected_actions():
                             state_mgr.mark_completed(action_data['id'], post_id)
                             print(f"✓ Post deleted successfully")
                         else:
-                            result['error'] = delete_result.error
+                            result['error'] = sanitize_for_json(delete_result.error)
                             print(f"✗ Delete failed: {delete_result.error}")
 
                 else:
-                    result['error'] = f"Unsupported action type: {action_data['action_type']}"
+                    result['error'] = sanitize_for_json(f"Unsupported action type: {action_data['action_type']}")
 
             except Exception as e:
-                result['error'] = str(e)
+                result['error'] = sanitize_for_json(str(e))
 
             results.append(result)
 
@@ -1436,7 +1457,7 @@ def quick_create_post():
 
                 print(f"Post created successfully: {result['post_id']}")
             else:
-                result['error'] = publish_result.error
+                            result['error'] = sanitize_for_json(publish_result.error)
                 print(f"Post creation failed: {publish_result.error}")
 
         except Exception as e:
@@ -1520,7 +1541,7 @@ def quick_update_post():
         # Find the post/page
         found_item = wp.find_post_or_page_by_url(url)
         if not found_item:
-            result['error'] = f"Post or page not found: {url}"
+            result['error'] = sanitize_for_json(f"Post or page not found: {url}")
             return jsonify(result), 404
         
         item_id = found_item['id']
@@ -1531,11 +1552,11 @@ def quick_update_post():
         # Handle different page types
         if page_type.value == 'homepage' or (item_type == 'page' and update_strategy.value == 'meta_only'):
             # Homepage or WordPress page - only update meta, not content
-            result['error'] = f"This URL is a {page_type.value}. Only SEO meta data can be updated, not content. Use the action plan for meta-only updates."
+            result['error'] = sanitize_for_json(f"This URL is a {page_type.value}. Only SEO meta data can be updated, not content. Use the action plan for meta-only updates.")
             return jsonify(result), 400
         
         elif update_strategy.value == 'skip':
-            result['error'] = f"This URL type ({page_type.value}) cannot be updated."
+            result['error'] = sanitize_for_json(f"This URL type ({page_type.value}) cannot be updated.")
             return jsonify(result), 400
         
         else:
@@ -1618,7 +1639,7 @@ def quick_update_post():
                 
                 print(f"Post updated successfully: {item_id}")
             else:
-                result['error'] = publish_result.error
+                            result['error'] = sanitize_for_json(publish_result.error)
                 print(f"Post update failed: {publish_result.error}")
         
         return jsonify(result)
@@ -1862,7 +1883,7 @@ def execute_next_action():
                     result['success'] = True
                     state_mgr.mark_completed(action_data['id'], publish_result.post_id)
                 else:
-                    result['error'] = publish_result.error
+                            result['error'] = sanitize_for_json(publish_result.error)
                     result['success'] = False
 
             elif action_data['action_type'] == 'update':
@@ -1969,7 +1990,7 @@ def execute_next_action():
                                 state_mgr.mark_completed(action_data['id'], homepage_id)
                                 print(f"  ✅ Homepage SEO meta updated successfully (content preserved)")
                             else:
-                                result['error'] = publish_result.error
+                                result['error'] = sanitize_for_json(publish_result.error)
                                 result['success'] = False
                         else:
                             # Couldn't find homepage page/post - skip with warning
@@ -2046,7 +2067,7 @@ def execute_next_action():
                         state_mgr.mark_completed(action_data['id'], publish_result.post_id)
                         print(f"  ✅ Meta updated successfully")
                     else:
-                        result['error'] = publish_result.error
+                        result['error'] = sanitize_for_json(publish_result.error)
                         result['success'] = False
 
                 else:
@@ -2095,7 +2116,7 @@ def execute_next_action():
                             state_mgr.mark_completed(action_data['id'], item_id)
                             print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
                         else:
-                            result['error'] = publish_result.error
+                            result['error'] = sanitize_for_json(publish_result.error)
                             result['success'] = False
                         # WordPress page handled - no need to generate article content
                     
@@ -2179,11 +2200,11 @@ def execute_next_action():
                             state_mgr.mark_completed(action_data['id'], item_id)
                             print(f"  ✅ Content updated successfully")
                         else:
-                            result['error'] = publish_result.error
+                            result['error'] = sanitize_for_json(publish_result.error)
                             result['success'] = False
 
             else:
-                result['error'] = f"Unsupported action type: {action_data['action_type']}"
+                result['error'] = sanitize_for_json(f"Unsupported action type: {action_data['action_type']}")
 
         except Exception as e:
             if str(e) == "SKIP_DUPLICATE":
