@@ -33,6 +33,11 @@ class StateManager:
         """
         self.site_name = site_name
         self.storage = StateStorage()
+        # Keep state_file for backward compatibility with debug code
+        self.state_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            f"{site_name}_state.json"
+        )
         self.state = self._load()
         logger.info(f"StateManager initialized for {site_name}")
     
@@ -40,6 +45,11 @@ class StateManager:
         """Load state using simplified storage."""
         try:
             state = self.storage.load(self.site_name)
+            # Ensure state has required structure
+            if 'stats' not in state:
+                state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
+            if 'current_plan' not in state:
+                state['current_plan'] = []
             logger.info(f"Loaded state for {self.site_name}: {state.get('stats', {})}")
             return state
         except Exception as e:
@@ -72,6 +82,10 @@ class StateManager:
         Args:
             actions: List of action dictionaries with keys like id, action_type, url, etc.
         """
+        if 'current_plan' not in self.state:
+            self.state['current_plan'] = []
+        if 'stats' not in self.state:
+            self.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
         self.state['current_plan'] = actions
         self.state['stats']['total_actions'] = len(actions)
         self.state['stats']['pending'] = len([a for a in actions if a.get('status') != 'completed'])
@@ -86,6 +100,11 @@ class StateManager:
             action_id: Unique identifier of the action
             post_id: WordPress post ID if applicable
         """
+        if 'current_plan' not in self.state:
+            self.state['current_plan'] = []
+        if 'stats' not in self.state:
+            self.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
+            
         for action in self.state['current_plan']:
             if action['id'] == action_id:
                 action['status'] = 'completed'
@@ -113,6 +132,8 @@ class StateManager:
         Returns:
             list: Pending actions sorted by priority_score (highest first)
         """
+        if 'current_plan' not in self.state:
+            return []
         pending = [a for a in self.state['current_plan'] if a.get('status') != 'completed']
         pending.sort(key=lambda x: x.get('priority_score', 0), reverse=True)
         return pending[:limit] if limit else pending
@@ -154,6 +175,8 @@ class StateManager:
         Returns:
             dict: Statistics with keys: total_actions, completed, pending
         """
+        if 'stats' not in self.state:
+            return {'total_actions': 0, 'completed': 0, 'pending': 0}
         return self.state['stats'].copy()
 
     def save_analysis_result(self, analysis: Dict):

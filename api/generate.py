@@ -253,18 +253,7 @@ def save_state():
         
         if action == 'save':
             # Force save current state
-            print(f"DEBUG SAVE: Saving state for {site_name}")
-            print(f"DEBUG SAVE: Current state: {state_mgr.state}")
-            print(f"DEBUG SAVE: Current plan length: {len(state_mgr.state.get('current_plan', []))}")
-            print(f"DEBUG SAVE: Stats before save: {state_mgr.get_stats()}")
-            
             state_mgr.save()
-            print(f"DEBUG SAVE: State saved successfully")
-            
-            # Reload and check
-            state_mgr.state = state_mgr._load()
-            print(f"DEBUG SAVE: State after reload: {state_mgr.state}")
-            print(f"DEBUG SAVE: Stats after reload: {state_mgr.get_stats()}")
             
             return jsonify({
                 'success': True,
@@ -291,8 +280,6 @@ def refresh_sites():
         
         for site_name in sites:
             state_mgr = StateManager(site_name)
-            # Force reload state to get latest data
-            state_mgr.state = state_mgr._load()
             stats = state_mgr.get_stats()
             
             site_status.append({
@@ -345,10 +332,6 @@ def create_test_plan():
         # Update the plan
         state_mgr.update_plan(test_plan)
 
-        print(f"DEBUG TEST PLAN: Created test plan for {site_name}")
-        print(f"DEBUG TEST PLAN: Plan length: {len(test_plan)}")
-        print(f"DEBUG TEST PLAN: Stats: {state_mgr.get_stats()}")
-
         return jsonify({
             'success': True,
             'message': f'Test plan created for {site_name}',
@@ -387,6 +370,8 @@ def delete_action():
 
         # Update the plan
         state_mgr.state['current_plan'] = updated_plan
+        if 'stats' not in state_mgr.state:
+            state_mgr.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
         state_mgr.state['stats']['total_actions'] = len(updated_plan)
         state_mgr.state['stats']['pending'] = len([a for a in updated_plan if a.get('status') != 'completed'])
         state_mgr.state['stats']['completed'] = len([a for a in updated_plan if a.get('status') == 'completed'])
@@ -444,6 +429,8 @@ def delete_actions_batch():
 
         # Update the plan and stats
         state_mgr.state['current_plan'] = updated_plan
+        if 'stats' not in state_mgr.state:
+            state_mgr.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
         state_mgr.state['stats']['total_actions'] = len(updated_plan)
         state_mgr.state['stats']['pending'] = len([a for a in updated_plan if a.get('status') != 'completed'])
         state_mgr.state['stats']['completed'] = len([a for a in updated_plan if a.get('status') == 'completed'])
@@ -478,43 +465,8 @@ def clear_plan():
 
         state_mgr = StateManager(site_name)
 
-        # Debug: Show state before clearing
-        print(f"DEBUG CLEAR: Before clear - {site_name}")
-        print(f"DEBUG CLEAR: State file: {state_mgr.state_file}")
-        print(f"DEBUG CLEAR: Plan length: {len(state_mgr.state.get('current_plan', []))}")
-        print(f"DEBUG CLEAR: Stats before: {state_mgr.get_stats()}")
-
         # Clear all state
         state_mgr.clear_state()
-
-        # Debug: Show state after clearing
-        print(f"DEBUG CLEAR: After clear - {site_name}")
-        print(f"DEBUG CLEAR: Plan length: {len(state_mgr.state.get('current_plan', []))}")
-        print(f"DEBUG CLEAR: Stats after: {state_mgr.get_stats()}")
-
-        # Wait a moment for persistent storage to propagate
-        import time
-        time.sleep(1)
-        
-        # Force reload to verify the clear worked
-        state_mgr.state = state_mgr._load()
-        print(f"DEBUG CLEAR: After reload - {site_name}")
-        print(f"DEBUG CLEAR: Plan length after reload: {len(state_mgr.state.get('current_plan', []))}")
-        print(f"DEBUG CLEAR: Stats after reload: {state_mgr.get_stats()}")
-
-        # Additional verification: check if state file exists and its contents
-        import os
-        import json
-        if os.path.exists(state_mgr.state_file):
-            try:
-                with open(state_mgr.state_file, 'r') as f:
-                    file_content = json.load(f)
-                print(f"DEBUG CLEAR: File content after clear: {file_content.get('stats', {})}")
-                print(f"DEBUG CLEAR: File plan length: {len(file_content.get('current_plan', []))}")
-            except Exception as e:
-                print(f"DEBUG CLEAR: Error reading state file: {e}")
-        else:
-            print(f"DEBUG CLEAR: State file does not exist: {state_mgr.state_file}")
 
         return jsonify({
             'success': True,
@@ -544,9 +496,7 @@ def load_state():
         
         if action == 'load':
             # Force reload state
-            print(f"DEBUG LOAD: Loading state for {site_name}")
             state_mgr.state = state_mgr._load()
-            print(f"DEBUG LOAD: Loaded state: {state_mgr.state}")
             return jsonify({
                 'success': True,
                 'message': f'State loaded for {site_name}',
@@ -1760,13 +1710,14 @@ def execute_next_action():
             print(f"Generated ID for action: {action_id}")
 
             # CRITICAL: Update the action in state to persist the ID
-            for idx, act in enumerate(state_mgr.state['current_plan']):
-                if (act.get('action_type') == action_data.get('action_type') and
-                    act.get('url') == action_data.get('url') and
-                    act.get('title') == action_data.get('title')):
-                    state_mgr.state['current_plan'][idx]['id'] = action_id
-                    break
-            state_mgr.save()
+            if 'current_plan' in state_mgr.state:
+                for idx, act in enumerate(state_mgr.state['current_plan']):
+                    if (act.get('action_type') == action_data.get('action_type') and
+                        act.get('url') == action_data.get('url') and
+                        act.get('title') == action_data.get('title')):
+                        state_mgr.state['current_plan'][idx]['id'] = action_id
+                        break
+                state_mgr.save()
             print(f"Persisted ID to state for action: {action_id}")
 
         # Initialize WordPress and content generator
@@ -2312,8 +2263,6 @@ def list_sites_endpoint():
         for site_name in sites:
             try:
                 state_mgr = StateManager(site_name)
-                # Force reload state to get latest data
-                state_mgr.state = state_mgr._load()
                 stats = state_mgr.get_stats()
                 
                 site_status.append({
@@ -2393,27 +2342,10 @@ def get_action_plan(site_name):
     try:
         from state_manager import StateManager
 
-        print(f"DEBUG PLAN: Getting action plan for {site_name}")
         state_mgr = StateManager(site_name)
         
-        print(f"DEBUG PLAN: StateManager initialized")
-        print(f"DEBUG PLAN: State file: {state_mgr.state_file}")
-        print(f"DEBUG PLAN: State keys: {list(state_mgr.state.keys())}")
-        
         plan = state_mgr.state.get('current_plan', [])
         stats = state_mgr.get_stats()
-        
-        print(f"DEBUG PLAN: Plan length: {len(plan)}")
-        print(f"DEBUG PLAN: Stats: {stats}")
-        print(f"DEBUG PLAN: First few actions: {plan[:2] if plan else 'No actions'}")
-        
-        # Force reload state to ensure we have latest data
-        state_mgr.state = state_mgr._load()
-        plan = state_mgr.state.get('current_plan', [])
-        stats = state_mgr.get_stats()
-        
-        print(f"DEBUG PLAN: After reload - Plan length: {len(plan)}")
-        print(f"DEBUG PLAN: After reload - Stats: {stats}")
 
         # Sort actions by priority and status
         # Pending first (sorted by priority), then completed
@@ -2425,10 +2357,6 @@ def get_action_plan(site_name):
 
         all_actions = pending_actions + completed_actions
 
-        print(f"DEBUG PLAN: Pending actions: {len(pending_actions)}")
-        print(f"DEBUG PLAN: Completed actions: {len(completed_actions)}")
-        print(f"DEBUG PLAN: Total actions: {len(all_actions)}")
-
         response_data = {
             "site": site_name,
             "stats": stats,
@@ -2437,9 +2365,6 @@ def get_action_plan(site_name):
             "pending_count": len(pending_actions),
             "completed_count": len(completed_actions)
         }
-        
-        print(f"DEBUG PLAN: Response data keys: {list(response_data.keys())}")
-        print(f"DEBUG PLAN: Response actions length: {len(response_data['actions'])}")
         
         return jsonify(response_data)
 
@@ -2512,6 +2437,8 @@ def update_action_plan(site_name):
             action_to_update['title'] = data['title']
         
         # Recalculate stats
+        if 'stats' not in state_mgr.state:
+            state_mgr.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
         state_mgr.state['stats']['total_actions'] = len(plan)
         state_mgr.state['stats']['pending'] = len([a for a in plan if a.get('status') != 'completed'])
         state_mgr.state['stats']['completed'] = len([a for a in plan if a.get('status') == 'completed'])
