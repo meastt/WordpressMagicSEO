@@ -1454,6 +1454,184 @@ def quick_create_post():
         }), 500
 
 
+@app.route("/api/quick-update", methods=["POST"])
+def quick_update_post():
+    """
+    Quick update an existing post/page by URL without action plan (ad-hoc content update).
+    
+    JSON body: {
+        site_name: string,
+        url: string (full URL of post/page to update),
+        keywords: string[] (optional, comma-separated or array),
+        generate_images: bool (optional, default False)
+    }
+    
+    Returns: Update result with post_id or error
+    """
+    print("=== /api/quick-update called ===")
+    
+    try:
+        data = request.get_json()
+        site_name = data.get('site_name')
+        url = data.get('url')
+        keywords = data.get('keywords', [])
+        generate_images = data.get('generate_images', False)
+        
+        # Parse keywords if string
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+        
+        if not site_name or not url:
+            return jsonify({"error": "site_name and url required"}), 400
+        
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if not anthropic_key:
+            return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+        
+        from config import get_site
+        from wordpress_publisher import WordPressPublisher
+        from claude_content_generator import ClaudeContentGenerator
+        from affiliate_link_manager import AffiliateLinkManager
+        from page_type_detector import PageTypeDetector
+        
+        # Get site config
+        site_config = get_site(site_name)
+        
+        # Initialize services
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password'],
+            rate_limit_delay=1.0
+        )
+        content_gen = ClaudeContentGenerator(anthropic_key)
+        
+        # Detect page type
+        page_type = PageTypeDetector.detect_page_type(url)
+        update_strategy = PageTypeDetector.get_update_strategy(page_type)
+        
+        result = {
+            "success": False,
+            "url": url,
+            "page_type": page_type.value,
+            "update_strategy": update_strategy.value
+        }
+        
+        # Find the post/page
+        found_item = wp.find_post_or_page_by_url(url)
+        if not found_item:
+            result['error'] = f"Post or page not found: {url}"
+            return jsonify(result), 404
+        
+        item_id = found_item['id']
+        item_type = found_item.get('_wp_type', 'post')
+        existing_title = found_item.get('title', {}).get('rendered', '') if isinstance(found_item.get('title'), dict) else found_item.get('title', '')
+        existing_content = found_item.get('content', {}).get('rendered', '') if isinstance(found_item.get('content'), dict) else found_item.get('content', '')
+        
+        # Handle different page types
+        if page_type.value == 'homepage' or (item_type == 'page' and update_strategy.value == 'meta_only'):
+            # Homepage or WordPress page - only update meta, not content
+            result['error'] = f"This URL is a {page_type.value}. Only SEO meta data can be updated, not content. Use the action plan for meta-only updates."
+            return jsonify(result), 400
+        
+        elif update_strategy.value == 'skip':
+            result['error'] = f"This URL type ({page_type.value}) cannot be updated."
+            return jsonify(result), 400
+        
+        else:
+            # Regular post/page - full content update
+            title = existing_title  # Use existing title unless provided
+            if not keywords:
+                # Try to extract keywords from existing content or use default
+                keywords = [title.split()[0]] if title else []
+            
+            # Research and generate updated content
+            research = content_gen.research_topic(title, keywords)
+            
+            # Get affiliate manager if available
+            affiliate_mgr = None
+            try:
+                affiliate_mgr = AffiliateLinkManager(site_name)
+            except Exception as e:
+                print(f"  ⚠️  Affiliate manager not available: {e}")
+            
+            internal_links = wp.get_internal_link_suggestions(keywords)
+            affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+            
+            article_data = content_gen.generate_article(
+                topic_title=title,
+                keywords=keywords,
+                research=research,
+                meta_description=f"Updated: {title}",
+                existing_content=existing_content,
+                internal_links=internal_links,
+                affiliate_links=affiliate_links
+            )
+            
+            # Generate images if requested
+            if generate_images:
+                try:
+                    from gemini_image_generator import GeminiImageGenerator
+                    gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                    if gemini_key:
+                        print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                        image_gen = GeminiImageGenerator(gemini_key)
+                        updated_content, image_info = image_gen.replace_placeholders_with_images(
+                            content=article_data['content'],
+                            article_title=article_data.get('title', title),
+                            keywords=keywords,
+                            wp_publisher=wp,
+                            upload_to_wordpress=True
+                        )
+                        article_data['content'] = updated_content
+                        if image_info:
+                            print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                    else:
+                        print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                except Exception as e:
+                    print(f"  ⚠️  Image generation failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Continue without images if generation fails
+            
+            # Update the post/page
+            publish_result = wp.update_post(
+                item_id,
+                title=article_data.get('title', title),
+                content=article_data['content'],
+                meta_title=article_data.get('meta_title'),
+                meta_description=article_data.get('meta_description'),
+                categories=article_data.get('categories', []),
+                tags=article_data.get('tags', [])
+            )
+            
+            if publish_result.success:
+                result['post_id'] = item_id
+                result['success'] = True
+                result['url'] = url
+                
+                # Update affiliate link usage
+                if affiliate_mgr and affiliate_links:
+                    for link in affiliate_links:
+                        if link['url'] in article_data['content']:
+                            affiliate_mgr.increment_usage(link['id'])
+                
+                print(f"Post updated successfully: {item_id}")
+            else:
+                result['error'] = publish_result.error
+                print(f"Post update failed: {publish_result.error}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Quick update failed",
+            "details": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
 @app.route("/api/execute-next", methods=["POST"])
 def execute_next_action():
     """

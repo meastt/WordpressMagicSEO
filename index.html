@@ -1708,6 +1708,41 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Quick Update Card -->
+                <div class="quick-create-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">🔄 Quick Update Content</h2>
+                            <p class="section-description">Update existing posts/pages by URL - AI will rewrite and optimize the content</p>
+                        </div>
+                    </div>
+                    <div class="quick-create-card">
+                        <div class="form-group">
+                            <label>Target WordPress Site</label>
+                            <select id="quick_update_site" class="form-control">
+                                <option value="">-- Select a site --</option>
+                            </select>
+                        </div>
+
+                        <div id="quick_update_forms">
+                            <!-- Dynamic update forms will be added here -->
+                        </div>
+
+                        <div class="quick-create-actions">
+                            <button type="button" class="btn-secondary" onclick="addQuickUpdateForm()">
+                                ➕ Add Another URL
+                            </button>
+                            <button type="button" class="btn-primary" onclick="submitQuickUpdate()">
+                                ✨ Update Posts with AI
+                            </button>
+                        </div>
+
+                        <div class="alert alert-info">
+                            💡 <strong>How it works:</strong> Enter the full URL of any existing post or page. The AI will research the topic, rewrite the content for better SEO, add images (if enabled), update taxonomies, and publish the updated version.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Execute View -->
@@ -2294,8 +2329,15 @@
             const selector = document.getElementById('exec_site_selector');
             selector.innerHTML = '<option value="">-- Select a site --</option>';
 
-            const quickSelector = document.getElementById('quick_create_site');
-            quickSelector.innerHTML = '<option value="">-- Select a site --</option>';
+            const quickCreateSelector = document.getElementById('quick_create_site');
+            if (quickCreateSelector) {
+                quickCreateSelector.innerHTML = '<option value="">-- Select a site --</option>';
+            }
+
+            const quickUpdateSelector = document.getElementById('quick_update_site');
+            if (quickUpdateSelector) {
+                quickUpdateSelector.innerHTML = '<option value="">-- Select a site --</option>';
+            }
 
             sitesData.forEach(site => {
                 const option = document.createElement('option');
@@ -2303,14 +2345,30 @@
                 option.textContent = site.name;
                 selector.appendChild(option);
 
-                const quickOption = document.createElement('option');
-                quickOption.value = site.name;
-                quickOption.textContent = site.name;
-                quickSelector.appendChild(quickOption);
+                if (quickCreateSelector) {
+                    const quickCreateOption = document.createElement('option');
+                    quickCreateOption.value = site.name;
+                    quickCreateOption.textContent = site.name;
+                    quickCreateSelector.appendChild(quickCreateOption);
+                }
+
+                if (quickUpdateSelector) {
+                    const quickUpdateOption = document.createElement('option');
+                    quickUpdateOption.value = site.name;
+                    quickUpdateOption.textContent = site.name;
+                    quickUpdateSelector.appendChild(quickUpdateOption);
+                }
             });
 
             // Initialize with one quick create form
-            addQuickCreateForm();
+            if (quickCreateSelector) {
+                addQuickCreateForm();
+            }
+            
+            // Initialize with one quick update form
+            if (quickUpdateSelector) {
+                addQuickUpdateForm();
+            }
         }
 
         // Site Selection
@@ -3564,6 +3622,191 @@
             document.getElementById('quick_create_forms').innerHTML = '';
             quickCreateFormCount = 0;
             addQuickCreateForm();
+            await loadSites();
+            renderDashboard();
+        }
+
+        // =================================================================
+        // QUICK UPDATE FUNCTIONS
+        // =================================================================
+        let quickUpdateFormCount = 0;
+
+        function addQuickUpdateForm() {
+            const container = document.getElementById('quick_update_forms');
+            if (!container) return;
+            
+            const formId = `quick_update_form_${quickUpdateFormCount++}`;
+
+            const formDiv = document.createElement('div');
+            formDiv.id = formId;
+            formDiv.style.cssText = 'border: 2px solid #e0e0e0; border-radius: 8px; padding: 16px; margin-bottom: 16px; background: #f8f9fa;';
+
+            formDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <strong>Update ${quickUpdateFormCount}</strong>
+                    ${quickUpdateFormCount > 1 ? `<button type="button" class="btn-secondary" onclick="removeQuickUpdateForm('${formId}')" style="padding: 4px 12px; font-size: 12px;">Remove</button>` : ''}
+                </div>
+                <div class="form-group">
+                    <label>Post/Page URL (full URL)</label>
+                    <input type="text" class="form-control quick-update-url" placeholder="e.g., https://yoursite.com/my-post/">
+                </div>
+                <div class="form-group">
+                    <label>Keywords (optional, comma-separated)</label>
+                    <input type="text" class="form-control quick-update-keywords" placeholder="e.g., seo, optimization, content">
+                    <small style="color: #666; font-size: 12px;">Leave empty to auto-detect from existing content</small>
+                </div>
+            `;
+
+            container.appendChild(formDiv);
+        }
+
+        function removeQuickUpdateForm(formId) {
+            document.getElementById(formId)?.remove();
+        }
+
+        async function submitQuickUpdate() {
+            const siteName = document.getElementById('quick_update_site').value;
+            if (!siteName) {
+                showToast('No Site Selected', 'Please select a site first', 'warning');
+                return;
+            }
+
+            // Gather all update data
+            const forms = document.querySelectorAll('#quick_update_forms > div');
+            const updates = [];
+
+            forms.forEach((form, index) => {
+                const url = form.querySelector('.quick-update-url').value.trim();
+                const keywords = form.querySelector('.quick-update-keywords').value.trim();
+
+                if (url) {
+                    updates.push({ url, keywords });
+                }
+            });
+
+            if (updates.length === 0) {
+                showToast('No URLs', 'Please enter at least one post/page URL', 'warning');
+                return;
+            }
+
+            if (updates.length > 10) {
+                showToast('Too Many URLs', 'Maximum 10 URLs at a time', 'warning');
+                return;
+            }
+
+            // Store original updates array for mapping after confirmation
+            window.quickUpdateData = updates;
+
+            // Show confirmation modal with image generation toggle
+            const confirmActions = updates.map((update, i) => ({
+                id: `quick_update_${i}`,
+                action_type: 'update',
+                url: update.url,
+                title: update.url.split('/').pop() || 'Update Content',
+                keywords: update.keywords
+            }));
+
+            showConfirmationModal(confirmActions, async (confirmedActions) => {
+                // Get image generation toggle state
+                const generateImages = document.getElementById('generate_images_toggle')?.checked || false;
+                
+                // Map confirmed actions back to updates format
+                const confirmedUpdates = confirmedActions.map(action => ({
+                    url: action.url,
+                    keywords: action.keywords || ''
+                }));
+                
+                await executeQuickUpdate(siteName, confirmedUpdates, generateImages);
+            });
+        }
+
+        async function executeQuickUpdate(siteName, updates, generateImages) {
+            showLoading('Updating posts...', true);
+            let completed = 0;
+            let errors = [];
+            let successfulUpdates = [];
+
+            for (const update of updates) {
+                try {
+                    updateProgress(completed, updates.length);
+                    document.getElementById('loading_text').textContent =
+                        `Updating: ${update.url}`;
+
+                    const response = await fetch(`${API_BASE}/quick-update`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            site_name: siteName,
+                            url: update.url,
+                            keywords: update.keywords || '',
+                            generate_images: generateImages
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || data.error) {
+                        errors.push({
+                            url: update.url,
+                            error: data.error || 'Unknown error'
+                        });
+                    } else if (data.skipped) {
+                        errors.push({
+                            url: update.url,
+                            error: data.reason || 'Skipped'
+                        });
+                    } else {
+                        successfulUpdates.push({
+                            url: update.url,
+                            post_id: data.post_id
+                        });
+                    }
+
+                    completed++;
+
+                    // Rate limiting: 2 seconds between updates
+                    if (completed < updates.length) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+
+                } catch (error) {
+                    errors.push({
+                        url: update.url,
+                        error: error.message
+                    });
+                    completed++;
+                }
+            }
+
+            hideLoading();
+
+            // Show success toast
+            if (errors.length === 0) {
+                showToast(
+                    'Posts Updated!',
+                    `Successfully updated ${successfulUpdates.length} post${successfulUpdates.length > 1 ? 's' : ''}`,
+                    'success',
+                    5000
+                );
+            } else {
+                showToast(
+                    'Partial Success',
+                    `Updated ${successfulUpdates.length} of ${updates.length} posts. ${errors.length} failed.`,
+                    'warning',
+                    6000
+                );
+
+                // Show detailed errors in alert
+                const errorMsg = errors.map(e => `• ${e.url}: ${e.error}`).join('\n');
+                setTimeout(() => {
+                    alert(`⚠️ Some updates failed:\n\n${errorMsg}`);
+                }, 500);
+            }
+
+            // Clear forms and reload dashboard
+            document.getElementById('quick_update_forms').innerHTML = '';
+            quickUpdateFormCount = 0;
+            addQuickUpdateForm();
             await loadSites();
             renderDashboard();
         }
