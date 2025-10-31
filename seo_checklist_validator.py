@@ -346,14 +346,15 @@ class SEOChecklistValidator:
             external_links = [link for link in all_links if link.get('href', '').startswith('http')]
 
         # Check minimum external links
+        # NOTE: External links intentionally disabled to prevent AI hallucinating 404 URLs
         if len(external_links) == 0:
-            self.warnings.append("⚠️  No external links (linking to authoritative sources improves E-E-A-T)")
+            self.passed.append("✅ No external links (intentionally disabled - AI cannot verify URLs)")
         elif len(external_links) < 2:
-            self.warnings.append(f"⚠️  Only {len(external_links)} external link (recommended: 2-3 to authoritative sources)")
+            self.warnings.append(f"⚠️  Only {len(external_links)} external link (these may be 404s if AI-generated)")
         elif len(external_links) > 10:
-            self.warnings.append(f"⚠️  Many external links: {len(external_links)} (ensure they add value)")
+            self.warnings.append(f"⚠️  Many external links: {len(external_links)} (verify URLs are valid, AI may hallucinate)")
         else:
-            self.passed.append(f"✅ Good external linking: {len(external_links)} authoritative links")
+            self.warnings.append(f"⚠️  {len(external_links)} external links found (verify URLs are valid, AI may hallucinate 404s)")
 
         # Check for proper attributes (nofollow for affiliate/sponsored)
         affiliate_keywords = ['amazon', 'affiliate', 'partner', 'buy', 'shop']
@@ -372,12 +373,13 @@ class SEOChecklistValidator:
             else:
                 self.passed.append(f"✅ All {len(affiliate_links)} affiliate links have proper nofollow attribute")
 
-        # Check for target="_blank" on external links
-        links_with_target_blank = [link for link in external_links if link.get('target') == '_blank']
-        if len(links_with_target_blank) == len(external_links):
-            self.passed.append("✅ All external links open in new tab (good UX)")
-        else:
-            self.warnings.append("⚠️  Some external links don't open in new tab (consider adding target='_blank')")
+        # Check for target="_blank" on external links (only if external links exist)
+        if len(external_links) > 0:
+            links_with_target_blank = [link for link in external_links if link.get('target') == '_blank']
+            if len(links_with_target_blank) == len(external_links):
+                self.passed.append("✅ All external links open in new tab (good UX)")
+            else:
+                self.warnings.append("⚠️  Some external links don't open in new tab (consider adding target='_blank')")
 
     def _validate_image_seo(self, soup: BeautifulSoup, primary_keyword: Optional[str]):
         """Validate image SEO (alt text, titles, file names)."""
