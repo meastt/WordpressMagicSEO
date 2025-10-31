@@ -100,10 +100,58 @@ class GeminiImageGenerator:
             # Try different ways to access the image
             pil_image = None
             
-            # Method 1: Check if .image attribute exists (PIL Image)
+            # Method 1: Check if .image attribute exists (Pydantic wrapper or PIL Image)
             if hasattr(generated_image, 'image'):
-                pil_image = generated_image.image
-                print(f"  ✅ Found .image attribute (PIL Image)")
+                image_obj = generated_image.image
+                print(f"  ✅ Found .image attribute, type: {type(image_obj)}")
+
+                # The image object might be a Pydantic wrapper - try to get the actual PIL Image
+                # Check if it has _pil_image or similar attribute
+                if hasattr(image_obj, '_pil_image'):
+                    pil_image = image_obj._pil_image
+                    print(f"  ✅ Extracted PIL Image from _pil_image attribute")
+                # Or it might have a method to get the PIL image
+                elif hasattr(image_obj, 'to_pil'):
+                    pil_image = image_obj.to_pil()
+                    print(f"  ✅ Extracted PIL Image using to_pil() method")
+                # Try accessing common PIL Image attributes to verify it IS a PIL Image
+                elif hasattr(image_obj, 'mode') and hasattr(image_obj, 'size'):
+                    pil_image = image_obj
+                    print(f"  ✅ Image object is a PIL Image (has mode and size)")
+                # If it's a Pydantic model, try model_dump or dict conversion
+                elif hasattr(image_obj, 'model_dump'):
+                    try:
+                        # Try to convert the Pydantic model to see what's inside
+                        image_dict = image_obj.model_dump()
+                        print(f"  📊 Pydantic model_dump keys: {list(image_dict.keys())}")
+
+                        # Check for common image data fields
+                        if 'data' in image_dict and isinstance(image_dict['data'], bytes):
+                            return image_dict['data']
+                        elif 'bytes' in image_dict and isinstance(image_dict['bytes'], bytes):
+                            return image_dict['bytes']
+                        else:
+                            print(f"⚠️  No bytes data found in Pydantic model")
+                            return None
+                    except Exception as e:
+                        print(f"⚠️  Error dumping Pydantic model: {e}")
+                        return None
+                else:
+                    # Last resort - try importing PIL and checking if it's an Image
+                    try:
+                        from PIL import Image as PILImage
+                        if isinstance(image_obj, PILImage.Image):
+                            pil_image = image_obj
+                            print(f"  ✅ Confirmed as PIL Image via isinstance check")
+                        else:
+                            print(f"⚠️  Image object is not a PIL Image, type: {type(image_obj)}")
+                            # Try to access raw bytes if available
+                            if hasattr(image_obj, '__bytes__'):
+                                return bytes(image_obj)
+                            return None
+                    except Exception as e:
+                        print(f"⚠️  Error verifying PIL Image: {e}")
+                        return None
             # Method 2: Check if .bytes attribute exists (raw bytes)
             elif hasattr(generated_image, 'bytes'):
                 print(f"  ✅ Found .bytes attribute, returning directly")
@@ -131,12 +179,18 @@ class GeminiImageGenerator:
             else:
                 print(f"⚠️  Unknown generated_image format: {type(generated_image)}")
                 return None
-            
+
             if not pil_image:
                 print(f"⚠️  Could not extract PIL image from generated_image")
                 return None
-            
-            print(f"  🖼️  PIL Image mode: {pil_image.mode}, size: {pil_image.size}")
+
+            # Verify it's actually a PIL Image before accessing attributes
+            try:
+                print(f"  🖼️  PIL Image mode: {pil_image.mode}, size: {pil_image.size}")
+            except AttributeError as e:
+                print(f"⚠️  Object doesn't have PIL Image attributes: {e}")
+                print(f"  📊 Object type: {type(pil_image)}, attributes: {dir(pil_image)[:10]}...")
+                return None
             
             # Ensure image is in RGB mode for JPEG (convert RGBA/P to RGB if needed)
             if pil_image.mode in ('RGBA', 'LA', 'P'):
