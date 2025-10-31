@@ -85,9 +85,14 @@ class AIStrategicPlanner:
         if completed_actions is None:
             completed_actions = []
         
-        # Prepare data summaries for AI (reduced to 25 pages to prevent prompt bloat)
+        # Prepare data summaries for AI
+        # Top pages for analysis (25 pages)
         gsc_summary = self._summarize_gsc(merged_data, top_n=25)
         ga4_summary = self._summarize_ga4(merged_data, top_n=25)
+        
+        # ALL URLs with performance data for redirect target selection
+        all_urls_with_performance = self._format_all_urls_for_redirect_selection(merged_data)
+        
         completed_urls = [a.get('url') for a in completed_actions if a.get('url')]
 
         # Add current date context for year-aware recommendations
@@ -116,8 +121,11 @@ Current Month: {current_month}
 **NICHE RESEARCH:**
 {json.dumps(niche_report, indent=2)}
 
-**GSC DATA (Last 12 months):**
+**GSC DATA (Top 25 pages by impressions):**
 {gsc_summary}
+
+**ALL AVAILABLE URLs WITH PERFORMANCE METRICS (for redirect target selection):**
+{all_urls_with_performance}
 
 **GA4 ENGAGEMENT DATA:**
 {ga4_summary}
@@ -192,7 +200,7 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 
 **JSON STRUCTURE - REQUIRED FIELDS:**
 ```
-{
+{{
   "id": "action_XXX",
   "action_type": "update" | "create" | "redirect_301" | "delete",
   "url": "https://...",  // Source URL (required for update/redirect/delete)
@@ -202,14 +210,20 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
   "reasoning": "...",
   "estimated_impact": "high" | "medium" | "low",
   "redirect_target": "https://..."  // **MANDATORY for redirect_301** - execution will FAIL without this!
-}
+}}
 ```
 
 **⚠️ CRITICAL FOR redirect_301 ACTIONS:**
 - **redirect_target is ABSOLUTELY REQUIRED** - the action will FAIL during execution without it!
 - redirect_target must be a full URL: `"redirect_target": "https://tigertribe.net/cougar-vs-mountain-lion/"`
-- Look at the GSC data to find the BEST page to redirect to (higher traffic, better content)
+- **USE PERFORMANCE DATA:** Always select the BEST performing target URL from the "ALL AVAILABLE URLs WITH PERFORMANCE METRICS" section above
+- **Selection criteria (in order of priority):**
+  1. Highest impressions (primary signal)
+  2. Highest clicks (secondary signal)
+  3. Better position (lower = better)
+  4. Content similarity/topic relevance
 - Example: puma-vs-jaguar (694 impressions) → cougar-vs-mountain-lion (744 impressions) ✓
+- **NEVER guess or make up URLs** - only use URLs from the performance data above
 
 [
   {{
@@ -284,7 +298,9 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 - **🚨 REDIRECT TARGET REQUIRED:** Every redirect_301 MUST have redirect_target field with full URL
   - Example: `"redirect_target": "https://tigertribe.net/cougar-vs-mountain-lion/"`
   - WITHOUT this field, the redirect will FAIL during execution
-  - Look at GSC data to choose the best target (higher impressions = better target)
+  - **MANDATORY:** Use the "ALL AVAILABLE URLs WITH PERFORMANCE METRICS" section to select the BEST performing target
+  - Always choose the URL with highest impressions/clicks from the performance data
+  - Match content similarity (same species, same topic, same year versions)
 - **redirect_301 over DELETE:** Any page with impressions/traffic should use redirect_301, not DELETE
 - **Find duplicates:** Look for same topics/species with different names (puma=mountain lion=cougar)
 - Provide 12-18 diverse actions (mix of updates, creates, redirect_301, and rarely deletes)
@@ -468,169 +484,230 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
             
         except Exception as e:
             return f"Error summarizing GA4 data: {e}"
-
+    
+    def _format_all_urls_for_redirect_selection(self, df: pd.DataFrame, max_urls: int = 200) -> str:
+        """
+        Format ALL URLs with performance metrics for redirect target selection.
+        
+        This gives AI full visibility into available redirect targets with their
+        performance data so it can select the BEST performing target.
+        
+        Args:
+            df: Merged DataFrame with GSC data
+            max_urls: Maximum number of URLs to include (to prevent prompt bloat)
+        
+        Returns:
+            Formatted text summary with all URLs and their metrics
+        """
+        try:
+            # Group by page and aggregate performance metrics
+            by_page = df.groupby('page').agg({
+                'impressions': 'sum',
+                'clicks': 'sum',
+                'ctr': 'mean',
+                'position': 'mean'
+            }).reset_index()
+            
+            # Sort by impressions (descending) - most important metric for redirect selection
+            by_page = by_page.sort_values('impressions', ascending=False)
+            
+            # Limit to max_urls to prevent prompt from being too large
+            by_page = by_page.head(max_urls)
+            
+            # Format summary
+            lines = [
+                "All available URLs with performance metrics (sorted by impressions, descending):",
+                "Use these URLs when selecting redirect_target for redirect_301 actions.",
+                "Always select the URL with highest impressions/clicks that matches the content topic.\n"
+            ]
+            
+            for _, row in by_page.iterrows():
+                url = row['page']
+                impressions = int(row['impressions'])
+                clicks = int(row['clicks'])
+                ctr = row['ctr']
+                position = row['position']
+                
+                lines.append(
+                    f"- {url} | "
+                    f"Impressions: {impressions:,} | "
+                    f"Clicks: {clicks:,} | "
+                    f"CTR: {ctr:.2%} | "
+                    f"Position: {position:.1f}"
+                )
+            
+            lines.append(f"\nTotal URLs available: {len(by_page)}")
+            lines.append("When selecting redirect_target, choose the URL with:")
+            lines.append("  1. Highest impressions (primary factor)")
+            lines.append("  2. Highest clicks (secondary factor)")
+            lines.append("  3. Content similarity (same species, topic, or year version)")
+            
+            return "\n".join(lines)
+            
+        except Exception as e:
+            return f"Error formatting URLs for redirect selection: {e}"
+    
     def _auto_populate_redirect_targets(self, actions: List[Dict], merged_data: pd.DataFrame) -> None:
         """
-        Auto-populate missing redirect_target fields by parsing reasoning text.
-
+        Auto-populate missing redirect_target fields using AI-based selection.
+        
         When AI generates redirect_301 actions without redirect_target, this function:
-        1. Extracts target page hints from reasoning text
-        2. Searches available URLs in GSC data for matches
-        3. Auto-populates redirect_target with best match
-
-        This is a safety net for when prompt engineering doesn't work - the AI
-        consistently mentions the target page in reasoning, so we can extract it.
+        1. Uses AI to analyze available URLs with performance metrics
+        2. Selects the BEST performing target based on content similarity and performance
+        3. Auto-populates redirect_target with the AI-selected URL
+        
+        This ensures redirects go to the highest-performing relevant pages.
 
         Args:
             actions: List of action dictionaries (modified in place)
             merged_data: DataFrame with GSC data containing available URLs
         """
-        import re
-        from difflib import SequenceMatcher
-
-        # Get all available URLs from GSC data
-        available_urls = []
-        if 'page' in merged_data.columns:
-            available_urls = merged_data['page'].unique().tolist()
-
-        if not available_urls:
-            print("  ⚠️  No URLs available for redirect target matching")
+        # Find redirect actions missing redirect_target
+        redirect_actions_needing_targets = [
+            action for action in actions
+            if action.get('action_type') in ['redirect_301', 'redirect']
+            and not action.get('redirect_target')
+        ]
+        
+        if not redirect_actions_needing_targets:
+            print("  ✓ All redirect actions have targets")
             return
-
-        print(f"  🔍 Auto-populating redirect targets from {len(available_urls)} available URLs...")
-
-        redirect_count = 0
-        populated_count = 0
-
-        for action in actions:
-            # Only process redirect_301 actions missing redirect_target
-            if action.get('action_type') not in ['redirect_301', 'redirect']:
-                continue
-
-            redirect_count += 1
-
-            if action.get('redirect_target'):
-                # Already has target, skip
-                print(f"  ✓ Redirect already has target: {action.get('url')} → {action.get('redirect_target')}")
-                populated_count += 1
-                continue
-
-            reasoning = action.get('reasoning', '')
+        
+        print(f"  🤖 Using AI to select redirect targets for {len(redirect_actions_needing_targets)} actions...")
+        
+        # Get all available URLs with performance metrics
+        try:
+            by_page = merged_data.groupby('page').agg({
+                'impressions': 'sum',
+                'clicks': 'sum',
+                'ctr': 'mean',
+                'position': 'mean'
+            }).reset_index()
+            by_page = by_page.sort_values('impressions', ascending=False)
+            
+            # Format URLs for AI prompt
+            urls_with_metrics = []
+            for _, row in by_page.iterrows():
+                urls_with_metrics.append({
+                    'url': row['page'],
+                    'impressions': int(row['impressions']),
+                    'clicks': int(row['clicks']),
+                    'ctr': row['ctr'],
+                    'position': row['position']
+                })
+            
+            if not urls_with_metrics:
+                print("  ⚠️  No URLs available for redirect target selection")
+                return
+                
+        except Exception as e:
+            print(f"  ⚠️  Error preparing URLs for AI selection: {e}")
+            return
+        
+        # Process each redirect action
+        for action in redirect_actions_needing_targets:
             source_url = action.get('url', '')
-
-            print(f"\n  🔧 Processing redirect without target:")
-            print(f"     Source: {source_url}")
-            print(f"     Reasoning: {reasoning[:150]}...")
-
-            # Extract potential target hints from reasoning
-            # Patterns to look for:
-            # - "redirect to X"
-            # - "redirect_301 to X"
-            # - "consolidate to X"
-            # - "Redirect TO: X"
-            # - URL slug patterns like "cougar-vs-mountain-lion"
-
-            target_hints = []
-
-            # Pattern 1: "redirect to X" or "redirect_301 to X"
-            redirect_patterns = [
-                r'redirect(?:_301)?\s+to\s+([^\.,;\n]+)',
-                r'consolidate\s+(?:authority\s+)?to\s+([^\.,;\n]+)',
-                r'redirect\s+TO:\s*([^\.,;\n]+)',
-                r'redirect_301\s+to\s+([^\.,;\n]+)',
-            ]
-
-            for pattern in redirect_patterns:
-                matches = re.findall(pattern, reasoning, re.IGNORECASE)
-                target_hints.extend(matches)
-
-            # Pattern 2: Look for URL-like slug patterns (words with hyphens)
-            # e.g., "cougar-vs-mountain-lion" or "best-griddles-2025"
-            url_slug_pattern = r'\b([a-z0-9]+-[a-z0-9-]+)\b'
-            slug_matches = re.findall(url_slug_pattern, reasoning.lower())
-            target_hints.extend(slug_matches)
-
-            # Pattern 3: Look for year patterns for "current year version"
-            # If reasoning mentions year updates, look for URLs with current year
-            if 'year' in reasoning.lower() or '2025' in reasoning or '2024' in reasoning:
-                from datetime import datetime
-                current_year = str(datetime.now().year)
-                target_hints.append(current_year)
-
-            if not target_hints:
-                print(f"     ❌ No target hints found in reasoning")
+            reasoning = action.get('reasoning', '')
+            
+            if not source_url:
                 continue
-
-            # Clean up hints (remove extra whitespace, parentheses, etc.)
-            cleaned_hints = []
-            for h in target_hints:
-                if h.strip():
-                    # Remove common noise words and punctuation
-                    cleaned = h.strip().lower()
-                    cleaned = cleaned.replace('(', '').replace(')', '')
-                    cleaned = cleaned.replace('the ', '').replace('a ', '')
-                    cleaned = cleaned.strip()
-                    if len(cleaned) > 2:  # Ignore very short hints
-                        cleaned_hints.append(cleaned)
-
-            target_hints = cleaned_hints
-            print(f"     Target hints found: {target_hints[:5]}")  # Show first 5
-
-            # Find best matching URL
-            best_match = None
-            best_score = 0.0
-            best_hint = None
-
-            for url in available_urls:
-                # Skip the source URL itself
-                if url == source_url:
-                    continue
-
-                url_lower = url.lower()
-
-                # Extract URL slug for better matching
-                url_slug = url.split('/')[-2] if url.endswith('/') else url.split('/')[-1]
-                url_slug = url_slug.lower()
-
-                for hint in target_hints:
-                    score = 0.0
-
-                    # Method 1: Exact slug match (best possible match)
-                    if hint == url_slug:
-                        score = 1.0
-                    # Method 2: Hint is contained in URL slug
-                    elif hint in url_slug:
-                        score = 0.9
-                    # Method 3: URL slug is contained in hint
-                    elif url_slug in hint:
-                        score = 0.85
-                    # Method 4: Hint is contained anywhere in URL
-                    elif hint in url_lower:
-                        score = 0.8
-                    # Method 5: Fuzzy matching for similar slugs
-                    else:
-                        similarity = SequenceMatcher(None, hint, url_slug).ratio()
-                        if similarity > 0.7:
-                            score = similarity * 0.7  # Scale down fuzzy matches
-
-                    if score > best_score:
-                        best_score = score
-                        best_match = url
-                        best_hint = hint
-
-            # Only accept matches above threshold
-            if best_match and best_score >= 0.7:
-                action['redirect_target'] = best_match
-                populated_count += 1
-                print(f"     ✅ Auto-populated redirect_target: {best_match}")
-                print(f"        Matched hint: '{best_hint}' (score: {best_score:.2f})")
+            
+            print(f"\n  🔧 Selecting redirect target for: {source_url}")
+            
+            # Use AI to select best target
+            selected_target = self._ai_select_redirect_target(
+                source_url=source_url,
+                reasoning=reasoning,
+                available_urls=urls_with_metrics
+            )
+            
+            if selected_target:
+                action['redirect_target'] = selected_target
+                print(f"     ✅ AI selected: {selected_target}")
             else:
-                print(f"     ❌ No suitable match found (best score: {best_score:.2f})")
-                if best_match:
-                    print(f"        Best candidate was: {best_match}")
+                print(f"     ❌ AI could not select a target")
                 action['redirect_target'] = None
+    
+    def _ai_select_redirect_target(
+        self,
+        source_url: str,
+        reasoning: str,
+        available_urls: List[Dict]
+    ) -> Optional[str]:
+        """
+        Use AI to select the best redirect target from available URLs.
+        
+        Args:
+            source_url: The URL being redirected (source)
+            reasoning: The reasoning from the action plan
+            available_urls: List of dicts with url, impressions, clicks, ctr, position
+        
+        Returns:
+            Selected target URL or None if no good match found
+        """
+        # Format URLs for prompt
+        urls_text = "\n".join([
+            f"- {url['url']} | Impressions: {url['impressions']:,} | "
+            f"Clicks: {url['clicks']:,} | Position: {url['position']:.1f}"
+            for url in available_urls[:100]  # Limit to top 100 for prompt size
+        ])
+        
+        prompt = f"""You're selecting a redirect target for a 301 redirect action.
 
-        print(f"\n  📊 Redirect target population: {populated_count}/{redirect_count} redirects have targets")
+**SOURCE URL (redirecting FROM):**
+{source_url}
+
+**REASONING FOR THIS REDIRECT:**
+{reasoning}
+
+**AVAILABLE TARGET URLs WITH PERFORMANCE METRICS:**
+{urls_text}
+
+**TASK:**
+Select the BEST target URL for this redirect based on:
+1. **Performance** - Highest impressions and clicks (primary factor)
+2. **Content similarity** - Same topic, species, or theme
+3. **URL relevance** - Most relevant to the source URL's content
+
+**OUTPUT:**
+Return ONLY the full URL of the best target (e.g., "https://tigertribe.net/cougar-vs-mountain-lion/")
+Return nothing else - just the URL."""
+
+        try:
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=200,
+                messages=[{
+                    "role": "user",
+                    "content": prompt
+                }]
+            )
+            
+            response_text = message.content[0].text.strip()
+            
+            # Extract URL from response
+            import re
+            url_match = re.search(r'https?://[^\s]+', response_text)
+            if url_match:
+                selected_url = url_match.group(0).rstrip('/.,;')
+                
+                # Validate it's in our available URLs
+                for url_data in available_urls:
+                    if url_data['url'] == selected_url or url_data['url'].rstrip('/') == selected_url.rstrip('/'):
+                        return url_data['url']
+                
+                # Try fuzzy match
+                for url_data in available_urls:
+                    url_slug = url_data['url'].rstrip('/').split('/')[-1]
+                    selected_slug = selected_url.rstrip('/').split('/')[-1]
+                    if url_slug == selected_slug:
+                        return url_data['url']
+            
+            return None
+            
+        except Exception as e:
+            print(f"     ⚠️  AI selection error: {e}")
+            return None
 
     def format_plan_summary(self, actions: List[Dict]) -> str:
         """

@@ -12,9 +12,37 @@ from flask_cors import CORS
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from seo_automation_main import SEOAutomationPipeline
-from affiliate_link_manager import AffiliateLinkManager
-from affiliate_link_updater import AffiliateLinkUpdater
+import requests
+import json
+
+# Lazy imports to avoid loading heavy modules at function startup
+try:
+    from seo_automation_main import SEOAutomationPipeline
+    from affiliate_link_manager import AffiliateLinkManager
+    from affiliate_link_updater import AffiliateLinkUpdater
+except ImportError as e:
+    print(f"⚠️  Warning: Some modules failed to import: {e}")
+    # These will be imported inside functions that need them
+
+
+def sanitize_for_json(value):
+    """
+    Sanitize a value to ensure it can be safely serialized to JSON.
+    Handles strings with unescaped quotes, special characters, etc.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        # Try to encode/decode to ensure valid UTF-8
+        try:
+            # Replace any problematic characters
+            value = value.encode('utf-8', errors='replace').decode('utf-8')
+            # Truncate very long strings that might cause JSON issues
+            if len(value) > 10000:
+                value = value[:10000] + "... [truncated]"
+        except Exception:
+            value = str(value)[:1000]  # Fallback truncation
+    return value
 
 app = Flask(__name__)
 CORS(app)
@@ -65,37 +93,55 @@ def analyze_only():
     Supports both multi-site (site_name) and legacy (individual params) modes.
     Returns comprehensive action plan for review.
     """
-    
-    # Validate GSC file upload
-    if "gsc_file" not in request.files and "file" not in request.files:
-        return jsonify({"error": "No GSC file uploaded (use 'gsc_file' or 'file')"}), 400
-    
-    gsc_file = request.files.get("gsc_file") or request.files.get("file")
-    
-    if gsc_file.filename == "" or not gsc_file.filename.endswith(('.csv', '.xlsx', '.xls')):
-        return jsonify({"error": "Please upload a CSV or Excel file for GSC data"}), 400
-    
-    gsc_filename = secure_filename(gsc_file.filename)
-    gsc_path = os.path.join(UPLOAD_FOLDER, gsc_filename)
-    gsc_file.save(gsc_path)
-    
-    # Optional GA4 file upload
-    ga4_path = None
-    if "ga4_file" in request.files:
-        ga4_file = request.files["ga4_file"]
-        if ga4_file.filename and ga4_file.filename.endswith(('.csv', '.xlsx', '.xls')):
-            ga4_filename = secure_filename(ga4_file.filename)
-            ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
-            ga4_file.save(ga4_path)
-    
-    # Get all parameters
-    site_url = request.form.get("site_url")
-    username = request.form.get("username")
-    application_password = request.form.get("application_password")
-    site_name = request.form.get("site_name")
-    anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
-
     try:
+        from utils.error_handler import (
+            validate_file_upload,
+            validate_site_config,
+            handle_api_error,
+            AppError,
+            ErrorCategory
+        )
+        
+        # Validate GSC file upload
+        gsc_file = request.files.get("gsc_file") or request.files.get("file")
+        if not gsc_file:
+            raise AppError(
+                "No GSC file uploaded",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please upload a GSC data file (CSV or Excel format).",
+                status_code=400
+            )
+        
+        validate_file_upload(gsc_file)
+        
+        gsc_filename = secure_filename(gsc_file.filename)
+        gsc_path = os.path.join(UPLOAD_FOLDER, gsc_filename)
+        gsc_file.save(gsc_path)
+        
+        # Optional GA4 file upload
+        ga4_path = None
+        if "ga4_file" in request.files:
+            ga4_file = request.files["ga4_file"]
+            if ga4_file.filename:
+                try:
+                    validate_file_upload(ga4_file)
+                    ga4_filename = secure_filename(ga4_file.filename)
+                    ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
+                    ga4_file.save(ga4_path)
+                except AppError:
+                    # GA4 is optional, so we'll just skip it if invalid
+                    pass
+        
+        # Get all parameters
+        site_url = request.form.get("site_url")
+        username = request.form.get("username")
+        application_password = request.form.get("application_password")
+        site_name = request.form.get("site_name")
+        anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
+        
+        # Validate site configuration
+        validate_site_config(site_name, site_url, username, application_password)
+        
         # Check if manual config is provided (takes priority)
         if site_url and username and application_password:
             # Manual/legacy mode - use individual params
@@ -115,10 +161,6 @@ def analyze_only():
                 ga4_csv_path=ga4_path,
                 anthropic_api_key=anthropic_key
             )
-        else:
-            return jsonify({
-                "error": "Must provide either (site_url, username, application_password) OR site_name"
-            }), 400
         
         # Run analysis with AI planner
         use_ai = request.form.get("use_ai_planner", "true").lower() == "true"
@@ -188,15 +230,8 @@ def analyze_only():
         })
     
     except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"❌ ANALYSIS ERROR: {str(e)}")
-        print(f"Full traceback:\n{error_traceback}")
-        return jsonify({
-            "error": "Analysis failed",
-            "details": str(e),
-            "traceback": error_traceback
-        }), 500
+        from utils.error_handler import handle_api_error
+        return handle_api_error(e, include_traceback=True)
 
 
 @app.route('/api/save-state', methods=['POST'])
@@ -663,6 +698,10 @@ def execute_selected_actions():
         data = request.get_json()
         site_name = data.get('site_name')
         action_ids = data.get('action_ids', [])
+        # Optional: frontend can send full action data as fallback
+        action_data_override = data.get('actions', {})  # Dict mapping action_id -> action_data
+        generate_images = data.get('generate_images', False)  # Image generation flag
+        print(f"🖼️  Image generation flag received: {generate_images}")
 
         if not site_name:
             return jsonify({"error": "site_name required"}), 400
@@ -685,13 +724,189 @@ def execute_selected_actions():
 
         # Get the requested actions by ID
         all_actions = state_mgr.state.get('current_plan', [])
-        actions_to_execute = [a for a in all_actions if a.get('id') in action_ids]
+        actions_to_execute = [a.copy() for a in all_actions if a.get('id') in action_ids]
 
         if not actions_to_execute:
             return jsonify({
                 "error": "No matching actions found",
                 "requested_ids": action_ids
             }), 404
+
+        # Merge in any action data from frontend (if provided) to override missing fields
+        for action in actions_to_execute:
+            action_id = action.get('id')
+            action_type = action.get('action_type')
+            
+            # Debug logging for redirect actions
+            if action_type in ['redirect_301', 'redirect']:
+                print(f"  🔍 Processing redirect action {action_id}:")
+                print(f"     State redirect_target: {repr(action.get('redirect_target'))}")
+            
+            if action_id in action_data_override:
+                frontend_data = action_data_override[action_id]
+                
+                if action_type in ['redirect_301', 'redirect']:
+                    print(f"     Frontend redirect_target: {repr(frontend_data.get('redirect_target'))}")
+                
+                # Merge frontend data, prioritizing it for missing fields
+                # For redirect_target, use frontend value if it's valid, otherwise preserve state value
+                for key, value in frontend_data.items():
+                    if key == 'redirect_target':
+                        # Use frontend redirect_target only if it's a valid non-empty value
+                        if value is not None and value != '' and str(value).strip() != '':
+                            action[key] = value
+                            if action_type in ['redirect_301', 'redirect']:
+                                print(f"     ✅ Using frontend redirect_target: {value}")
+                        # If frontend value is empty/None, preserve state value (don't override)
+                        # The state value (if it exists) will remain in action[key]
+                        elif action_type in ['redirect_301', 'redirect']:
+                            print(f"     📌 Preserving state redirect_target: {repr(action.get('redirect_target'))}")
+                    else:
+                        # For other fields, only override if current value is missing/empty
+                        if value and not action.get(key):
+                            action[key] = value
+            
+            # If redirect_target is missing AND not in frontend override, check state
+            if action_type in ['redirect_301', 'redirect']:
+                if not action.get('redirect_target'):
+                    print(f"     ⚠️  redirect_target missing after merge, will try AI selection")
+
+        # Validate redirect_301 actions have redirect_target before execution
+        # Use AI-based selection if targets are missing
+        import pandas as pd
+        
+        # Get merged data for AI-based redirect target selection
+        merged_data_df = None
+        try:
+            merged_data = state_mgr.state.get('merged_data')
+            if merged_data:
+                if isinstance(merged_data, pd.DataFrame):
+                    merged_data_df = merged_data
+                elif isinstance(merged_data, list):
+                    # Convert list of dicts to DataFrame
+                    merged_data_df = pd.DataFrame(merged_data)
+                elif isinstance(merged_data, dict) and 'page' in merged_data:
+                    # Single row dict
+                    merged_data_df = pd.DataFrame([merged_data])
+        except Exception as e:
+            print(f"  ⚠️  Could not load merged data for AI selection: {e}")
+        
+        # Process redirect actions missing targets
+        redirect_actions_needing_targets = [
+            action for action in actions_to_execute
+            if action.get('action_type') in ['redirect_301', 'redirect']
+            and (not action.get('redirect_target') or action.get('redirect_target', '').strip() == '')
+        ]
+        
+        if redirect_actions_needing_targets and merged_data_df is not None and 'page' in merged_data_df.columns:
+            # Use AI-based selection for missing redirect targets
+            print(f"  🤖 Using AI to select redirect targets for {len(redirect_actions_needing_targets)} actions...")
+            from ai_strategic_planner import AIStrategicPlanner
+            
+            try:
+                ai_planner = AIStrategicPlanner(anthropic_key)
+                
+                for action in redirect_actions_needing_targets:
+                    source_url = action.get('url', '')
+                    reasoning = action.get('reasoning', '')
+                    
+                    if not source_url:
+                        continue
+                    
+                    # Get URLs with performance metrics
+                    by_page = merged_data_df.groupby('page').agg({
+                        'impressions': 'sum',
+                        'clicks': 'sum',
+                        'ctr': 'mean',
+                        'position': 'mean'
+                    }).reset_index()
+                    by_page = by_page.sort_values('impressions', ascending=False)
+                    
+                    urls_with_metrics = []
+                    for _, row in by_page.iterrows():
+                        urls_with_metrics.append({
+                            'url': row['page'],
+                            'impressions': int(row['impressions']),
+                            'clicks': int(row['clicks']),
+                            'ctr': row['ctr'],
+                            'position': row['position']
+                        })
+                    
+                    # Use AI to select best target
+                    selected_target = ai_planner._ai_select_redirect_target(
+                        source_url=source_url,
+                        reasoning=reasoning,
+                        available_urls=urls_with_metrics
+                    )
+                    
+                    if selected_target:
+                        action['redirect_target'] = selected_target
+                        print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+                    else:
+                        print(f"     ❌ AI could not select target for {source_url}")
+                        
+            except Exception as e:
+                print(f"  ⚠️  AI-based redirect target selection failed: {e}")
+                import traceback
+                traceback.print_exc()
+        elif redirect_actions_needing_targets:
+            # merged_data not available - try to get URLs from WordPress
+            print(f"  ⚠️  Merged data not available, trying to load URLs from WordPress for AI selection...")
+            try:
+                wp_temp = WordPressPublisher(
+                    site_config['url'],
+                    site_config['wp_username'],
+                    site_config['wp_app_password'],
+                    rate_limit_delay=0.5
+                )
+                posts = wp_temp.get_all_posts()
+                available_urls = [post.get('link', '') for post in posts if post.get('link')]
+                
+                if available_urls:
+                    print(f"  ✓ Loaded {len(available_urls)} URLs from WordPress")
+                    from ai_strategic_planner import AIStrategicPlanner
+                    ai_planner = AIStrategicPlanner(anthropic_key)
+                    
+                    # Create simple URL list with default metrics
+                    urls_with_metrics = [
+                        {'url': url, 'impressions': 100, 'clicks': 10, 'ctr': 0.1, 'position': 20.0}
+                        for url in available_urls[:100]  # Limit to top 100
+                    ]
+                    
+                    for action in redirect_actions_needing_targets:
+                        source_url = action.get('url', '')
+                        reasoning = action.get('reasoning', '')
+                        
+                        if not source_url:
+                            continue
+                        
+                        selected_target = ai_planner._ai_select_redirect_target(
+                            source_url=source_url,
+                            reasoning=reasoning,
+                            available_urls=urls_with_metrics
+                        )
+                        
+                        if selected_target:
+                            action['redirect_target'] = selected_target
+                            print(f"     ✅ AI selected redirect target for {source_url}: {selected_target}")
+            except Exception as e:
+                print(f"  ⚠️  Could not load URLs from WordPress for AI selection: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        # Final validation - check if any redirect actions still lack targets
+        for action in actions_to_execute:
+            if action.get('action_type') in ['redirect_301', 'redirect']:
+                redirect_target = action.get('redirect_target')
+                if not redirect_target or redirect_target.strip() == '':
+                    source_url = action.get('url', '')
+                    reasoning = action.get('reasoning', '')
+                    print(f"  ❌ ERROR: redirect_301 action {source_url} is missing redirect_target and cannot be auto-populated")
+                    print(f"     Action data keys: {list(action.keys())}")
+                    print(f"     Frontend override keys: {list(action_data_override.get(action.get('id'), {}).keys())}")
+                    print(f"     Reasoning: {reasoning[:200] if reasoning else 'No reasoning'}")
+                    # Fail fast - don't proceed if redirect_target is missing
+                    # The execution handler will return proper error message
 
         # Initialize services
         wp = WordPressPublisher(
@@ -714,10 +929,10 @@ def execute_selected_actions():
         results = []
         for action_data in actions_to_execute:
             result = {
-                "action_id": action_data.get('id'),
-                "action_type": action_data.get('action_type'),
-                "url": action_data.get('url'),
-                "title": action_data.get('title'),
+                "action_id": sanitize_for_json(action_data.get('id')),
+                "action_type": sanitize_for_json(action_data.get('action_type')),
+                "url": sanitize_for_json(action_data.get('url')),
+                "title": sanitize_for_json(action_data.get('title')),
                 "success": False,
                 "error": None
             }
@@ -768,6 +983,32 @@ def execute_selected_actions():
                         affiliate_links=affiliate_links
                     )
 
+                    # Generate images if requested
+                    if generate_images:
+                        try:
+                            from gemini_image_generator import GeminiImageGenerator
+                            gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                            if gemini_key:
+                                print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                image_gen = GeminiImageGenerator(gemini_key)
+                                updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                    content=article_data['content'],
+                                    article_title=article_data.get('title', title),
+                                    keywords=keywords,
+                                    wp_publisher=wp,
+                                    upload_to_wordpress=True
+                                )
+                                article_data['content'] = updated_content
+                                if image_info:
+                                    print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                            else:
+                                print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                        except Exception as e:
+                            print(f"  ⚠️  Image generation failed: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            # Continue without images if generation fails
+
                     publish_result = wp.create_post(
                         title=article_data.get('title', title),
                         content=article_data['content'],
@@ -788,65 +1029,237 @@ def execute_selected_actions():
                                 if link['url'] in article_data['content']:
                                     affiliate_mgr.increment_usage(link['id'])
                     else:
-                        result['error'] = publish_result.error
+                        result['error'] = sanitize_for_json(publish_result.error)
 
                 elif action_data['action_type'] == 'update':
-                    # Update existing post
-                    post = wp.find_post_by_url(action_data['url'])
-                    if not post:
-                        result['error'] = f"Post not found: {action_data['url']}"
-                    else:
-                        post_id = post['id']
-                        existing_content = post.get('content', {}).get('rendered', '')
-                        title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
-                        keywords = action_data.get('keywords', [])
+                    # SMART UPDATE: Detect page type and route appropriately
+                    from page_type_detector import PageTypeDetector, PageType, UpdateStrategy
 
-                        research = content_gen.research_topic(title, keywords)
-                        internal_links = wp.get_internal_link_suggestions(keywords)
-                        affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+                    url = action_data['url']
+                    page_info = PageTypeDetector.get_update_info(url)
 
-                        article_data = content_gen.generate_article(
-                            topic_title=title,
-                            keywords=keywords,
-                            research=research,
-                            meta_description=f"Updated: {title}",
-                            existing_content=existing_content,
-                            internal_links=internal_links,
-                            affiliate_links=affiliate_links
-                        )
+                    print(f"  📄 Page Type Detection:")
+                    print(f"     URL: {url}")
+                    print(f"     Type: {page_info['page_type']}")
+                    print(f"     Strategy: {page_info['strategy']}")
+                    print(f"     {page_info['explanation']}")
 
-                        publish_result = wp.update_post(
-                            post_id,
-                            title=article_data.get('title', title),
-                            content=article_data['content'],
-                            meta_title=article_data.get('meta_title'),
-                            meta_description=article_data.get('meta_description'),
-                            categories=article_data.get('categories', []),
-                            tags=article_data.get('tags', [])
-                        )
+                    if page_info['should_skip']:
+                        # Skip this page type (date archives, search, etc.)
+                        result['success'] = True
+                        result['skipped'] = True
+                        result['reason'] = page_info['explanation']
+                        state_mgr.mark_completed(action_data['id'], None)
+                        print(f"  ⏭️  Skipping: {page_info['explanation']}")
 
-                        if publish_result.success:
-                            result['post_id'] = post_id
+                    elif page_info['strategy'] == UpdateStrategy.META_ONLY.value:
+                        # META_ONLY update - Categories, Tags, Homepage, Author
+                        print(f"  🏷️  Meta-only update for {page_info['page_type']}")
+
+                        if page_info['page_type'] == PageType.HOMEPAGE.value:
+                            # Homepage handling (same as execute-next)
                             result['success'] = True
-                            state_mgr.mark_completed(action_data['id'], post_id)
+                            result['skipped'] = True
+                            result['reason'] = 'Homepage meta updates handled in execute-next endpoint'
+                            print(f"  ⚠️  Homepage updates should use execute-next endpoint")
 
-                            # Update affiliate usage
-                            if affiliate_mgr and affiliate_links:
-                                for link in affiliate_links:
-                                    if link['url'] in article_data['content']:
-                                        affiliate_mgr.increment_usage(link['id'])
+                        elif page_info['page_type'] == PageType.CATEGORY.value:
+                            category = wp.find_category_by_url(url)
+                            if not category:
+                                result['error'] = sanitize_for_json(f"Category not found: {url}")
+                            else:
+                                category_id = category['id']
+                                current_name = category.get('name', '')
+                                keywords = action_data.get('keywords', [])
+
+                                meta_title = f"{current_name} | {site_name}" if keywords else current_name
+                                meta_description = f"Explore our comprehensive {current_name.lower()} content. {' '.join(keywords[:3])}"
+
+                                publish_result = wp.update_category_meta(
+                                    category_id,
+                                    meta_title=meta_title,
+                                    meta_description=meta_description
+                                )
+
+                                if publish_result.success:
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    state_mgr.mark_completed(action_data['id'], category_id)
+                                else:
+                                    result['error'] = sanitize_for_json(publish_result.error)
+
+                        elif page_info['page_type'] == PageType.TAG.value:
+                            tag = wp.find_tag_by_url(url)
+                            if not tag:
+                                result['error'] = sanitize_for_json(f"Tag not found: {url}")
+                            else:
+                                tag_id = tag['id']
+                                current_name = tag.get('name', '')
+                                keywords = action_data.get('keywords', [])
+
+                                meta_title = f"{current_name} Articles | {site_name}"
+                                meta_description = f"Browse all articles tagged with {current_name.lower()}. {' '.join(keywords[:3])}"
+
+                                publish_result = wp.update_tag_meta(
+                                    tag_id,
+                                    meta_title=meta_title,
+                                    meta_description=meta_description
+                                )
+
+                                if publish_result.success:
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    state_mgr.mark_completed(action_data['id'], tag_id)
+                                else:
+                                    result['error'] = sanitize_for_json(publish_result.error)
+
+                        elif page_info['page_type'] == PageType.AUTHOR.value:
+                            result['success'] = True
+                            result['skipped'] = True
+                            result['reason'] = 'Author archives require custom WordPress setup for SEO meta updates'
+                            state_mgr.mark_completed(action_data['id'], None)
+
+                    else:
+                        # FULL CONTENT UPDATE - For posts only (not WordPress pages)
+                        print(f"  📝 Full content update for post/page")
+                        
+                        # Find post or page - check both endpoints
+                        found_item = wp.find_post_or_page_by_url(url)
+                        if not found_item:
+                            result['error'] = sanitize_for_json(f"Post or page not found: {url}")
                         else:
-                            result['error'] = publish_result.error
+                            item_type = found_item.get('_wp_type', 'post')
+                            item_id = found_item['id']
+                            
+                            # CRITICAL SAFETY CHECK: If it's a WordPress PAGE (not POST), 
+                            # only update SEO meta, NOT content (to avoid breaking static pages)
+                            if item_type == 'page':
+                                print(f"  ⚠️  WordPress PAGE detected - switching to meta-only update for safety")
+                                print(f"     WordPress pages (like /about/, /contact/) should only have SEO meta updated, not content")
+                                
+                                keywords = action_data.get('keywords', [])
+                                title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                                
+                                meta_title = title if title else found_item.get('title', {}).get('rendered', '')
+                                meta_description = action_data.get('reasoning', '')
+                                if keywords:
+                                    meta_description = f"{', '.join(keywords[:3])}. {meta_description[:100]}" if meta_description else f"Learn about {', '.join(keywords[:3])}"
+                                else:
+                                    meta_description = meta_description[:155] if meta_description else "Learn more about our content."
+                                
+                                # Update ONLY meta fields, NOT content or title
+                                publish_result = wp.update_post(
+                                    item_id,
+                                    title=None,
+                                    content=None,  # NEVER update page content
+                                    meta_title=meta_title,
+                                    meta_description=meta_description,
+                                    item_type='page'  # Use pages endpoint for WordPress pages
+                                )
+                                
+                                if publish_result.success:
+                                    result['post_id'] = item_id
+                                    result['success'] = True
+                                    result['meta_only'] = True
+                                    result['wp_page'] = True
+                                    state_mgr.mark_completed(action_data['id'], item_id)
+                                    print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
+                                else:
+                                    result['error'] = sanitize_for_json(publish_result.error)
+                            
+                            else:
+                                # It's a POST - safe to do full content update
+                                post_id = item_id
+                                existing_content = found_item.get('content', {}).get('rendered', '')
+                                title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                                keywords = action_data.get('keywords', [])
+
+                                research = content_gen.research_topic(title, keywords)
+                                internal_links = wp.get_internal_link_suggestions(keywords)
+                                affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+
+                                article_data = content_gen.generate_article(
+                                    topic_title=title,
+                                    keywords=keywords,
+                                    research=research,
+                                    meta_description=f"Updated: {title}",
+                                    existing_content=existing_content,
+                                    internal_links=internal_links,
+                                    affiliate_links=affiliate_links
+                                )
+
+                                # Generate images if requested
+                                if generate_images:
+                                    try:
+                                        from gemini_image_generator import GeminiImageGenerator
+                                        gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                                        if gemini_key:
+                                            print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                            image_gen = GeminiImageGenerator(gemini_key)
+                                            updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                                content=article_data['content'],
+                                                article_title=article_data.get('title', title),
+                                                keywords=keywords,
+                                                wp_publisher=wp,
+                                                upload_to_wordpress=True
+                                            )
+                                            article_data['content'] = updated_content
+                                            if image_info:
+                                                print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                                        else:
+                                            print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                                    except Exception as e:
+                                        print(f"  ⚠️  Image generation failed: {e}")
+                                        import traceback
+                                        traceback.print_exc()
+                                        # Continue without images if generation fails
+
+                                publish_result = wp.update_post(
+                                    post_id,
+                                    title=article_data.get('title', title),
+                                    content=article_data['content'],
+                                    meta_title=article_data.get('meta_title'),
+                                    meta_description=article_data.get('meta_description'),
+                                    categories=article_data.get('categories', []),
+                                    tags=article_data.get('tags', [])
+                                )
+
+                                if publish_result.success:
+                                    result['post_id'] = post_id
+                                    result['success'] = True
+                                    state_mgr.mark_completed(action_data['id'], post_id)
+
+                                    # Update affiliate usage
+                                    if affiliate_mgr and affiliate_links:
+                                        for link in affiliate_links:
+                                            if link['url'] in article_data['content']:
+                                                affiliate_mgr.increment_usage(link['id'])
+                                else:
+                                    result['error'] = sanitize_for_json(publish_result.error)
 
                 elif action_data['action_type'] == 'redirect_301':
                     # Create 301 redirect
                     source_url = action_data['url']
                     target_url = action_data.get('redirect_target')
 
-                    if not target_url:
-                        result['error'] = 'redirect_target is required for redirect_301 actions'
+                    if not target_url or target_url.strip() == '':
+                        result['error'] = sanitize_for_json(f'redirect_target is required for redirect_301 actions. Source URL: {source_url}. Please check the action plan and ensure redirect_target is set.')
+                        print(f"  ❌ Redirect failed - missing redirect_target for {source_url}")
+                        print(f"     Action data keys: {list(action_data.keys())}")
+                        print(f"     redirect_target value: {repr(target_url)}")
                     else:
+                        # Normalize target URL
+                        target_url = target_url.strip()
+                        
+                        # Validate target URL format
+                        if not target_url.startswith('http') and not target_url.startswith('/'):
+                            # It might be a slug without leading slash, add it
+                            target_url = '/' + target_url.lstrip('/')
+                        
                         print(f"Creating 301 redirect: {source_url} -> {target_url}")
+                        print(f"  Action ID: {action_data.get('id')}")
+                        print(f"  Source URL: {source_url}")
+                        print(f"  Target URL: {target_url}")
 
                         redirect_result = wp.create_301_redirect(source_url, target_url)
 
@@ -854,17 +1267,20 @@ def execute_selected_actions():
                             result['success'] = True
                             result['source_url'] = source_url
                             result['target_url'] = target_url
+                            result['redirect_path'] = redirect_result.url  # Shows the actual paths used
                             state_mgr.mark_completed(action_data['id'], None)
-                            print(f"✓ Redirect created successfully")
+                            print(f"✓ Redirect created successfully: {redirect_result.url}")
                         else:
-                            result['error'] = redirect_result.error
+                            result['error'] = sanitize_for_json(redirect_result.error)
                             print(f"✗ Redirect failed: {redirect_result.error}")
+                            print(f"     Source: {source_url}")
+                            print(f"     Target: {target_url}")
 
                 elif action_data['action_type'] == 'delete':
                     # Delete post
                     post = wp.find_post_by_url(action_data['url'])
                     if not post:
-                        result['error'] = f"Post not found: {action_data['url']}"
+                        result['error'] = sanitize_for_json(f"Post not found: {action_data['url']}")
                     else:
                         post_id = post['id']
                         print(f"Deleting post ID {post_id}: {action_data['url']}")
@@ -877,14 +1293,14 @@ def execute_selected_actions():
                             state_mgr.mark_completed(action_data['id'], post_id)
                             print(f"✓ Post deleted successfully")
                         else:
-                            result['error'] = delete_result.error
+                            result['error'] = sanitize_for_json(delete_result.error)
                             print(f"✗ Delete failed: {delete_result.error}")
 
                 else:
-                    result['error'] = f"Unsupported action type: {action_data['action_type']}"
+                    result['error'] = sanitize_for_json(f"Unsupported action type: {action_data['action_type']}")
 
             except Exception as e:
-                result['error'] = str(e)
+                result['error'] = sanitize_for_json(str(e))
 
             results.append(result)
 
@@ -1001,6 +1417,32 @@ def quick_create_post():
                 affiliate_links=affiliate_links
             )
 
+            # Generate images if requested
+            generate_images = data.get('generate_images', False)
+            if generate_images:
+                try:
+                    from gemini_image_generator import GeminiImageGenerator
+                    gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                    if gemini_key:
+                        print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                        image_gen = GeminiImageGenerator(gemini_key)
+                        updated_content, image_info = image_gen.replace_placeholders_with_images(
+                            content=article_data['content'],
+                            article_title=article_data.get('title', title),
+                            keywords=keywords,
+                            wp_publisher=wp,
+                            upload_to_wordpress=True
+                        )
+                        article_data['content'] = updated_content
+                        if image_info:
+                            print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                    else:
+                        print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                except Exception as e:
+                    print(f"  ⚠️  Image generation failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+
             publish_result = wp.create_post(
                 title=article_data.get('title', title),
                 content=article_data['content'],
@@ -1023,7 +1465,7 @@ def quick_create_post():
 
                 print(f"Post created successfully: {result['post_id']}")
             else:
-                result['error'] = publish_result.error
+                result['error'] = sanitize_for_json(publish_result.error)
                 print(f"Post creation failed: {publish_result.error}")
 
         except Exception as e:
@@ -1036,6 +1478,185 @@ def quick_create_post():
         import traceback
         return jsonify({
             "error": "Quick create failed",
+            "details": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
+@app.route("/api/quick-update", methods=["POST"])
+def quick_update_post():
+    """
+    Quick update an existing post/page by URL without action plan (ad-hoc content update).
+    
+    JSON body: {
+        site_name: string,
+        url: string (full URL of post/page to update),
+        keywords: string[] (optional, comma-separated or array),
+        generate_images: bool (optional, default False)
+    }
+    
+    Returns: Update result with post_id or error
+    """
+    print("=== /api/quick-update called ===")
+    
+    try:
+        data = request.get_json()
+        site_name = data.get('site_name')
+        url = data.get('url')
+        keywords = data.get('keywords', [])
+        generate_images = data.get('generate_images', False)
+        
+        # Parse keywords if string
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+        
+        if not site_name or not url:
+            return jsonify({"error": "site_name and url required"}), 400
+        
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        if not anthropic_key:
+            return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
+        
+        from config import get_site
+        from wordpress_publisher import WordPressPublisher
+        from claude_content_generator import ClaudeContentGenerator
+        from affiliate_link_manager import AffiliateLinkManager
+        from page_type_detector import PageTypeDetector
+        
+        # Get site config
+        site_config = get_site(site_name)
+        
+        # Initialize services
+        wp = WordPressPublisher(
+            site_config['url'],
+            site_config['wp_username'],
+            site_config['wp_app_password'],
+            rate_limit_delay=1.0
+        )
+        content_gen = ClaudeContentGenerator(anthropic_key)
+        
+        # Detect page type
+        page_type = PageTypeDetector.detect_page_type(url)
+        update_strategy = PageTypeDetector.get_update_strategy(page_type)
+        
+        result = {
+            "success": False,
+            "url": url,
+            "page_type": page_type.value,
+            "update_strategy": update_strategy.value
+        }
+        
+        # Find the post/page
+        found_item = wp.find_post_or_page_by_url(url)
+        if not found_item:
+            result['error'] = sanitize_for_json(f"Post or page not found: {url}")
+            return jsonify(result), 404
+        
+        item_id = found_item['id']
+        item_type = found_item.get('_wp_type', 'post')
+        existing_title = found_item.get('title', {}).get('rendered', '') if isinstance(found_item.get('title'), dict) else found_item.get('title', '')
+        existing_content = found_item.get('content', {}).get('rendered', '') if isinstance(found_item.get('content'), dict) else found_item.get('content', '')
+        
+        # Handle different page types
+        if page_type.value == 'homepage' or (item_type == 'page' and update_strategy.value == 'meta_only'):
+            # Homepage or WordPress page - only update meta, not content
+            result['error'] = sanitize_for_json(f"This URL is a {page_type.value}. Only SEO meta data can be updated, not content. Use the action plan for meta-only updates.")
+            return jsonify(result), 400
+        
+        elif update_strategy.value == 'skip':
+            result['error'] = sanitize_for_json(f"This URL type ({page_type.value}) cannot be updated.")
+            return jsonify(result), 400
+        
+        else:
+            # Regular post/page - full content update
+            title = existing_title  # Use existing title unless provided
+            if not keywords:
+                # Try to extract keywords from existing content or use default
+                keywords = [title.split()[0]] if title else []
+            
+            # Research and generate updated content
+            research = content_gen.research_topic(title, keywords)
+            
+            # Get affiliate manager if available
+            affiliate_mgr = None
+            try:
+                affiliate_mgr = AffiliateLinkManager(site_name)
+            except Exception as e:
+                print(f"  ⚠️  Affiliate manager not available: {e}")
+            
+            internal_links = wp.get_internal_link_suggestions(keywords)
+            affiliate_links = affiliate_mgr.get_all_links() if affiliate_mgr else []
+            
+            article_data = content_gen.generate_article(
+                topic_title=title,
+                keywords=keywords,
+                research=research,
+                meta_description=f"Updated: {title}",
+                existing_content=existing_content,
+                internal_links=internal_links,
+                affiliate_links=affiliate_links
+            )
+            
+            # Generate images if requested
+            if generate_images:
+                try:
+                    from gemini_image_generator import GeminiImageGenerator
+                    gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                    if gemini_key:
+                        print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                        image_gen = GeminiImageGenerator(gemini_key)
+                        updated_content, image_info = image_gen.replace_placeholders_with_images(
+                            content=article_data['content'],
+                            article_title=article_data.get('title', title),
+                            keywords=keywords,
+                            wp_publisher=wp,
+                            upload_to_wordpress=True
+                        )
+                        article_data['content'] = updated_content
+                        if image_info:
+                            print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                    else:
+                        print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                except Exception as e:
+                    print(f"  ⚠️  Image generation failed: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Continue without images if generation fails
+            
+            # Update the post/page
+            publish_result = wp.update_post(
+                item_id,
+                title=article_data.get('title', title),
+                content=article_data['content'],
+                meta_title=article_data.get('meta_title'),
+                meta_description=article_data.get('meta_description'),
+                categories=article_data.get('categories', []),
+                tags=article_data.get('tags', []),
+                item_type=item_type  # Use correct endpoint based on item type
+            )
+            
+            if publish_result.success:
+                result['post_id'] = item_id
+                result['success'] = True
+                result['url'] = url
+                
+                # Update affiliate link usage
+                if affiliate_mgr and affiliate_links:
+                    for link in affiliate_links:
+                        if link['url'] in article_data['content']:
+                            affiliate_mgr.increment_usage(link['id'])
+                
+                print(f"Post updated successfully: {item_id}")
+            else:
+                result['error'] = sanitize_for_json(publish_result.error)
+                print(f"Post update failed: {publish_result.error}")
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Quick update failed",
             "details": str(e),
             "trace": traceback.format_exc()
         }), 500
@@ -1063,6 +1684,7 @@ def execute_next_action():
 
     site_name = data.get('site_name') if data else None
     print(f"Site name: {site_name}")
+    generate_images = data.get('generate_images', False) if data else False  # Image generation flag
 
     if not site_name:
         return jsonify({"error": "site_name required"}), 400
@@ -1219,16 +1841,41 @@ def execute_next_action():
                     keywords=keywords,
                     research=research,
                     meta_description=f"Learn about {title}",
-                    internal_links=internal_links,  # FIX: Add internal links
+                    internal_links=internal_links,
                     affiliate_links=affiliate_links
                 )
+
+                # Generate images if requested
+                if generate_images:
+                    try:
+                        from gemini_image_generator import GeminiImageGenerator
+                        gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                        if gemini_key:
+                            print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                            image_gen = GeminiImageGenerator(gemini_key)
+                            updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                content=article_data['content'],
+                                article_title=article_data.get('title', title),
+                                keywords=keywords,
+                                wp_publisher=wp,
+                                upload_to_wordpress=True
+                            )
+                            article_data['content'] = updated_content
+                            if image_info:
+                                print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                        else:
+                            print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                    except Exception as e:
+                        print(f"  ⚠️  Image generation failed: {e}")
+                        import traceback
+                        traceback.print_exc()
 
                 # Create the post
                 publish_result = wp.create_post(
                     title=article_data.get('title', title),
                     content=article_data['content'],
-                    meta_title=article_data.get('meta_title'),  # FIX: Add meta title
-                    meta_description=article_data.get('meta_description'),  # FIX: Add meta description
+                    meta_title=article_data.get('meta_title'),
+                    meta_description=article_data.get('meta_description'),
                     categories=article_data.get('categories', []),
                     tags=article_data.get('tags', [])
                 )
@@ -1245,7 +1892,7 @@ def execute_next_action():
                     result['success'] = True
                     state_mgr.mark_completed(action_data['id'], publish_result.post_id)
                 else:
-                    result['error'] = publish_result.error
+                    result['error'] = sanitize_for_json(publish_result.error)
                     result['success'] = False
 
             elif action_data['action_type'] == 'update':
@@ -1270,10 +1917,121 @@ def execute_next_action():
                     print(f"  ⏭️  Skipping: {page_info['explanation']}")
 
                 elif page_info['strategy'] == UpdateStrategy.META_ONLY.value:
-                    # CATEGORY or TAG - Update SEO meta only
+                    # META_ONLY update - Categories, Tags, or HOMEPAGE
                     print(f"  🏷️  Meta-only update for {page_info['page_type']}")
 
-                    if page_info['page_type'] == PageType.CATEGORY.value:
+                    if page_info['page_type'] == PageType.HOMEPAGE.value:
+                        # HOMEPAGE: Only update SEO meta, NEVER content
+                        print(f"  🏠 Homepage detected - updating SEO meta only (content will NOT be modified)")
+                        
+                        # Find homepage (could be a page or post set as homepage)
+                        homepage_post = None
+                        
+                        # Try to find by checking if it's a page with slug matching homepage
+                        # WordPress homepage could be:
+                        # 1. A static page set as homepage
+                        # 2. The blog index (posts page)
+                        # 3. A custom page template
+                        
+                        # First, try to find any page/post that matches the homepage URL
+                        try:
+                            # Check pages endpoint
+                            pages_response = requests.get(
+                                f"{wp.api_base}/pages",
+                                auth=wp.auth,
+                                params={'per_page': 100},
+                                timeout=30
+                            )
+                            if pages_response.status_code == 200:
+                                pages = pages_response.json()
+                                # Look for page that might be homepage
+                                # Homepage is often the first page or has a specific slug
+                                for page in pages:
+                                    page_link = page.get('link', '').rstrip('/')
+                                    site_url = site_config['url'].rstrip('/')
+                                    if page_link == site_url or page_link == f"{site_url}/":
+                                        homepage_post = page
+                                        break
+                        except Exception as e:
+                            print(f"  ⚠️  Could not fetch pages: {e}")
+                        
+                        # If not found in pages, try finding the front page
+                        if not homepage_post:
+                            try:
+                                # WordPress might have a setting for homepage
+                                # Try to get the front page option via REST API
+                                # Or search posts if blog is homepage
+                                posts = wp.get_all_posts()
+                                # Blog homepage doesn't have a specific post, but we can update site meta
+                                # For now, if we can't find a specific page, we'll skip
+                                print(f"  ⚠️  Could not find specific homepage page/post")
+                            except Exception as e:
+                                print(f"  ⚠️  Error finding homepage: {e}")
+                        
+                        if homepage_post:
+                            homepage_id = homepage_post['id']
+                            keywords = action_data.get('keywords', [])
+                            title = action_data.get('title', '') or homepage_post.get('title', {}).get('rendered', '')
+                            
+                            # Generate SEO meta based on reasoning/keywords
+                            # Don't generate article content - just meta
+                            meta_title = title if title else f"{site_name} | Wild Cat Conservation & Species Guide 2025"
+                            meta_description = action_data.get('reasoning', '')
+                            if keywords:
+                                meta_description = f"Explore {', '.join(keywords[:3])} and more wild cat conservation content. {meta_description[:100]}"
+                            else:
+                                meta_description = meta_description[:155] if meta_description else f"Learn about wild cat conservation, species identification guides, and 2025 conservation trends."
+                            
+                            # Update ONLY meta fields, NOT content
+                            publish_result = wp.update_post(
+                                homepage_id,
+                                title=None,  # Don't update title
+                                content=None,  # NEVER update homepage content
+                                meta_title=meta_title,
+                                meta_description=meta_description,
+                                item_type='page'  # Homepage is typically a page
+                            )
+                            
+                            if publish_result.success:
+                                result['post_id'] = homepage_id
+                                result['success'] = True
+                                result['meta_only'] = True
+                                result['homepage'] = True
+                                state_mgr.mark_completed(action_data['id'], homepage_id)
+                                print(f"  ✅ Homepage SEO meta updated successfully (content preserved)")
+                            else:
+                                result['error'] = sanitize_for_json(publish_result.error)
+                                result['success'] = False
+                        else:
+                            # Couldn't find homepage page/post - skip with warning
+                            result['success'] = True
+                            result['skipped'] = True
+                            result['reason'] = 'Homepage not found as editable page/post - skipping for safety'
+                            state_mgr.mark_completed(action_data['id'], None)
+                            print(f"  ⚠️  Skipping homepage update - could not find editable homepage page/post")
+
+                    elif page_info['page_type'] == PageType.AUTHOR.value:
+                        # AUTHOR archive - Update SEO meta only
+                        print(f"  👤 Author archive detected - updating SEO meta only")
+                        
+                        # Extract author slug from URL
+                        import re
+                        match = re.search(r'/author/([^/]+)', url)
+                        if not match:
+                            raise Exception(f"Invalid author URL: {url}")
+                        
+                        author_slug = match.group(1)
+                        
+                        # WordPress doesn't have a direct REST API for author meta
+                        # This would require a custom endpoint or plugin
+                        # For now, skip with explanation
+                        result['success'] = True
+                        result['skipped'] = True
+                        result['reason'] = 'Author archives require custom WordPress setup for SEO meta updates'
+                        state_mgr.mark_completed(action_data['id'], None)
+                        print(f"  ⚠️  Author archive SEO updates require custom WordPress configuration")
+
+                    elif page_info['page_type'] == PageType.CATEGORY.value:
                         category = wp.find_category_by_url(url)
                         if not category:
                             raise Exception(f"Category not found: {url}")
@@ -1319,75 +2077,146 @@ def execute_next_action():
                         state_mgr.mark_completed(action_data['id'], publish_result.post_id)
                         print(f"  ✅ Meta updated successfully")
                     else:
-                        result['error'] = publish_result.error
+                        result['error'] = sanitize_for_json(publish_result.error)
                         result['success'] = False
 
                 else:
                     # FULL CONTENT UPDATE - For posts and pages
                     print(f"  📝 Full content update for post/page")
-
-                    post = wp.find_post_by_url(url)
-                    if not post:
-                        raise Exception(f"Post not found: {url}")
-
-                    post_id = post['id']
-                    existing_content = post.get('content', {}).get('rendered', '')
-                    title = action_data.get('title', '') or post.get('title', {}).get('rendered', '')
-                    keywords = action_data.get('keywords', [])
-
-                    # Generate improved content using generate_article with existing_content
-                    # First do research
-                    research = content_gen.research_topic(title, keywords)
-
-                    # Get internal link suggestions
-                    internal_links = wp.get_internal_link_suggestions(keywords)
-
-                    # Get affiliate links for this update if available
-                    affiliate_links = []
-                    if affiliate_mgr:
-                        affiliate_links = affiliate_mgr.get_all_links()
-
-                    # Generate updated article
-                    article_data = content_gen.generate_article(
-                        topic_title=title,
-                        keywords=keywords,
-                        research=research,
-                        meta_description=f"Updated: {title}",
-                        existing_content=existing_content,
-                        internal_links=internal_links,
-                        affiliate_links=affiliate_links
-                    )
-
-                    # Update the post with new content
-                    publish_result = wp.update_post(
-                        post_id,
-                        title=article_data.get('title', title),
-                        content=article_data['content'],
-                        meta_title=article_data.get('meta_title'),
-                        meta_description=article_data.get('meta_description'),
-                        categories=article_data.get('categories', []),
-                        tags=article_data.get('tags', [])
-                    )
-
-                    # Update affiliate link usage if any were added
-                    if affiliate_mgr and affiliate_links:
-                        # Count how many affiliate links appear in the new content
-                        for link in affiliate_links:
-                            if link['url'] in article_data['content']:
-                                affiliate_mgr.increment_usage(link['id'])
-
-                    # Handle result
-                    if publish_result.success:
-                        result['post_id'] = post_id
-                        result['success'] = True
-                        state_mgr.mark_completed(action_data['id'], post_id)
-                        print(f"  ✅ Content updated successfully")
+                    
+                    # Find post or page - check both endpoints
+                    found_item = wp.find_post_or_page_by_url(url)
+                    if not found_item:
+                        raise Exception(f"Post or page not found: {url}")
+                    
+                    item_type = found_item.get('_wp_type', 'post')
+                    item_id = found_item['id']
+                    
+                    # CRITICAL SAFETY CHECK: If it's a WordPress PAGE (not POST), 
+                    # only update SEO meta, NOT content (to avoid breaking static pages)
+                    if item_type == 'page':
+                        print(f"  ⚠️  WordPress PAGE detected - switching to meta-only update for safety")
+                        print(f"     WordPress pages (like /about/, /contact/) should only have SEO meta updated, not content")
+                        
+                        keywords = action_data.get('keywords', [])
+                        title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                        
+                        # Generate SEO meta only
+                        meta_title = title if title else found_item.get('title', {}).get('rendered', '')
+                        meta_description = action_data.get('reasoning', '')
+                        if keywords:
+                            meta_description = f"{', '.join(keywords[:3])}. {meta_description[:100]}" if meta_description else f"Learn about {', '.join(keywords[:3])}"
+                        else:
+                            meta_description = meta_description[:155] if meta_description else "Learn more about our content."
+                        
+                        # Update ONLY meta fields, NOT content or title
+                        publish_result = wp.update_post(
+                            item_id,
+                            title=None,  # Don't update title
+                            content=None,  # NEVER update page content
+                            meta_title=meta_title,
+                            meta_description=meta_description,
+                            item_type='page'  # Use pages endpoint for WordPress pages
+                        )
+                        
+                        if publish_result.success:
+                            result['post_id'] = item_id
+                            result['success'] = True
+                            result['meta_only'] = True
+                            result['wp_page'] = True
+                            state_mgr.mark_completed(action_data['id'], item_id)
+                            print(f"  ✅ WordPress page SEO meta updated successfully (content preserved)")
+                        else:
+                            result['error'] = sanitize_for_json(publish_result.error)
+                            result['success'] = False
+                        # WordPress page handled - no need to generate article content
+                    
                     else:
-                        result['error'] = publish_result.error
-                        result['success'] = False
+                        # It's a POST - safe to do full content update
+                        existing_content = found_item.get('content', {}).get('rendered', '')
+                        title = action_data.get('title', '') or found_item.get('title', {}).get('rendered', '')
+                        keywords = action_data.get('keywords', [])
+
+                        # Generate improved content using generate_article with existing_content
+                        # First do research
+                        research = content_gen.research_topic(title, keywords)
+
+                        # Get internal link suggestions
+                        internal_links = wp.get_internal_link_suggestions(keywords)
+
+                        # Get affiliate links for this update if available
+                        affiliate_links = []
+                        if affiliate_mgr:
+                            affiliate_links = affiliate_mgr.get_all_links()
+
+                        # Generate updated article
+                        article_data = content_gen.generate_article(
+                            topic_title=title,
+                            keywords=keywords,
+                            research=research,
+                            meta_description=f"Updated: {title}",
+                            existing_content=existing_content,
+                            internal_links=internal_links,
+                            affiliate_links=affiliate_links
+                        )
+
+                        # Generate images if requested
+                        if generate_images:
+                            try:
+                                from gemini_image_generator import GeminiImageGenerator
+                                gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                                if gemini_key:
+                                    print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                                    image_gen = GeminiImageGenerator(gemini_key)
+                                    updated_content, image_info = image_gen.replace_placeholders_with_images(
+                                        content=article_data['content'],
+                                        article_title=article_data.get('title', title),
+                                        keywords=keywords,
+                                        wp_publisher=wp,
+                                        upload_to_wordpress=True
+                                    )
+                                    article_data['content'] = updated_content
+                                    if image_info:
+                                        print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                                else:
+                                    print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                            except Exception as e:
+                                print(f"  ⚠️  Image generation failed: {e}")
+                                import traceback
+                                traceback.print_exc()
+                                # Continue without images if generation fails
+
+                        # Update the post with new content
+                        publish_result = wp.update_post(
+                            item_id,
+                            title=article_data.get('title', title),
+                            content=article_data['content'],
+                            meta_title=article_data.get('meta_title'),
+                            meta_description=article_data.get('meta_description'),
+                            categories=article_data.get('categories', []),
+                            tags=article_data.get('tags', []),
+                            item_type='post'  # Explicitly use posts endpoint
+                        )
+
+                        # Update affiliate link usage if any were added
+                        if affiliate_mgr and affiliate_links:
+                            # Count how many affiliate links appear in the new content
+                            for link in affiliate_links:
+                                if link['url'] in article_data['content']:
+                                    affiliate_mgr.increment_usage(link['id'])
+
+                        # Handle result
+                        if publish_result.success:
+                            result['post_id'] = item_id
+                            result['success'] = True
+                            state_mgr.mark_completed(action_data['id'], item_id)
+                            print(f"  ✅ Content updated successfully")
+                        else:
+                            result['error'] = sanitize_for_json(publish_result.error)
+                            result['success'] = False
 
             else:
-                result['error'] = f"Unsupported action type: {action_data['action_type']}"
+                result['error'] = sanitize_for_json(f"Unsupported action type: {action_data['action_type']}")
 
         except Exception as e:
             if str(e) == "SKIP_DUPLICATE":
@@ -1424,32 +2253,84 @@ def list_sites_endpoint():
     List all configured sites with their current status.
     Returns site names and pending action counts.
     """
+    import traceback
+    
+    # Ultra-defensive error handling - always return valid JSON
     try:
-        from config import list_sites
-        from state_manager import StateManager
+        # Try to import modules
+        try:
+            from config import list_sites
+        except Exception as import_error:
+            print(f"❌ ERROR importing config: {import_error}")
+            return jsonify({
+                "sites": [],
+                "total_sites": 0,
+                "error": "Failed to import config module",
+                "details": str(import_error)
+            }), 200
 
-        sites = list_sites()
+        try:
+            from state_manager import StateManager
+        except Exception as import_error:
+            print(f"❌ ERROR importing state_manager: {import_error}")
+            # Still return sites, just without stats
+            try:
+                sites = list_sites()
+                return jsonify({
+                    "sites": [{"name": site, "pending_actions": 0, "completed_actions": 0, "total_actions": 0} for site in sites],
+                    "total_sites": len(sites) if sites else 0,
+                    "warning": "State manager unavailable - stats not loaded"
+                }), 200
+            except:
+                return jsonify({
+                    "sites": [],
+                    "total_sites": 0,
+                    "error": "Failed to load sites"
+                }), 200
+
+        # Get list of sites
+        try:
+            sites = list_sites()
+        except Exception as config_error:
+            print(f"❌ ERROR loading sites config: {config_error}")
+            print(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                "sites": [],
+                "total_sites": 0,
+                "error": "Failed to load site configuration",
+                "details": str(config_error)
+            }), 200
+        
+        if not sites or len(sites) == 0:
+            return jsonify({
+                "sites": [],
+                "total_sites": 0
+            })
+
         site_status = []
 
         for site_name in sites:
-            state_mgr = StateManager(site_name)
-            # Force reload state to get latest data
-            state_mgr.state = state_mgr._load()
-            stats = state_mgr.get_stats()
-            
-            print(f"DEBUG SITES: {site_name}")
-            print(f"DEBUG SITES: State file: {state_mgr.state_file}")
-            print(f"DEBUG SITES: Plan length: {len(state_mgr.state.get('current_plan', []))}")
-            print(f"DEBUG SITES: Stats: {stats}")
-            print(f"DEBUG SITES: State keys: {list(state_mgr.state.keys())}")
-            print(f"DEBUG SITES: Current plan: {state_mgr.state.get('current_plan', [])[:2]}...")  # Show first 2 actions
-            
-            site_status.append({
-                'name': site_name,
-                'pending_actions': stats.get('pending', 0),
-                'completed_actions': stats.get('completed', 0),
-                'total_actions': stats.get('total_actions', 0)
-            })
+            try:
+                state_mgr = StateManager(site_name)
+                # Force reload state to get latest data
+                state_mgr.state = state_mgr._load()
+                stats = state_mgr.get_stats()
+                
+                site_status.append({
+                    'name': site_name,
+                    'pending_actions': stats.get('pending', 0) if stats else 0,
+                    'completed_actions': stats.get('completed', 0) if stats else 0,
+                    'total_actions': stats.get('total_actions', 0) if stats else 0
+                })
+            except Exception as site_error:
+                # If state loading fails for a site, still include it with zero stats
+                print(f"  ⚠️  Error loading state for {site_name}: {site_error}")
+                site_status.append({
+                    'name': site_name,
+                    'pending_actions': 0,
+                    'completed_actions': 0,
+                    'total_actions': 0
+                })
 
         return jsonify({
             "sites": site_status,
@@ -1457,10 +2338,16 @@ def list_sites_endpoint():
         })
 
     except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"❌ CRITICAL ERROR in /api/sites: {e}")
+        print(f"Traceback: {error_trace}")
+        # Return 200 with empty sites instead of 500 to prevent frontend crash
         return jsonify({
+            "sites": [],
+            "total_sites": 0,
             "error": "Failed to load sites",
             "details": str(e)
-        }), 500
+        }), 200  # Changed to 200 so frontend can handle gracefully
 
 
 @app.route("/api/niche/<site_name>", methods=["GET"])
@@ -1557,10 +2444,90 @@ def get_action_plan(site_name):
         return jsonify(response_data)
 
     except Exception as e:
+        from utils.error_handler import handle_api_error
+        return handle_api_error(e)
+
+
+@app.route("/api/plan/<site_name>", methods=["PATCH"])
+def update_action_plan(site_name):
+    """
+    Update action plan - allows editing priorities, reasoning, etc.
+    
+    Request body:
+    {
+        "action_id": "action_123",
+        "priority_score": 8.5,  # Optional
+        "reasoning": "New reasoning",  # Optional
+        "action_type": "update",  # Optional
+        "keywords": ["keyword1", "keyword2"]  # Optional
+    }
+    """
+    try:
+        from state_manager import StateManager
+        from utils.error_handler import validate_required_fields, handle_api_error, AppError, ErrorCategory
+        
+        data = request.get_json()
+        if not data:
+            raise AppError(
+                "Request body required",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please provide action update data in JSON format.",
+                status_code=400
+            )
+        
+        validate_required_fields(data, ['action_id'])
+        
+        state_mgr = StateManager(site_name)
+        plan = state_mgr.state.get('current_plan', [])
+        
+        # Find the action to update
+        action_to_update = None
+        for action in plan:
+            if action.get('id') == data['action_id']:
+                action_to_update = action
+                break
+        
+        if not action_to_update:
+            raise AppError(
+                f"Action {data['action_id']} not found",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please check the action ID and try again.",
+                status_code=404
+            )
+        
+        # Update fields if provided
+        if 'priority_score' in data:
+            action_to_update['priority_score'] = float(data['priority_score'])
+        
+        if 'reasoning' in data:
+            action_to_update['reasoning'] = str(data['reasoning'])
+        
+        if 'action_type' in data:
+            action_to_update['action_type'] = data['action_type']
+        
+        if 'keywords' in data:
+            action_to_update['keywords'] = data['keywords']
+        
+        if 'title' in data:
+            action_to_update['title'] = data['title']
+        
+        # Recalculate stats
+        state_mgr.state['stats']['total_actions'] = len(plan)
+        state_mgr.state['stats']['pending'] = len([a for a in plan if a.get('status') != 'completed'])
+        state_mgr.state['stats']['completed'] = len([a for a in plan if a.get('status') == 'completed'])
+        
+        # Save updated plan
+        state_mgr.save()
+        
         return jsonify({
-            "error": "Failed to retrieve action plan",
-            "details": str(e)
-        }), 500
+            "success": True,
+            "message": "Action updated successfully",
+            "action": action_to_update,
+            "stats": state_mgr.get_stats()
+        })
+    
+    except Exception as e:
+        return handle_api_error(e)
 
 
 @app.route("/api/export/pdf/<site_name>", methods=["GET"])

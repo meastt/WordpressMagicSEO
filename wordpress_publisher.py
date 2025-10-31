@@ -213,7 +213,7 @@ class WordPressPublisher:
         return posts
     
     def find_post_by_url(self, url: str) -> Optional[Dict]:
-        """Find a post by its URL."""
+        """Find a post by its URL. Returns None if not found."""
         # Extract slug from URL
         slug = url.rstrip('/').split('/')[-1]
         
@@ -234,6 +234,75 @@ class WordPressPublisher:
         except Exception as e:
             print(f"Error finding post by URL {url}: {e}")
             return None
+    
+    def find_page_by_url(self, url: str) -> Optional[Dict]:
+        """Find a WordPress page (not post) by its URL."""
+        # Extract slug from URL
+        slug = url.rstrip('/').split('/')[-1]
+        
+        try:
+            response = requests.get(
+                f"{self.api_base}/pages",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            pages = response.json()
+            
+            if pages:
+                return pages[0]
+            return None
+            
+        except Exception as e:
+            print(f"Error finding page by URL {url}: {e}")
+            return None
+    
+    def find_post_or_page_by_url(self, url: str) -> Optional[Dict]:
+        """Find either a post or page by URL. Returns dict with 'type' field indicating 'post' or 'page'."""
+        # Extract slug from URL
+        slug = url.rstrip('/').split('/')[-1]
+        
+        # Try posts first
+        try:
+            response = requests.get(
+                f"{self.api_base}/posts",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            posts = response.json()
+            
+            if posts:
+                result = posts[0].copy()
+                result['_wp_type'] = 'post'
+                print(f"  ✓ Found as POST: {url} (ID: {result.get('id')})")
+                return result
+        except Exception as e:
+            pass
+        
+        # Try pages
+        try:
+            response = requests.get(
+                f"{self.api_base}/pages",
+                auth=self.auth,
+                params={'slug': slug},
+                timeout=30
+            )
+            response.raise_for_status()
+            pages = response.json()
+            
+            if pages:
+                result = pages[0].copy()
+                result['_wp_type'] = 'page'
+                print(f"  ✓ Found as PAGE: {url} (ID: {result.get('id')})")
+                return result
+        except Exception as e:
+            pass
+        
+        print(f"  ⚠️  Not found in WordPress: {url}")
+        return None
     
     def create_post(
         self, 
@@ -317,9 +386,16 @@ class WordPressPublisher:
         meta_title: str = None,
         meta_description: str = None,
         categories: List[str] = None,
-        tags: List[str] = None
+        tags: List[str] = None,
+        item_type: str = 'post'
     ) -> PublishResult:
-        """Update an existing post."""
+        """
+        Update an existing post or page.
+        
+        Args:
+            post_id: WordPress post or page ID
+            item_type: 'post' or 'page' - determines which endpoint to use
+        """
         
         try:
             # Build update data (only include fields that are provided)
@@ -330,8 +406,8 @@ class WordPressPublisher:
             if content:
                 update_data["content"] = content
             
-            # Handle categories
-            if categories:
+            # Handle categories (only for posts, not pages)
+            if categories and item_type == 'post':
                 category_ids = []
                 for cat_name in categories:
                     cat_id = self._get_or_create_category(cat_name)
@@ -341,8 +417,8 @@ class WordPressPublisher:
                     update_data["categories"] = category_ids
                     print(f"  ✓ Updated categories: {', '.join(categories)}")
             
-            # Handle tags
-            if tags:
+            # Handle tags (only for posts, not pages)
+            if tags and item_type == 'post':
                 tag_ids = []
                 for tag_name in tags:
                     tag_id = self._get_or_create_tag(tag_name)
@@ -360,9 +436,12 @@ class WordPressPublisher:
                 if meta_description:
                     update_data["meta"]["_yoast_wpseo_metadesc"] = meta_description
             
+            # Use the correct endpoint based on item type
+            endpoint = f"{self.api_base}/pages/{post_id}" if item_type == 'page' else f"{self.api_base}/posts/{post_id}"
+            
             response, result_data = self._make_request_with_retry(
                 'POST',
-                f"{self.api_base}/posts/{post_id}",
+                endpoint,
                 auth=self.auth,
                 json=update_data,
                 timeout=30
@@ -450,6 +529,96 @@ class WordPressPublisher:
             print(f"Error finding category by URL {url}: {e}")
             return None
 
+    def upload_image(
+        self,
+        image_bytes: bytes,
+        filename: str,
+        alt_text: str = "",
+        title: str = "",
+        caption: str = "",
+        description: str = ""
+    ) -> Optional[Dict]:
+        """
+        Upload an image to WordPress media library.
+        
+        Args:
+            image_bytes: Image file bytes
+            filename: Filename for the image
+            alt_text: Alt text for accessibility and SEO (required)
+            title: Image title for SEO (optional)
+            caption: Image caption (optional)
+            description: Image description for media library (optional)
+            
+        Returns:
+            Dict with 'id', 'url', 'title' or None if upload fails
+        """
+        try:
+            import base64
+            
+            # WordPress REST API requires multipart/form-data for media uploads
+            # We need to use the /wp/v2/media endpoint with proper authentication
+            
+            # Prepare file data
+            files = {
+                'file': (filename, image_bytes, 'image/jpeg')
+            }
+            
+            # Prepare post data
+            data = {}
+            if title:
+                data['title'] = title
+            if caption:
+                data['caption'] = caption
+            if alt_text:
+                data['alt_text'] = alt_text
+            
+            response = requests.post(
+                f"{self.api_base}/media",
+                auth=self.auth,
+                files=files,
+                data=data,
+                timeout=60
+            )
+            response.raise_for_status()
+            
+            result = response.json()
+            media_id = result.get('id')
+            
+            # Update media metadata after upload to ensure alt_text is properly saved
+            # WordPress REST API sometimes requires a separate update for alt_text
+            if media_id and alt_text:
+                try:
+                    update_data = {
+                        'alt_text': alt_text
+                    }
+                    if title:
+                        update_data['title'] = title
+                    if caption:
+                        update_data['caption'] = caption
+                    if description:
+                        update_data['description'] = description
+                    
+                    update_response = requests.post(
+                        f"{self.api_base}/media/{media_id}",
+                        auth=self.auth,
+                        json=update_data,
+                        timeout=30
+                    )
+                    update_response.raise_for_status()
+                except Exception as e:
+                    print(f"  ⚠️  Warning: Could not update image metadata: {e}")
+                    # Continue anyway - alt text in img tag is still set
+            
+            return {
+                'id': media_id,
+                'url': result.get('source_url') or result.get('url'),
+                'title': result.get('title', {}).get('rendered', title) if isinstance(result.get('title'), dict) else result.get('title', title)
+            }
+            
+        except Exception as e:
+            print(f"Error uploading image to WordPress: {e}")
+            return None
+    
     def find_tag_by_url(self, url: str) -> Optional[Dict]:
         """
         Find a tag by its URL.
@@ -601,9 +770,67 @@ class WordPressPublisher:
         """Create a 301 redirect (requires Redirection plugin)."""
         
         try:
-            # Strip domain from URLs to get paths
-            source_path = source_url.replace(self.site_url, '')
-            target_path = target_url.replace(self.site_url, '')
+            from urllib.parse import urlparse
+            
+            # Validate target URL exists and is not empty
+            if not target_url or target_url.strip() == '':
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error="Target URL is empty"
+                )
+            
+            # Normalize URLs: ensure they have proper format
+            # If target_url doesn't start with http, it might be relative - make it absolute
+            if not target_url.startswith('http'):
+                # It's a relative path, prepend site URL
+                target_url = f"{self.site_url.rstrip('/')}/{target_url.lstrip('/')}"
+            
+            # Extract paths from URLs more robustly
+            # Parse URLs to extract paths
+            source_parsed = urlparse(source_url)
+            target_parsed = urlparse(target_url)
+            
+            # Get paths - ensure they start with /
+            source_path = source_parsed.path
+            if not source_path.startswith('/'):
+                source_path = '/' + source_path
+            
+            target_path = target_parsed.path
+            if not target_path.startswith('/'):
+                target_path = '/' + target_path
+            
+            # Normalize paths (remove trailing slashes except root)
+            source_path = source_path.rstrip('/') or '/'
+            target_path = target_path.rstrip('/') or '/'
+            
+            # Validate target path is not empty or root (unless that's intentional)
+            if not target_path or target_path == '/':
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error=f"Invalid target URL: {target_url} (extracted path is empty or root)"
+                )
+            
+            print(f"Creating redirect: {source_path} -> {target_path}")
+            print(f"  Source URL: {source_url}")
+            print(f"  Target URL: {target_url}")
+            
+            # Optional: Verify target page exists (warn but don't fail)
+            try:
+                # Try to find the target page/post to warn if it doesn't exist
+                # This uses the target_path, so we need to extract the slug
+                target_slug = target_path.strip('/').split('/')[-1]
+                if target_slug:
+                    target_post = self.find_post_by_url(target_url)
+                    if not target_post:
+                        print(f"  ⚠️  WARNING: Target URL '{target_url}' does not appear to exist on the site!")
+                        print(f"     The redirect will still be created, but users will be redirected to a 404 page.")
+            except Exception as e:
+                # Don't fail on verification - just log it
+                print(f"  ⚠️  Could not verify target URL exists: {e}")
             
             redirect_data = {
                 "url": source_path,
@@ -620,8 +847,26 @@ class WordPressPublisher:
                 json=redirect_data,
                 timeout=30
             )
+            
+            # Check for HTTP errors
+            if response.status_code not in [200, 201]:
+                error_text = response.text
+                try:
+                    error_json = response.json()
+                    error_text = error_json.get('message', error_text)
+                except:
+                    pass
+                return PublishResult(
+                    success=False,
+                    action="redirect",
+                    url=source_url,
+                    error=f"WordPress API error ({response.status_code}): {error_text}"
+                )
+            
             response.raise_for_status()
             self._rate_limit()
+            
+            result_data = response.json() if response.content else {}
             
             return PublishResult(
                 success=True,
@@ -629,12 +874,19 @@ class WordPressPublisher:
                 url=f"{source_path} -> {target_path}"
             )
             
+        except requests.exceptions.RequestException as e:
+            return PublishResult(
+                success=False,
+                action="redirect",
+                url=source_url,
+                error=f"Request failed: {str(e)}"
+            )
         except Exception as e:
             return PublishResult(
                 success=False,
                 action="redirect",
                 url=source_url,
-                error=str(e)
+                error=f"Error creating redirect: {str(e)}"
             )
     
     def get_internal_link_suggestions(
