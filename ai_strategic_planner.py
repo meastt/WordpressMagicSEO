@@ -139,10 +139,21 @@ Current Month: {current_month}
 Create a prioritized content action plan with 12-18 actions.
 
 **ACTION TYPES:**
-1. **update** - Refresh existing content (fix intent mismatch, add trending info, improve quality)
-2. **create** - New content for trending topics or gaps
+1. **update** - Refresh existing content (fix intent mismatch, add trending info, improve quality, add year to title)
+2. **create** - New content for trending topics or gaps **⚠️ ONLY if no similar content exists - check first!**
 3. **redirect_301** - Consolidate duplicate/similar content (PREFERRED over delete for SEO)
 4. **delete** - Remove ONLY truly worthless content (spam, broken, no value)
+
+**🚨 CRITICAL: DUPLICATE DETECTION FOR CREATE ACTIONS:**
+Before recommending ANY "create" action, you MUST:
+1. Strip years from the proposed title ("Best X 2025" → "Best X")
+2. Check if a similar page already exists in the URLs above (look for semantic similarity)
+3. Examples of duplicates:
+   - "Best Vertical Smokers" already exists? → UPDATE it to "Best Vertical Smokers 2025" (NOT create)
+   - "Top Griddles" already exists? → UPDATE it to "Best Griddles for 2025" (NOT create)
+   - "Ultimate Smoking Guide" already exists? → UPDATE it (NOT create "Complete Smoking Guide")
+4. If similar content exists → Use UPDATE action with title change (NOT create)
+5. ONLY use "create" if it's genuinely NEW content that doesn't overlap with existing pages
 
 **CRITICAL: DELETE vs REDIRECT Decision:**
 - Has ANY traffic/impressions/backlinks? → **redirect_301** (preserve SEO value)
@@ -176,17 +187,27 @@ Create a prioritized content action plan with 12-18 actions.
    - High bounce rate (>70%) = UX or content quality problem
    - Low engagement time (<30s) = Thin/unhelpful content
 
-5. **Cannibalization & Duplicate Content** (HIGH PRIORITY - Use redirect_301 actions)
+5. **Cannibalization & Duplicate Content** (HIGH PRIORITY - Use redirect_301 or UPDATE actions)
    - Multiple pages targeting same keywords → **redirect_301 weaker to stronger**
-   - **SEMANTIC DUPLICATES:** Pages about same topic with different titles/years
+   - **SEMANTIC DUPLICATES:** Pages about same topic with different titles/years/wording
      * Example: "Best Griddles 2023" and "Top Griddles 2024" are DUPLICATES
-     * Action: redirect_301 old year → current year (UPDATE the kept page)
+     * Example: "Best Vertical Smokers" and "Best Vertical Smokers 2025" are DUPLICATES (same topic!)
+     * Example: "Top Griddles" and "Best Griddles for 2025" are DUPLICATES
+     * Action: If both exist → redirect_301 old year → current year, then UPDATE the kept page
+     * Action: If only one exists without year → UPDATE it to add current year to title
+   - **CRITICAL: BEFORE recommending CREATE action:**
+     * ALWAYS check existing URLs/titles for semantic similarity
+     * If "Best Vertical Smokers" exists, do NOT create "Best Vertical Smokers 2025"
+     * Instead: **UPDATE "Best Vertical Smokers" to "Best Vertical Smokers 2025"**
+     * Remove year suffix when comparing: "Best X 2024" = "Best X 2025" = "Best X"
+     * Consider synonyms: "Top/Best/Ultimate" + same product = duplicate
+     * Title variations of same topic = duplicate (add year to existing, don't create new)
    - **SPECIES DUPLICATES:** Pages about same animals with different names
      * Example: "Puma vs X", "Mountain Lion vs X", "Cougar vs X" are DUPLICATES (same animal!)
      * Action: redirect_301 all variants → one canonical version
    - Look for URL patterns: same topic, different years (redirect_301 old → new)
    - Multiple "best X" or "top X" guides for same product category
-   - **ALWAYS use redirect_301 actions** - never DELETE content with traffic/impressions
+   - **ALWAYS use redirect_301 or UPDATE** - never DELETE content with traffic/impressions
 
 6. **Outdated Content** (HIGH PRIORITY for year updates, otherwise MEDIUM)
    - Topics declining in niche research
@@ -255,7 +276,7 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
     "title": "Cast Iron Griddle Seasoning Complete Guide {current_year}",
     "keywords": ["cast iron griddle seasoning", "how to season cast iron griddle", "griddle seasoning tips"],
     "priority_score": 9.2,
-    "reasoning": "Major gap identified in niche research: 'Cast iron maintenance guides - 5K monthly searches, low competition'. No existing content on site. Highly engaged niche (from competitor analysis). Quick win opportunity.",
+    "reasoning": "VERIFIED: No similar content exists (checked all URLs above). Major gap identified in niche research: 'Cast iron maintenance guides - 5K monthly searches, low competition'. Highly engaged niche (from competitor analysis). Quick win opportunity.",
     "estimated_impact": "high",
     "redirect_target": null
   }},
@@ -284,6 +305,11 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
 ]
 
 **FINAL CHECKLIST BEFORE RETURNING:**
+□ Are all "create" actions validated for duplicates?
+  - For each "create" action, did you strip the year and check for similar existing content? ✓
+  - Example: Creating "Best Vertical Smokers 2025" but "Best Vertical Smokers" exists? → CHANGE to UPDATE action!
+  - If similar content exists, use UPDATE to add year to title instead of CREATE
+
 □ Are all redirect_301 actions complete? Check each one:
   - Does it have action_type: "redirect_301"? ✓
   - Does it have a url (source)? ✓
@@ -291,6 +317,10 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
   - Is redirect_target a full URL like "https://tigertribe.net/page-name/"? ✓
 
 **IMPORTANT:**
+- **🚨 NO DUPLICATE CREATES:** Before any "create" action, verify similar content doesn't already exist
+  - "Best Vertical Smokers" exists? UPDATE it to "Best Vertical Smokers 2025" (NOT create new)
+  - Strip years, check synonyms (Top/Best/Ultimate), look for semantic similarity
+  - When in doubt, UPDATE existing rather than CREATE new
 - Be SPECIFIC in reasoning (cite exact numbers from data)
 - Consider BOTH search performance (GSC) AND user behavior (GA4)
 - Align with niche trends (reference specific trends)
