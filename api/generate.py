@@ -93,37 +93,55 @@ def analyze_only():
     Supports both multi-site (site_name) and legacy (individual params) modes.
     Returns comprehensive action plan for review.
     """
-    
-    # Validate GSC file upload
-    if "gsc_file" not in request.files and "file" not in request.files:
-        return jsonify({"error": "No GSC file uploaded (use 'gsc_file' or 'file')"}), 400
-    
-    gsc_file = request.files.get("gsc_file") or request.files.get("file")
-    
-    if gsc_file.filename == "" or not gsc_file.filename.endswith(('.csv', '.xlsx', '.xls')):
-        return jsonify({"error": "Please upload a CSV or Excel file for GSC data"}), 400
-    
-    gsc_filename = secure_filename(gsc_file.filename)
-    gsc_path = os.path.join(UPLOAD_FOLDER, gsc_filename)
-    gsc_file.save(gsc_path)
-    
-    # Optional GA4 file upload
-    ga4_path = None
-    if "ga4_file" in request.files:
-        ga4_file = request.files["ga4_file"]
-        if ga4_file.filename and ga4_file.filename.endswith(('.csv', '.xlsx', '.xls')):
-            ga4_filename = secure_filename(ga4_file.filename)
-            ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
-            ga4_file.save(ga4_path)
-    
-    # Get all parameters
-    site_url = request.form.get("site_url")
-    username = request.form.get("username")
-    application_password = request.form.get("application_password")
-    site_name = request.form.get("site_name")
-    anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
-
     try:
+        from utils.error_handler import (
+            validate_file_upload,
+            validate_site_config,
+            handle_api_error,
+            AppError,
+            ErrorCategory
+        )
+        
+        # Validate GSC file upload
+        gsc_file = request.files.get("gsc_file") or request.files.get("file")
+        if not gsc_file:
+            raise AppError(
+                "No GSC file uploaded",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please upload a GSC data file (CSV or Excel format).",
+                status_code=400
+            )
+        
+        validate_file_upload(gsc_file)
+        
+        gsc_filename = secure_filename(gsc_file.filename)
+        gsc_path = os.path.join(UPLOAD_FOLDER, gsc_filename)
+        gsc_file.save(gsc_path)
+        
+        # Optional GA4 file upload
+        ga4_path = None
+        if "ga4_file" in request.files:
+            ga4_file = request.files["ga4_file"]
+            if ga4_file.filename:
+                try:
+                    validate_file_upload(ga4_file)
+                    ga4_filename = secure_filename(ga4_file.filename)
+                    ga4_path = os.path.join(UPLOAD_FOLDER, ga4_filename)
+                    ga4_file.save(ga4_path)
+                except AppError:
+                    # GA4 is optional, so we'll just skip it if invalid
+                    pass
+        
+        # Get all parameters
+        site_url = request.form.get("site_url")
+        username = request.form.get("username")
+        application_password = request.form.get("application_password")
+        site_name = request.form.get("site_name")
+        anthropic_key = request.form.get("anthropic_api_key") or os.getenv("ANTHROPIC_API_KEY")
+        
+        # Validate site configuration
+        validate_site_config(site_name, site_url, username, application_password)
+        
         # Check if manual config is provided (takes priority)
         if site_url and username and application_password:
             # Manual/legacy mode - use individual params
@@ -143,10 +161,6 @@ def analyze_only():
                 ga4_csv_path=ga4_path,
                 anthropic_api_key=anthropic_key
             )
-        else:
-            return jsonify({
-                "error": "Must provide either (site_url, username, application_password) OR site_name"
-            }), 400
         
         # Run analysis with AI planner
         use_ai = request.form.get("use_ai_planner", "true").lower() == "true"
@@ -216,15 +230,8 @@ def analyze_only():
         })
     
     except Exception as e:
-        import traceback
-        error_traceback = traceback.format_exc()
-        print(f"❌ ANALYSIS ERROR: {str(e)}")
-        print(f"Full traceback:\n{error_traceback}")
-        return jsonify({
-            "error": "Analysis failed",
-            "details": str(e),
-            "traceback": error_traceback
-        }), 500
+        from utils.error_handler import handle_api_error
+        return handle_api_error(e, include_traceback=True)
 
 
 @app.route('/api/save-state', methods=['POST'])
@@ -2437,10 +2444,90 @@ def get_action_plan(site_name):
         return jsonify(response_data)
 
     except Exception as e:
+        from utils.error_handler import handle_api_error
+        return handle_api_error(e)
+
+
+@app.route("/api/plan/<site_name>", methods=["PATCH"])
+def update_action_plan(site_name):
+    """
+    Update action plan - allows editing priorities, reasoning, etc.
+    
+    Request body:
+    {
+        "action_id": "action_123",
+        "priority_score": 8.5,  # Optional
+        "reasoning": "New reasoning",  # Optional
+        "action_type": "update",  # Optional
+        "keywords": ["keyword1", "keyword2"]  # Optional
+    }
+    """
+    try:
+        from state_manager import StateManager
+        from utils.error_handler import validate_required_fields, handle_api_error, AppError, ErrorCategory
+        
+        data = request.get_json()
+        if not data:
+            raise AppError(
+                "Request body required",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please provide action update data in JSON format.",
+                status_code=400
+            )
+        
+        validate_required_fields(data, ['action_id'])
+        
+        state_mgr = StateManager(site_name)
+        plan = state_mgr.state.get('current_plan', [])
+        
+        # Find the action to update
+        action_to_update = None
+        for action in plan:
+            if action.get('id') == data['action_id']:
+                action_to_update = action
+                break
+        
+        if not action_to_update:
+            raise AppError(
+                f"Action {data['action_id']} not found",
+                category=ErrorCategory.USER_ERROR,
+                suggestion="Please check the action ID and try again.",
+                status_code=404
+            )
+        
+        # Update fields if provided
+        if 'priority_score' in data:
+            action_to_update['priority_score'] = float(data['priority_score'])
+        
+        if 'reasoning' in data:
+            action_to_update['reasoning'] = str(data['reasoning'])
+        
+        if 'action_type' in data:
+            action_to_update['action_type'] = data['action_type']
+        
+        if 'keywords' in data:
+            action_to_update['keywords'] = data['keywords']
+        
+        if 'title' in data:
+            action_to_update['title'] = data['title']
+        
+        # Recalculate stats
+        state_mgr.state['stats']['total_actions'] = len(plan)
+        state_mgr.state['stats']['pending'] = len([a for a in plan if a.get('status') != 'completed'])
+        state_mgr.state['stats']['completed'] = len([a for a in plan if a.get('status') == 'completed'])
+        
+        # Save updated plan
+        state_mgr.save()
+        
         return jsonify({
-            "error": "Failed to retrieve action plan",
-            "details": str(e)
-        }), 500
+            "success": True,
+            "message": "Action updated successfully",
+            "action": action_to_update,
+            "stats": state_mgr.get_stats()
+        })
+    
+    except Exception as e:
+        return handle_api_error(e)
 
 
 @app.route("/api/export/pdf/<site_name>", methods=["GET"])
