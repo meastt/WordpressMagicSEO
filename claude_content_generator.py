@@ -95,11 +95,64 @@ Format your research with clear sections and bullet points. Include source URLs 
             Dict with title, content, categories, tags, meta, schema
         """
 
-        # Get current date for context
+        # Get current date for context with seasonal awareness
         from datetime import datetime
         current_date = datetime.now()
-        date_context = f"\n\nCURRENT DATE CONTEXT: Today is {current_date.strftime('%B %d, %Y')} (Month: {current_date.strftime('%B')}, Year: {current_date.year})"
-        date_context += "\nIMPORTANT: Use the current year in any time-sensitive content (e.g., 'Best X in 2025', 'Top X for 2025'). Keep content fresh and current."
+
+        # Determine season and time of year context
+        month = current_date.month
+        day = current_date.day
+
+        # Determine season
+        if month in [12, 1, 2]:
+            season = "winter"
+            season_desc = "the cold winter months"
+        elif month in [3, 4, 5]:
+            season = "spring"
+            season_desc = "the fresh spring season"
+        elif month in [6, 7, 8]:
+            season = "summer"
+            season_desc = "the warm summer months"
+        else:  # 9, 10, 11
+            season = "fall/autumn"
+            season_desc = "the fall season"
+
+        # Determine time of year context for language
+        if month == 1 and day <= 15:
+            time_context = "early in the new year - phrases like 'kick off the year' or 'start the year right' are appropriate"
+        elif month == 1:
+            time_context = "late January - still appropriate to reference the new year, but avoid 'kicking off'"
+        elif month == 2:
+            time_context = "mid-winter - focus on current season, not new year language"
+        elif month in [3, 4]:
+            time_context = "spring - perfect for renewal, fresh starts, spring cleaning themes"
+        elif month in [5, 6]:
+            time_context = "late spring/early summer - outdoor activities, warm weather themes"
+        elif month in [7, 8]:
+            time_context = "peak summer - vacation, outdoor cooking, warm weather focus"
+        elif month == 9:
+            time_context = "early fall - back to school, routine, transition themes"
+        elif month == 10:
+            time_context = "mid-fall - Halloween, autumn harvest, cozy themes"
+        elif month == 11:
+            time_context = "late fall - Thanksgiving, holiday prep, gratitude themes"
+        elif month == 12 and day <= 20:
+            time_context = "holiday season - Christmas, Hanukkah, winter celebrations"
+        else:
+            time_context = "end of year - year-end reflections, New Year prep"
+
+        date_context = f"\n\n{'='*80}\n⏰ CRITICAL TEMPORAL CONTEXT - READ CAREFULLY:\n{'='*80}\n"
+        date_context += f"📅 TODAY'S DATE: {current_date.strftime('%B %d, %Y')} (Month: {current_date.strftime('%B')}, Year: {current_date.year})\n"
+        date_context += f"🌡️  SEASON: {season.title()} - {season_desc}\n"
+        date_context += f"📆 TIME OF YEAR: {time_context}\n"
+        date_context += f"\n{'='*80}\n"
+        date_context += "⚠️  CONTEXTUAL LANGUAGE REQUIREMENTS:\n"
+        date_context += "- Use language appropriate for the CURRENT time of year\n"
+        date_context += "- Do NOT use 'kick off the year' or 'start the year right' unless it's early January\n"
+        date_context += "- Reference the current season naturally in your writing\n"
+        date_context += "- For year references in titles, use the current year (2025)\n"
+        date_context += "- Match the mood and themes appropriate for this time of year\n"
+        date_context += f"{'='*80}\n"
 
         action = "update this existing content" if existing_content else "create new content"
         existing_context = f"\n\nEXISTING CONTENT TO UPDATE:\n{existing_content}" if existing_content else ""
@@ -129,6 +182,34 @@ Format your research with clear sections and bullet points. Include source URLs 
             quality_context += f"- E-E-A-T Score Target: {quality_requirements.get('eeat_score', 8)}/10+\n"
             quality_context += f"- Must Include: {', '.join(quality_requirements.get('must_include', []))}\n"
 
+        # Detect if this is a list/recipe article that needs completeness checking
+        import re
+        list_match = re.search(r'(\d+)\s*(recipes?|ideas?|ways?|tips?|methods?)', topic_title.lower())
+        completeness_reminder = ""
+        if list_match:
+            expected_count = int(list_match.group(1))
+            item_type = list_match.group(2).rstrip('s')  # singular form
+            completeness_reminder = f"""
+{'='*80}
+🚨 CRITICAL COMPLETENESS REQUIREMENT - READ CAREFULLY:
+{'='*80}
+This article PROMISES {expected_count} {list_match.group(2)}. You MUST deliver ALL {expected_count} COMPLETE {list_match.group(2)}.
+
+Each {item_type} MUST include:
+- A clear title/heading (H3 or H4)
+- Full, detailed content (at least 150-200 words per {item_type})
+- If it's a recipe: ingredients list AND preparation steps
+- If it's a method/tip: detailed explanation with examples
+- Specific, actionable information - NO placeholders or "coming soon" text
+
+⚠️  DO NOT create incomplete {list_match.group(2)} with just a title and intro line!
+⚠️  DO NOT stop at {expected_count//2} {list_match.group(2)} - you must complete ALL {expected_count}!
+⚠️  Each {item_type} should be substantial and valuable on its own.
+
+Quality control will verify that all {expected_count} {list_match.group(2)} are complete.
+{'='*80}
+"""
+
         prompt = f"""You are an ELITE SEO content writer. {action.capitalize()} about: "{topic_title}"
 {date_context}
 
@@ -141,6 +222,7 @@ RESEARCH DATA:
 {affiliate_links_text}
 {competitive_context}
 {quality_context}
+{completeness_reminder}
 
 Create a comprehensive, SUPERIOR article that:
 1. **BEATS COMPETITORS**: If competitive brief is provided, your content MUST be MORE comprehensive, better structured, and more valuable than top-ranking content
@@ -212,9 +294,11 @@ CRITICAL JSON REQUIREMENTS:
 
 DO NOT include any text outside the JSON structure."""
 
+        # Increase max_tokens for complex content (recipes, lists, etc.)
+        # 8000 was not enough for 15 complete recipes
         message = self.client.messages.create(
             model=self.model,
-            max_tokens=8000,
+            max_tokens=16000,  # Increased from 8000 to support complex content
             messages=[{"role": "user", "content": prompt}]
         )
         

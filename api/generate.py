@@ -959,6 +959,57 @@ def execute_selected_actions():
                             traceback.print_exc()
                             # Continue without images if generation fails
 
+                    # QA Validation - check content quality and completeness
+                    try:
+                        from content_qa_validator import ContentQAValidator
+
+                        # Extract expected elements from title (e.g., "15 recipes")
+                        import re
+                        expected_elements = {
+                            'min_word_count': 2000,
+                            'temporal_check': True
+                        }
+
+                        # Try to detect recipe/list count from title
+                        recipe_match = re.search(r'(\d+)\s*(recipes?|ideas?|ways?|tips?|methods?)', title.lower())
+                        if recipe_match:
+                            expected_elements['recipe_count'] = int(recipe_match.group(1))
+
+                        # Try to detect expected image count
+                        image_placeholders = len(re.findall(r'\[Image:[^\]]+\]', article_data['content']))
+                        img_tags = len(re.findall(r'<img[^>]+>', article_data['content']))
+                        if image_placeholders > 0 or img_tags > 0:
+                            expected_elements['image_count'] = max(image_placeholders, img_tags)
+
+                        validator = ContentQAValidator()
+                        is_valid, qa_report = validator.validate_article(
+                            article_data,
+                            title,
+                            expected_elements
+                        )
+
+                        # Print the QA report
+                        validator.print_report(qa_report)
+
+                        # Add QA report to result for visibility
+                        result['qa_validation'] = {
+                            'is_valid': is_valid,
+                            'errors': qa_report['errors'],
+                            'warnings': qa_report['warnings'],
+                            'summary': qa_report['summary']
+                        }
+
+                        # If there are critical errors, warn but continue (user can decide)
+                        if not is_valid:
+                            print(f"  ⚠️  Content QA validation failed with {len(qa_report['errors'])} errors")
+                            print(f"  ⚠️  Publishing anyway - review the content after creation")
+
+                    except Exception as e:
+                        print(f"  ⚠️  QA validation failed: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        # Continue with publishing even if QA fails
+
                     publish_result = wp.create_post(
                         title=article_data.get('title', title),
                         content=article_data['content'],
