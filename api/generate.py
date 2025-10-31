@@ -1049,6 +1049,49 @@ def execute_selected_actions():
                         traceback.print_exc()
                         # Continue with publishing even if QA fails
 
+                    # SEO Checklist Validation - comprehensive SEO audit
+                    try:
+                        from seo_checklist_validator import SEOChecklistValidator
+
+                        seo_validator = SEOChecklistValidator()
+
+                        # Add keywords to article_data for SEO validation
+                        article_data['keywords'] = keywords
+
+                        is_seo_valid, seo_report = seo_validator.validate_seo(
+                            article_data,
+                            primary_keyword=keywords[0] if keywords else None,
+                            site_url=site_config['url']
+                        )
+
+                        # Print the SEO report
+                        seo_validator.print_report(seo_report)
+
+                        # Add SEO report to result for visibility
+                        result['seo_validation'] = {
+                            'is_valid': is_seo_valid,
+                            'seo_score': seo_report['seo_score'],
+                            'critical_issues': seo_report['critical_issues'],
+                            'warnings': seo_report['warnings'][:10],  # First 10 warnings
+                            'summary': seo_report['summary']
+                        }
+
+                        # If SEO score is below 50, strongly warn
+                        if seo_report['seo_score'] < 50:
+                            print(f"  ❌ WARNING: SEO score is critically low ({seo_report['seo_score']}/100)")
+                            print(f"  ❌ This content may not rank well in search engines")
+                            print(f"  ❌ Consider fixing critical SEO issues before publishing")
+                        elif seo_report['seo_score'] < 70:
+                            print(f"  ⚠️  SEO score needs improvement: {seo_report['seo_score']}/100")
+                        else:
+                            print(f"  ✅ Good SEO score: {seo_report['seo_score']}/100")
+
+                    except Exception as e:
+                        print(f"  ⚠️  SEO validation failed: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        # Continue with publishing even if SEO validation fails
+
                     publish_result = wp.create_post(
                         title=article_data.get('title', title),
                         content=article_data['content'],
