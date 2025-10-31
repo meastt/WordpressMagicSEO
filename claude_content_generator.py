@@ -8,6 +8,7 @@ import os
 import anthropic
 from typing import List, Dict
 import time
+import re
 
 
 class ClaudeContentGenerator:
@@ -229,6 +230,18 @@ DO NOT include any text outside the JSON structure."""
             article_data['content'] += schema_script
             print(f"✅ Schema markup injected: {schema_json.get('@type', 'Unknown')}")
 
+        # PROCESS TABLE PLACEHOLDERS - Replace [Table: description] with actual HTML tables
+        if '[Table:' in article_data.get('content', ''):
+            print(f"  📊 Processing table placeholders...")
+            article_data['content'], table_info = self.replace_table_placeholders(
+                article_data['content'],
+                topic_title,
+                keywords,
+                research
+            )
+            if table_info:
+                print(f"  ✅ Generated {len(table_info)} tables")
+
         return article_data
 
     def _validate_content_quality(self, article_data: Dict) -> None:
@@ -328,3 +341,195 @@ Be specific and actionable. Cite examples from the URLs."""
     def rate_limit_delay(self, delay_seconds: float = 1.0):
         """Add delay between API calls to respect rate limits."""
         time.sleep(delay_seconds)
+    
+    def extract_table_placeholders(self, content: str) -> List[Dict[str, str]]:
+        """
+        Extract all [Table: description] placeholders from content.
+        
+        Args:
+            content: HTML content with table placeholders
+            
+        Returns:
+            List of dicts with 'placeholder', 'description', and 'position'
+        """
+        pattern = r'\[Table:\s*([^\]]+)\]'
+        matches = []
+        
+        for match in re.finditer(pattern, content):
+            matches.append({
+                'placeholder': match.group(0),
+                'description': match.group(1).strip(),
+                'position': match.start()
+            })
+        
+        return matches
+    
+    def generate_table(self, description: str, article_title: str, keywords: List[str], research: str = None) -> str:
+        """
+        Generate an HTML table based on description using Claude.
+        
+        Args:
+            description: Table description from placeholder (e.g., "Comparison of top 5 AI tools")
+            article_title: Article title for context
+            keywords: Article keywords for context
+            research: Research data for generating accurate table content
+            
+        Returns:
+            HTML table string or empty string if generation fails
+        """
+        try:
+            print(f"  📊 Generating table: {description[:60]}...")
+            
+            # Build context for table generation
+            context = f"Article: {article_title}\n"
+            if keywords:
+                context += f"Keywords: {', '.join(keywords)}\n"
+            if research:
+                # Include relevant research context (limit to avoid token limits)
+                research_summary = research[:1000] if len(research) > 1000 else research
+                context += f"\nResearch Context:\n{research_summary}\n"
+            
+            prompt = f"""You are creating an HTML table for a blog article.
+
+CONTEXT:
+{context}
+
+TABLE REQUEST:
+Create a professional, well-structured HTML table based on this description: "{description}"
+
+REQUIREMENTS:
+1. Generate COMPLETE, ACCURATE data based on the description - use web search if needed for current information
+2. Create a well-formatted HTML table with proper structure
+3. Include a descriptive caption
+4. Use semantic HTML: <table>, <thead>, <tbody>, <tr>, <th>, <td>
+5. Make it visually appealing with appropriate structure
+6. Ensure data is accurate and current (use web search if needed)
+7. Include all relevant columns/rows based on the description
+8. Make the table responsive and accessible
+
+EXAMPLE OUTPUT FORMAT:
+<table>
+<caption>Table Caption Here</caption>
+<thead>
+<tr>
+<th>Column 1</th>
+<th>Column 2</th>
+<th>Column 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data 1</td>
+<td>Data 2</td>
+<td>Data 3</td>
+</tr>
+</tbody>
+</table>
+
+IMPORTANT:
+- Return ONLY the HTML table code (no markdown, no explanations, no ```html blocks)
+- Do NOT include any text before or after the table
+- Make sure the table data is comprehensive and accurate
+- Use web search if needed to get current, accurate information
+- Include enough rows/columns to make the table valuable
+
+Generate the table now:"""
+
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            # Extract HTML table from response
+            response_text = ""
+            for block in message.content:
+                if block.type == "text":
+                    response_text += block.text
+            
+            # Clean up the response - remove markdown code blocks if present
+            response_text = response_text.strip()
+            response_text = re.sub(r'^```html\s*', '', response_text)
+            response_text = re.sub(r'^```\s*', '', response_text)
+            response_text = re.sub(r'\s*```$', '', response_text)
+            response_text = response_text.strip()
+            
+            # Validate it's actually HTML table
+            if '<table' in response_text.lower() and '</table>' in response_text.lower():
+                print(f"  ✅ Table generated successfully")
+                return response_text
+            else:
+                print(f"  ⚠️  Generated content doesn't appear to be a valid HTML table")
+                # Try to wrap it in table tags if it looks like table data
+                if '<tr' in response_text or '<td' in response_text:
+                    # Assume it's table content without outer tags
+                    response_text = f"<table>{response_text}</table>"
+                    return response_text
+                return ""
+                
+        except Exception as e:
+            print(f"  ⚠️  Error generating table: {e}")
+            import traceback
+            traceback.print_exc()
+            return ""
+    
+    def replace_table_placeholders(
+        self,
+        content: str,
+        article_title: str,
+        keywords: List[str],
+        research: str = None
+    ) -> tuple:
+        """
+        Replace [Table: description] placeholders with actual generated HTML tables.
+        
+        Args:
+            content: HTML content with table placeholders
+            article_title: Article title for context
+            keywords: Article keywords for context
+            research: Research data for generating accurate tables
+            
+        Returns:
+            Tuple of (updated_content, list_of_table_info)
+        """
+        placeholders = self.extract_table_placeholders(content)
+        
+        if not placeholders:
+            return content, []
+        
+        print(f"  📊 Found {len(placeholders)} table placeholders to generate")
+        
+        table_info_list = []
+        replacements = []
+        
+        for i, placeholder_info in enumerate(placeholders):
+            description = placeholder_info['description']
+            
+            print(f"  📊 Generating table {i+1}/{len(placeholders)}: {description[:50]}...")
+            
+            # Generate table HTML
+            table_html = self.generate_table(description, article_title, keywords, research)
+            
+            if table_html:
+                # Replace placeholder with generated table
+                replacements.append((placeholder_info['placeholder'], table_html))
+                
+                table_info_list.append({
+                    'description': description,
+                    'html_length': len(table_html)
+                })
+                
+                print(f"  ✅ Table generated and inserted")
+            else:
+                # If generation fails, leave placeholder as-is or add a comment
+                print(f"  ⚠️  Failed to generate table for: {description}")
+                # Option: Keep placeholder so user knows table was intended
+                # Option: Remove placeholder entirely
+                replacements.append((placeholder_info['placeholder'], f'<!-- Table generation failed: {description} -->'))
+        
+        # Replace all placeholders in reverse order (to preserve positions)
+        updated_content = content
+        for placeholder, table_html in replacements:
+            updated_content = updated_content.replace(placeholder, table_html, 1)
+        
+        return updated_content, table_info_list
