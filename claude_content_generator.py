@@ -202,6 +202,14 @@ Return ONLY valid JSON:
   }}
 }}
 
+CRITICAL JSON REQUIREMENTS:
+- All quotes inside strings MUST be escaped with backslash: \\"
+- All newlines inside strings MUST be escaped: \\n
+- All backslashes MUST be escaped: \\\\
+- The JSON must be valid and parseable
+- If content contains HTML with quotes, they must be properly escaped
+- Example: "content": "This is a quote: \\"Hello\\" and this is HTML: <p>Text</p>"
+
 DO NOT include any text outside the JSON structure."""
 
         message = self.client.messages.create(
@@ -215,8 +223,81 @@ DO NOT include any text outside the JSON structure."""
         response_text = message.content[0].text.strip()
         # Remove markdown code blocks if present
         response_text = response_text.replace("```json", "").replace("```", "").strip()
-
-        article_data = json.loads(response_text)
+        
+        # Try to parse JSON with better error handling
+        try:
+            article_data = json.loads(response_text)
+        except json.JSONDecodeError as e:
+            print(f"⚠️  JSON parsing error: {e}")
+            print(f"⚠️  Response text preview (first 500 chars): {response_text[:500]}")
+            
+            # Try to fix common JSON issues
+            # 1. Try to find and extract JSON from the response
+            import re
+            # Look for JSON object boundaries
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                try:
+                    response_text = json_match.group(0)
+                    article_data = json.loads(response_text)
+                    print(f"✅ Successfully extracted JSON from response")
+                except:
+                    pass
+            
+            # 2. Try to fix unescaped quotes in strings
+            if 'article_data' not in locals():
+                try:
+                    # Replace unescaped newlines in strings
+                    fixed_json = re.sub(r'(?<!\\)"(.*?)(?<!\\)"', lambda m: '"' + m.group(1).replace('\n', '\\n').replace('\r', '\\r') + '"', response_text)
+                    article_data = json.loads(fixed_json)
+                    print(f"✅ Fixed JSON by escaping newlines")
+                except:
+                    pass
+            
+            # 3. If still failing, try to manually extract content
+            if 'article_data' not in locals():
+                print(f"❌ Failed to parse JSON. Attempting manual extraction...")
+                # Try to extract fields manually using regex
+                article_data = {}
+                
+                # Extract title
+                title_match = re.search(r'"title"\s*:\s*"([^"]*(?:\\.[^"]*)*)"', response_text)
+                if title_match:
+                    article_data['title'] = title_match.group(1).replace('\\"', '"').replace('\\n', '\n')
+                
+                # Extract content (may span multiple lines)
+                content_match = re.search(r'"content"\s*:\s*"([^"]*(?:\\.[^"]*)*)"', response_text, re.DOTALL)
+                if not content_match:
+                    # Try alternative pattern for multi-line content
+                    content_match = re.search(r'"content"\s*:\s*"((?:[^"\\]|\\.|\\n)*)"', response_text, re.DOTALL)
+                if content_match:
+                    article_data['content'] = content_match.group(1).replace('\\"', '"').replace('\\n', '\n').replace('\\/', '/')
+                
+                # Extract other fields
+                for field in ['categories', 'tags', 'meta_title', 'meta_description']:
+                    field_match = re.search(f'"{field}"\\s*:\\s*"([^"]*(?:\\\\.[^"]*)*)"', response_text)
+                    if not field_match:
+                        # Try array format for categories/tags
+                        if field in ['categories', 'tags']:
+                            array_match = re.search(f'"{field}"\\s*:\\s*\\[([^\\]]+)\\]', response_text)
+                            if array_match:
+                                items = [item.strip().strip('"') for item in array_match.group(1).split(',')]
+                                article_data[field] = items
+                    else:
+                        article_data[field] = field_match.group(1).replace('\\"', '"')
+                
+                # Set defaults if missing
+                article_data.setdefault('title', 'Untitled Article')
+                article_data.setdefault('content', '')
+                article_data.setdefault('categories', [])
+                article_data.setdefault('tags', [])
+                article_data.setdefault('meta_title', article_data.get('title', ''))
+                article_data.setdefault('meta_description', '')
+                
+                print(f"⚠️  Manually extracted fields: {list(article_data.keys())}")
+                
+                if not article_data.get('content'):
+                    raise ValueError("Could not extract content from Claude response. JSON parsing failed and manual extraction found no content.")
 
         # QUALITY VALIDATION
         self._validate_content_quality(article_data)
