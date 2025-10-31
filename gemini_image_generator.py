@@ -303,15 +303,21 @@ class GeminiImageGenerator:
             Tuple of (updated_content, list_of_image_info)
         """
         placeholders = self.extract_image_placeholders(content)
-        
+
         if not placeholders:
             return content, []
-        
-        print(f"  🖼️  Found {len(placeholders)} image placeholders to generate")
-        
+
+        # Limit image generation to avoid timeouts (max 3 images)
+        max_images = 3
+        if len(placeholders) > max_images:
+            print(f"  ⚠️  Found {len(placeholders)} image placeholders, limiting to {max_images} to avoid timeout")
+            placeholders = placeholders[:max_images]
+
+        print(f"  🖼️  Generating {len(placeholders)} images...")
+
         image_info_list = []
         replacements = []
-        
+
         for i, placeholder_info in enumerate(placeholders):
             description = placeholder_info['description']
             enhanced_prompt = self.enhance_prompt(description, article_title, keywords)

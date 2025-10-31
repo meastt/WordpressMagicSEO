@@ -972,125 +972,70 @@ def execute_selected_actions():
                         affiliate_links=affiliate_links
                     )
 
-                    # Generate images if requested
+                    # TEMPORARY: Skip image generation to avoid Vercel timeout
+                    # TODO: Implement background job processing for images
                     if generate_images:
-                        try:
-                            from gemini_image_generator import GeminiImageGenerator
-                            gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
-                            if gemini_key:
-                                print(f"  🖼️  Image generation enabled - processing image placeholders...")
-                                image_gen = GeminiImageGenerator(gemini_key)
-                                updated_content, image_info = image_gen.replace_placeholders_with_images(
-                                    content=article_data['content'],
-                                    article_title=article_data.get('title', title),
-                                    keywords=keywords,
-                                    wp_publisher=wp,
-                                    upload_to_wordpress=True
-                                )
-                                article_data['content'] = updated_content
-                                if image_info:
-                                    print(f"  ✅ Generated and uploaded {len(image_info)} images")
-                            else:
-                                print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
-                        except Exception as e:
-                            print(f"  ⚠️  Image generation failed: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            # Continue without images if generation fails
+                        print(f"  ⚠️  Image generation temporarily disabled to avoid timeout")
+                        print(f"  ℹ️  Article will be created with [Image:...] placeholders")
+                        print(f"  ℹ️  TODO: Implement background processing for image generation")
+                        # Skip image generation for now
+                        # try:
+                        #     from gemini_image_generator import GeminiImageGenerator
+                        #     gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+                        #     if gemini_key:
+                        #         print(f"  🖼️  Image generation enabled - processing image placeholders...")
+                        #         image_gen = GeminiImageGenerator(gemini_key)
+                        #         updated_content, image_info = image_gen.replace_placeholders_with_images(
+                        #             content=article_data['content'],
+                        #             article_title=article_data.get('title', title),
+                        #             keywords=keywords,
+                        #             wp_publisher=wp,
+                        #             upload_to_wordpress=True
+                        #         )
+                        #         article_data['content'] = updated_content
+                        #         if image_info:
+                        #             print(f"  ✅ Generated and uploaded {len(image_info)} images")
+                        #     else:
+                        #         print(f"  ⚠️  Image generation requested but GOOGLE_GEMINI_API_KEY not configured")
+                        # except Exception as e:
+                        #     print(f"  ⚠️  Image generation failed: {e}")
+                        #     import traceback
+                        #     traceback.print_exc()
+                        #     # Continue without images if generation fails
 
-                    # QA Validation - check content quality and completeness
+                    # SIMPLIFIED QA/SEO Validation to avoid timeout
+                    # Only log summary, skip detailed reports
                     try:
                         from content_qa_validator import ContentQAValidator
+                        from seo_checklist_validator import SEOChecklistValidator
 
-                        # Extract expected elements from title (e.g., "15 recipes")
-                        import re
-                        expected_elements = {
-                            'min_word_count': 2000,
-                            'temporal_check': True
-                        }
-
-                        # Try to detect recipe/list count from title
-                        recipe_match = re.search(r'(\d+)\s*(recipes?|ideas?|ways?|tips?|methods?)', title.lower())
-                        if recipe_match:
-                            expected_elements['recipe_count'] = int(recipe_match.group(1))
-
-                        # Try to detect expected image count
-                        image_placeholders = len(re.findall(r'\[Image:[^\]]+\]', article_data['content']))
-                        img_tags = len(re.findall(r'<img[^>]+>', article_data['content']))
-                        if image_placeholders > 0 or img_tags > 0:
-                            expected_elements['image_count'] = max(image_placeholders, img_tags)
-
+                        # Quick content QA
                         validator = ContentQAValidator()
                         is_valid, qa_report = validator.validate_article(
                             article_data,
                             title,
-                            expected_elements
+                            {'min_word_count': 2000}
                         )
+                        print(f"  📋 Content QA: {qa_report['summary']}")
+                        result['qa_validation'] = {'summary': qa_report['summary']}
 
-                        # Print the QA report
-                        validator.print_report(qa_report)
-
-                        # Add QA report to result for visibility
-                        result['qa_validation'] = {
-                            'is_valid': is_valid,
-                            'errors': qa_report['errors'],
-                            'warnings': qa_report['warnings'],
-                            'summary': qa_report['summary']
-                        }
-
-                        # If there are critical errors, warn but continue (user can decide)
-                        if not is_valid:
-                            print(f"  ⚠️  Content QA validation failed with {len(qa_report['errors'])} errors")
-                            print(f"  ⚠️  Publishing anyway - review the content after creation")
-
-                    except Exception as e:
-                        print(f"  ⚠️  QA validation failed: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        # Continue with publishing even if QA fails
-
-                    # SEO Checklist Validation - comprehensive SEO audit
-                    try:
-                        from seo_checklist_validator import SEOChecklistValidator
-
+                        # Quick SEO validation
                         seo_validator = SEOChecklistValidator()
-
-                        # Add keywords to article_data for SEO validation
                         article_data['keywords'] = keywords
-
                         is_seo_valid, seo_report = seo_validator.validate_seo(
                             article_data,
                             primary_keyword=keywords[0] if keywords else None,
                             site_url=site_config['url']
                         )
-
-                        # Print the SEO report
-                        seo_validator.print_report(seo_report)
-
-                        # Add SEO report to result for visibility
+                        print(f"  🔍 SEO Score: {seo_report['seo_score']}/100")
                         result['seo_validation'] = {
-                            'is_valid': is_seo_valid,
                             'seo_score': seo_report['seo_score'],
-                            'critical_issues': seo_report['critical_issues'],
-                            'warnings': seo_report['warnings'][:10],  # First 10 warnings
                             'summary': seo_report['summary']
                         }
 
-                        # If SEO score is below 50, strongly warn
-                        if seo_report['seo_score'] < 50:
-                            print(f"  ❌ WARNING: SEO score is critically low ({seo_report['seo_score']}/100)")
-                            print(f"  ❌ This content may not rank well in search engines")
-                            print(f"  ❌ Consider fixing critical SEO issues before publishing")
-                        elif seo_report['seo_score'] < 70:
-                            print(f"  ⚠️  SEO score needs improvement: {seo_report['seo_score']}/100")
-                        else:
-                            print(f"  ✅ Good SEO score: {seo_report['seo_score']}/100")
-
                     except Exception as e:
-                        print(f"  ⚠️  SEO validation failed: {e}")
-                        import traceback
-                        traceback.print_exc()
-                        # Continue with publishing even if SEO validation fails
+                        print(f"  ⚠️  Validation skipped (timeout prevention): {e}")
+                        # Continue with publishing
 
                     publish_result = wp.create_post(
                         title=article_data.get('title', title),
