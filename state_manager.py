@@ -32,17 +32,39 @@ class StateManager:
             state_dir: Directory to store state files (deprecated, kept for compatibility)
         """
         self.site_name = site_name
-        self.storage = StateStorage()
-        # Keep state_file for backward compatibility with debug code
+        # Set state_file FIRST for backward compatibility - ensure it's always available
         self.state_file = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             f"{site_name}_state.json"
         )
-        self.state = self._load()
-        logger.info(f"StateManager initialized for {site_name}")
+        try:
+            self.storage = StateStorage()
+            self.state = self._load()
+            logger.info(f"StateManager initialized for {site_name}")
+        except Exception as e:
+            logger.error(f"Failed to initialize StateManager for {site_name}: {e}")
+            # Even if storage fails, ensure state_file exists and state is initialized
+            self.storage = None
+            self.state = {
+                "site_name": site_name,
+                "niche_research": None,
+                "current_plan": [],
+                "stats": {"total_actions": 0, "completed": 0, "pending": 0},
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }
     
     def _load(self):
         """Load state using simplified storage."""
+        if not self.storage:
+            return {
+                "site_name": self.site_name,
+                "niche_research": None,
+                "current_plan": [],
+                "stats": {"total_actions": 0, "completed": 0, "pending": 0},
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }
         try:
             state = self.storage.load(self.site_name)
             # Ensure state has required structure
@@ -63,6 +85,9 @@ class StateManager:
         
         Raises AppError if save fails critically.
         """
+        if not self.storage:
+            logger.warning("Cannot save state: storage not initialized")
+            return
         try:
             # Update timestamp
             self.state['updated_at'] = datetime.now().isoformat()
@@ -106,7 +131,7 @@ class StateManager:
             self.state['stats'] = {'total_actions': 0, 'completed': 0, 'pending': 0}
             
         for action in self.state['current_plan']:
-            if action['id'] == action_id:
+            if action.get('id') == action_id:
                 action['status'] = 'completed'
                 action['completed_at'] = datetime.now().isoformat()
                 if post_id:
@@ -203,5 +228,15 @@ class StateManager:
 
     def clear_state(self):
         """Clear all state (use with caution)"""
-        self.state = self.storage._create_empty_state(self.site_name)
+        if self.storage:
+            self.state = self.storage._create_empty_state(self.site_name)
+        else:
+            self.state = {
+                "site_name": self.site_name,
+                "niche_research": None,
+                "current_plan": [],
+                "stats": {"total_actions": 0, "completed": 0, "pending": 0},
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat()
+            }
         self.save()
