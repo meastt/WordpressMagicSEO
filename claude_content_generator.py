@@ -309,10 +309,10 @@ CRITICAL JSON REQUIREMENTS:
 DO NOT include any text outside the JSON structure."""
 
         # Increase max_tokens for complex content (recipes, lists, etc.)
-        # 8000 was not enough for 15 complete recipes
+        # Balanced for quality vs Vercel timeout constraints
         message = self.client.messages.create(
             model=self.model,
-            max_tokens=16000,  # Increased from 8000 to support complex content
+            max_tokens=12000,  # Balanced: enough for ~15 recipes while avoiding timeouts
             messages=[{"role": "user", "content": prompt}]
         )
         
