@@ -84,15 +84,18 @@ class AIStrategicPlanner:
         
         if completed_actions is None:
             completed_actions = []
-        
+
+        # Get ALL existing page titles from WordPress for duplicate detection
+        existing_content_list = self._get_all_existing_content(site_config)
+
         # Prepare data summaries for AI
         # Top pages for analysis (25 pages)
         gsc_summary = self._summarize_gsc(merged_data, top_n=25)
         ga4_summary = self._summarize_ga4(merged_data, top_n=25)
-        
+
         # ALL URLs with performance data for redirect target selection
         all_urls_with_performance = self._format_all_urls_for_redirect_selection(merged_data)
-        
+
         completed_urls = [a.get('url') for a in completed_actions if a.get('url')]
 
         # Add current date context for year-aware recommendations
@@ -120,6 +123,15 @@ Current Month: {current_month}
 
 **NICHE RESEARCH:**
 {json.dumps(niche_report, indent=2)}
+
+**🚨 ALL EXISTING CONTENT (for duplicate detection - CHECK THIS BEFORE ANY CREATE ACTION):**
+{existing_content_list}
+
+**CRITICAL: Before recommending CREATE for any topic, search the list above for semantic similarity!**
+Examples:
+- Want to create "Portable Camping Griddles 2025"? Check if "7 Portable Griddles for the Great Outdoors" exists (DUPLICATE!)
+- Want to create "Best Vertical Smokers 2025"? Check if "Best Vertical Smokers" exists (DUPLICATE!)
+- Strip years, check synonyms, look for same topic with different wording
 
 **GSC DATA (Top 25 pages by impressions):**
 {gsc_summary}
@@ -514,7 +526,65 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
             
         except Exception as e:
             return f"Error summarizing GA4 data: {e}"
-    
+
+    def _get_all_existing_content(self, site_config: Dict) -> str:
+        """
+        Fetch all existing WordPress content (titles + URLs) for duplicate detection.
+
+        This provides the AI with actual page titles so it can detect semantic duplicates
+        like "7 Portable Griddles for the Great Outdoors" vs "Portable Camping Griddles 2025".
+
+        Args:
+            site_config: WordPress site configuration with url, username, password
+
+        Returns:
+            Formatted string showing all existing pages with their titles
+        """
+        try:
+            from wordpress_publisher import WordPressPublisher
+
+            print("  📋 Fetching all existing WordPress content for duplicate detection...")
+
+            wp = WordPressPublisher(
+                site_config['url'],
+                site_config['wp_username'],
+                site_config['wp_app_password'],
+                rate_limit_delay=0.5
+            )
+
+            # Fetch all published posts
+            posts = wp.get_all_posts()
+
+            if not posts:
+                return "No existing content found (or WordPress API connection failed)"
+
+            print(f"  ✅ Fetched {len(posts)} existing posts from WordPress")
+
+            lines = ["ALL EXISTING CONTENT (Check for semantic duplicates before CREATE actions):"]
+            lines.append("=" * 80)
+
+            for post in posts:
+                title = post.get('title', {}).get('rendered', 'No title')
+                url = post.get('link', '')
+
+                # Clean up HTML entities in title
+                import html
+                title = html.unescape(title)
+
+                lines.append(f"- TITLE: {title}")
+                lines.append(f"  URL: {url}")
+
+            lines.append("=" * 80)
+            lines.append(f"Total existing content: {len(posts)} posts")
+
+            return "\n".join(lines)
+
+        except Exception as e:
+            print(f"  ⚠️  Error fetching existing content: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"Could not fetch existing content list (Error: {e})"
+
     def _format_all_urls_for_redirect_selection(self, df: pd.DataFrame, max_urls: int = 200) -> str:
         """
         Format ALL URLs with performance metrics for redirect target selection.
