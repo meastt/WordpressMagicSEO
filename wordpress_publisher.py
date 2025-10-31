@@ -522,7 +522,8 @@ class WordPressPublisher:
         filename: str,
         alt_text: str = "",
         title: str = "",
-        caption: str = ""
+        caption: str = "",
+        description: str = ""
     ) -> Optional[Dict]:
         """
         Upload an image to WordPress media library.
@@ -530,9 +531,10 @@ class WordPressPublisher:
         Args:
             image_bytes: Image file bytes
             filename: Filename for the image
-            alt_text: Alt text for accessibility
-            title: Image title
-            caption: Image caption
+            alt_text: Alt text for accessibility and SEO (required)
+            title: Image title for SEO (optional)
+            caption: Image caption (optional)
+            description: Image description for media library (optional)
             
         Returns:
             Dict with 'id', 'url', 'title' or None if upload fails
@@ -567,9 +569,35 @@ class WordPressPublisher:
             response.raise_for_status()
             
             result = response.json()
+            media_id = result.get('id')
+            
+            # Update media metadata after upload to ensure alt_text is properly saved
+            # WordPress REST API sometimes requires a separate update for alt_text
+            if media_id and alt_text:
+                try:
+                    update_data = {
+                        'alt_text': alt_text
+                    }
+                    if title:
+                        update_data['title'] = title
+                    if caption:
+                        update_data['caption'] = caption
+                    if description:
+                        update_data['description'] = description
+                    
+                    update_response = requests.post(
+                        f"{self.api_base}/media/{media_id}",
+                        auth=self.auth,
+                        json=update_data,
+                        timeout=30
+                    )
+                    update_response.raise_for_status()
+                except Exception as e:
+                    print(f"  ⚠️  Warning: Could not update image metadata: {e}")
+                    # Continue anyway - alt text in img tag is still set
             
             return {
-                'id': result.get('id'),
+                'id': media_id,
                 'url': result.get('source_url') or result.get('url'),
                 'title': result.get('title', {}).get('rendered', title) if isinstance(result.get('title'), dict) else result.get('title', title)
             }

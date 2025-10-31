@@ -269,20 +269,35 @@ class GeminiImageGenerator:
                     # Create a filename from the description
                     filename = self._create_filename_from_description(description, i)
                     
+                    # Create SEO-friendly title and caption from description
+                    # Title: Clean version of description (max 60 chars for SEO)
+                    img_title = description[:60].rstrip('.')
+                    # Caption: Full description (can be longer)
+                    img_caption = description
+                    # Alt text: Same as description (required for accessibility/SEO)
+                    img_alt = description
+                    # Description: Full description for media library
+                    img_description = description
+                    
                     # Upload image to WordPress
                     upload_result = wp_publisher.upload_image(
                         image_bytes=image_bytes,
                         filename=filename,
-                        alt_text=description,
-                        title=description
+                        alt_text=img_alt,
+                        title=img_title,
+                        caption=img_caption,
+                        description=img_description
                     )
                     
                     if upload_result and upload_result.get('url'):
                         img_url = upload_result['url']
                         img_id = upload_result.get('id')
                         
-                        # Create WordPress-compatible img tag
-                        img_tag = f'<img src="{img_url}" alt="{description}" class="wp-image-{img_id}" width="800" height="450" />'
+                        # Create WordPress-compatible img tag with proper SEO attributes
+                        # Include alt text (required for SEO/accessibility)
+                        # Include width/height for performance
+                        # Include class for WordPress integration
+                        img_tag = f'<img src="{img_url}" alt="{img_alt}" class="wp-image-{img_id}" width="800" height="450" />'
                         
                         replacements.append((placeholder_info['placeholder'], img_tag))
                         
