@@ -115,11 +115,21 @@ class GeminiImageGenerator:
                     pil_image = image_obj.to_pil()
                     print(f"  ✅ Extracted PIL Image using to_pil() method")
                 # Try accessing common PIL Image attributes to verify it IS a PIL Image
+                # Need to actually TRY accessing them, not just check hasattr
                 elif hasattr(image_obj, 'mode') and hasattr(image_obj, 'size'):
-                    pil_image = image_obj
-                    print(f"  ✅ Image object is a PIL Image (has mode and size)")
-                # If it's a Pydantic model, try model_dump or dict conversion
-                elif hasattr(image_obj, 'model_dump'):
+                    try:
+                        # Actually access the attributes to see if they work
+                        _ = image_obj.mode
+                        _ = image_obj.size
+                        pil_image = image_obj
+                        print(f"  ✅ Image object is a PIL Image (verified mode and size access)")
+                    except (AttributeError, TypeError) as e:
+                        print(f"  ⚠️  Object has mode/size attributes but can't access them: {e}")
+                        print(f"  🔄 Will try other extraction methods...")
+                        # Don't set pil_image, let it fall through to check other methods below
+
+                # If pil_image is still None, try model_dump for Pydantic models
+                if pil_image is None and hasattr(image_obj, 'model_dump'):
                     try:
                         # Try to convert the Pydantic model to see what's inside
                         image_dict = image_obj.model_dump()
@@ -136,8 +146,9 @@ class GeminiImageGenerator:
                     except Exception as e:
                         print(f"⚠️  Error dumping Pydantic model: {e}")
                         return None
-                else:
-                    # Last resort - try importing PIL and checking if it's an Image
+
+                # If still None, try PIL isinstance check
+                if pil_image is None:
                     try:
                         from PIL import Image as PILImage
                         if isinstance(image_obj, PILImage.Image):
@@ -147,7 +158,9 @@ class GeminiImageGenerator:
                             print(f"⚠️  Image object is not a PIL Image, type: {type(image_obj)}")
                             # Try to access raw bytes if available
                             if hasattr(image_obj, '__bytes__'):
+                                print(f"  🔄 Trying __bytes__() method...")
                                 return bytes(image_obj)
+                            print(f"⚠️  No more extraction methods available")
                             return None
                     except Exception as e:
                         print(f"⚠️  Error verifying PIL Image: {e}")

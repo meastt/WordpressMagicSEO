@@ -229,7 +229,7 @@ Create a comprehensive, SUPERIOR article that:
 2. Uses natural, engaging writing (not robotic)
 3. Includes the target keywords naturally (don't force them)
 4. Provides genuine value to readers with specific examples and actionable advice
-5. Incorporates 2-3 external links to authoritative sources
+5. Incorporates 2-3 external links to authoritative sources (use target="_blank")
 6. Naturally weaves in the provided internal links where relevant
 7. Naturally incorporates affiliate product links where they add value (don't force them)
 8. Uses proper HTML formatting (h2, h3, p, ul, ol, strong, em, tables)
@@ -237,6 +237,20 @@ Create a comprehensive, SUPERIOR article that:
 10. Includes multimedia suggestions [Image: description], [Table: what to show]
 11. Demonstrates E-E-A-T (Experience, Expertise, Authority, Trust)
 12. Is optimized for both traditional SEO and AI search (LLMs)
+
+🚨 CRITICAL SEO REQUIREMENTS:
+- **Primary Keyword**: Include '{keywords[0] if keywords else 'N/A'}' in:
+  * Article title
+  * Meta title
+  * Meta description
+  * First paragraph (within first 100 words)
+  * At least 2 H2 headers
+  * Image alt text (at least 1 image)
+- **Internal Links**: Include at least 3-5 internal links with descriptive anchor text (NO "click here")
+- **External Links**: Include 2-3 authoritative external links with target="_blank"
+- **Images**: When creating [Image: description] placeholders, make descriptions keyword-rich and detailed
+- **Text Emphasis**: Use <strong> for important keywords, <em> for emphasis
+- **Lists**: Include multiple bullet points (ul) and numbered lists (ol) for readability
 
 ARTICLE STRUCTURE:
 - Engaging introduction (hook the reader immediately)
