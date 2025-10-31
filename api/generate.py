@@ -1457,7 +1457,7 @@ def quick_create_post():
 
                 print(f"Post created successfully: {result['post_id']}")
             else:
-                            result['error'] = sanitize_for_json(publish_result.error)
+                result['error'] = sanitize_for_json(publish_result.error)
                 print(f"Post creation failed: {publish_result.error}")
 
         except Exception as e:
@@ -1639,7 +1639,7 @@ def quick_update_post():
                 
                 print(f"Post updated successfully: {item_id}")
             else:
-                            result['error'] = sanitize_for_json(publish_result.error)
+                result['error'] = sanitize_for_json(publish_result.error)
                 print(f"Post update failed: {publish_result.error}")
         
         return jsonify(result)
@@ -1883,7 +1883,7 @@ def execute_next_action():
                     result['success'] = True
                     state_mgr.mark_completed(action_data['id'], publish_result.post_id)
                 else:
-                            result['error'] = sanitize_for_json(publish_result.error)
+                    result['error'] = sanitize_for_json(publish_result.error)
                     result['success'] = False
 
             elif action_data['action_type'] == 'update':
