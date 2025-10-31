@@ -277,6 +277,7 @@ class WordPressPublisher:
             if posts:
                 result = posts[0].copy()
                 result['_wp_type'] = 'post'
+                print(f"  ✓ Found as POST: {url} (ID: {result.get('id')})")
                 return result
         except Exception as e:
             pass
@@ -295,10 +296,12 @@ class WordPressPublisher:
             if pages:
                 result = pages[0].copy()
                 result['_wp_type'] = 'page'
+                print(f"  ✓ Found as PAGE: {url} (ID: {result.get('id')})")
                 return result
         except Exception as e:
             pass
         
+        print(f"  ⚠️  Not found in WordPress: {url}")
         return None
     
     def create_post(
@@ -383,9 +386,16 @@ class WordPressPublisher:
         meta_title: str = None,
         meta_description: str = None,
         categories: List[str] = None,
-        tags: List[str] = None
+        tags: List[str] = None,
+        item_type: str = 'post'
     ) -> PublishResult:
-        """Update an existing post."""
+        """
+        Update an existing post or page.
+        
+        Args:
+            post_id: WordPress post or page ID
+            item_type: 'post' or 'page' - determines which endpoint to use
+        """
         
         try:
             # Build update data (only include fields that are provided)
@@ -396,8 +406,8 @@ class WordPressPublisher:
             if content:
                 update_data["content"] = content
             
-            # Handle categories
-            if categories:
+            # Handle categories (only for posts, not pages)
+            if categories and item_type == 'post':
                 category_ids = []
                 for cat_name in categories:
                     cat_id = self._get_or_create_category(cat_name)
@@ -407,8 +417,8 @@ class WordPressPublisher:
                     update_data["categories"] = category_ids
                     print(f"  ✓ Updated categories: {', '.join(categories)}")
             
-            # Handle tags
-            if tags:
+            # Handle tags (only for posts, not pages)
+            if tags and item_type == 'post':
                 tag_ids = []
                 for tag_name in tags:
                     tag_id = self._get_or_create_tag(tag_name)
@@ -426,9 +436,12 @@ class WordPressPublisher:
                 if meta_description:
                     update_data["meta"]["_yoast_wpseo_metadesc"] = meta_description
             
+            # Use the correct endpoint based on item type
+            endpoint = f"{self.api_base}/pages/{post_id}" if item_type == 'page' else f"{self.api_base}/posts/{post_id}"
+            
             response, result_data = self._make_request_with_retry(
                 'POST',
-                f"{self.api_base}/posts/{post_id}",
+                endpoint,
                 auth=self.auth,
                 json=update_data,
                 timeout=30

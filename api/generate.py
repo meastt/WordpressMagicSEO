@@ -1146,7 +1146,8 @@ def execute_selected_actions():
                                     title=None,
                                     content=None,  # NEVER update page content
                                     meta_title=meta_title,
-                                    meta_description=meta_description
+                                    meta_description=meta_description,
+                                    item_type='page'  # Use pages endpoint for WordPress pages
                                 )
                                 
                                 if publish_result.success:
@@ -1623,7 +1624,8 @@ def quick_update_post():
                 meta_title=article_data.get('meta_title'),
                 meta_description=article_data.get('meta_description'),
                 categories=article_data.get('categories', []),
-                tags=article_data.get('tags', [])
+                tags=article_data.get('tags', []),
+                item_type=item_type  # Use correct endpoint based on item type
             )
             
             if publish_result.success:
@@ -1979,7 +1981,8 @@ def execute_next_action():
                                 title=None,  # Don't update title
                                 content=None,  # NEVER update homepage content
                                 meta_title=meta_title,
-                                meta_description=meta_description
+                                meta_description=meta_description,
+                                item_type='page'  # Homepage is typically a page
                             )
                             
                             if publish_result.success:
@@ -2105,7 +2108,8 @@ def execute_next_action():
                             title=None,  # Don't update title
                             content=None,  # NEVER update page content
                             meta_title=meta_title,
-                            meta_description=meta_description
+                            meta_description=meta_description,
+                            item_type='page'  # Use pages endpoint for WordPress pages
                         )
                         
                         if publish_result.success:
@@ -2183,7 +2187,8 @@ def execute_next_action():
                             meta_title=article_data.get('meta_title'),
                             meta_description=article_data.get('meta_description'),
                             categories=article_data.get('categories', []),
-                            tags=article_data.get('tags', [])
+                            tags=article_data.get('tags', []),
+                            item_type='post'  # Explicitly use posts endpoint
                         )
 
                         # Update affiliate link usage if any were added
