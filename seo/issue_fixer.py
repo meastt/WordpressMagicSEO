@@ -2,10 +2,12 @@
 SEO Issue Fixer
 ===============
 Automatically fixes SEO issues found in audits by updating WordPress posts/pages.
+Uses AI to generate SEO-optimized titles and meta descriptions when needed.
 """
 
 import requests
 import time
+import os
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
@@ -21,7 +23,8 @@ class SEOIssueFixer:
         site_url: str,
         wp_username: str,
         wp_app_password: str,
-        rate_limit_delay: float = 1.0
+        rate_limit_delay: float = 1.0,
+        use_ai: bool = True
     ):
         self.site_url = site_url.rstrip("/")
         self.wp_publisher = WordPressPublisher(
@@ -32,6 +35,19 @@ class SEOIssueFixer:
         )
         self.api_base = f"{self.site_url}/wp-json/wp/v2"
         self.auth = (wp_username, wp_app_password)
+        self.use_ai = use_ai
+        
+        # Initialize AI generator if available
+        self.ai_generator = None
+        if use_ai:
+            try:
+                from content.generators.claude_generator import ClaudeContentGenerator
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+                if api_key:
+                    self.ai_generator = ClaudeContentGenerator(api_key=api_key)
+            except Exception as e:
+                print(f"Warning: Could not initialize AI generator: {e}")
+                self.ai_generator = None
     
     def fix_issue(self, issue_type: str, category: str, urls: List[str]) -> Dict:
         """
@@ -206,18 +222,60 @@ class SEOIssueFixer:
             return False
     
     def _fix_title_presence(self, post_id: int, post_type: str, url: str) -> bool:
-        """Add meta title if missing."""
+        """Add meta title if missing. Uses AI to generate SEO-optimized title if available."""
         try:
             post_data = self._get_post_content(post_id, post_type)
             if not post_data:
                 return False
             
             title = post_data.get('title', {}).get('rendered', '')
+            content = post_data.get('content', {}).get('rendered', '')
+            
             if not title:
                 return False
             
-            # Set meta title to post title if not set
-            meta_title = title[:60] if len(title) > 60 else title  # SEO best practice: 50-60 chars
+            # Try AI generation first if available
+            if self.ai_generator:
+                try:
+                    # Extract keywords from title/content
+                    soup = BeautifulSoup(content, 'html.parser')
+                    text_content = soup.get_text()[:500]  # First 500 chars for context
+                    
+                    # Generate SEO-optimized meta title
+                    prompt = f"""Generate an SEO-optimized meta title (50-60 characters) for this WordPress post.
+
+Post Title: {title}
+Content Preview: {text_content}
+
+Requirements:
+- 50-60 characters (optimal for search results)
+- Include main keyword from the title
+- Compelling and click-worthy
+- Different from the post title (optimized for SERP)
+
+Return ONLY the meta title, nothing else."""
+                    
+                    response = self.ai_generator.client.messages.create(
+                        model=self.ai_generator.model,
+                        max_tokens=100,
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    
+                    ai_title = response.content[0].text.strip()
+                    # Clean up and validate length
+                    ai_title = ai_title.replace('"', '').replace("'", '').strip()
+                    if 50 <= len(ai_title) <= 60:
+                        meta_title = ai_title
+                    else:
+                        # Fallback to truncation if AI result is wrong length
+                        meta_title = title[:60] if len(title) > 60 else title
+                except Exception as e:
+                    print(f"AI title generation failed, using fallback: {e}")
+                    # Fallback to simple truncation
+                    meta_title = title[:60] if len(title) > 60 else title
+            else:
+                # No AI - use simple truncation
+                meta_title = title[:60] if len(title) > 60 else title
             
             result = self.wp_publisher.update_post(
                 post_id=post_id,
@@ -231,7 +289,7 @@ class SEOIssueFixer:
             return False
     
     def _fix_meta_description_presence(self, post_id: int, post_type: str, url: str) -> bool:
-        """Add meta description if missing."""
+        """Add meta description if missing. Uses AI to generate SEO-optimized description if available."""
         try:
             post_data = self._get_post_content(post_id, post_type)
             if not post_data:
@@ -240,15 +298,66 @@ class SEOIssueFixer:
             content = post_data.get('content', {}).get('rendered', '')
             title = post_data.get('title', {}).get('rendered', '')
             
-            # Extract text from HTML
-            soup = BeautifulSoup(content, 'html.parser')
-            text_content = soup.get_text().strip()[:160]  # Meta desc should be 120-160 chars
-            
-            # Generate meta description
-            if text_content:
-                meta_desc = text_content[:157] + '...' if len(text_content) > 157 else text_content
+            # Try AI generation first if available
+            if self.ai_generator:
+                try:
+                    # Extract meaningful content
+                    soup = BeautifulSoup(content, 'html.parser')
+                    text_content = soup.get_text().strip()[:1000]  # More context for AI
+                    
+                    # Generate SEO-optimized meta description
+                    prompt = f"""Generate an SEO-optimized meta description (150-155 characters) for this WordPress post.
+
+Post Title: {title}
+Content: {text_content}
+
+Requirements:
+- 150-155 characters (optimal for search results)
+- Compelling and click-worthy
+- Includes main keyword naturally
+- Summarizes the value/benefit to the reader
+- Ends with a call to action or benefit statement
+
+Return ONLY the meta description, nothing else."""
+                    
+                    response = self.ai_generator.client.messages.create(
+                        model=self.ai_generator.model,
+                        max_tokens=200,
+                        messages=[{"role": "user", "content": prompt}]
+                    )
+                    
+                    ai_desc = response.content[0].text.strip()
+                    # Clean up
+                    ai_desc = ai_desc.replace('"', '').replace("'", '').strip()
+                    
+                    # Validate length
+                    if 120 <= len(ai_desc) <= 160:
+                        meta_desc = ai_desc
+                    else:
+                        # Adjust if slightly off
+                        if len(ai_desc) > 160:
+                            meta_desc = ai_desc[:157] + '...'
+                        else:
+                            # Too short - use fallback
+                            text_preview = soup.get_text().strip()[:160]
+                            meta_desc = text_preview[:157] + '...' if len(text_preview) > 157 else text_preview
+                except Exception as e:
+                    print(f"AI description generation failed, using fallback: {e}")
+                    # Fallback to content extraction
+                    soup = BeautifulSoup(content, 'html.parser')
+                    text_content = soup.get_text().strip()[:160]
+                    if text_content:
+                        meta_desc = text_content[:157] + '...' if len(text_content) > 157 else text_content
+                    else:
+                        meta_desc = f"Learn about {title}"
             else:
-                meta_desc = f"Learn about {title}"  # Fallback
+                # No AI - use content extraction
+                soup = BeautifulSoup(content, 'html.parser')
+                text_content = soup.get_text().strip()[:160]
+                if text_content:
+                    meta_desc = text_content[:157] + '...' if len(text_content) > 157 else text_content
+                else:
+                    meta_desc = f"Learn about {title}"
             
             result = self.wp_publisher.update_post(
                 post_id=post_id,
