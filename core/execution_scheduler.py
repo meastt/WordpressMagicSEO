@@ -9,9 +9,9 @@ from typing import List, Dict
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 import csv
-from strategic_planner import ActionItem, ActionType
-from wordpress_publisher import WordPressPublisher, PublishResult
-from claude_content_generator import ClaudeContentGenerator
+from analysis.planners.rule_planner import ActionItem, ActionType
+from wordpress.publisher import WordPressPublisher, PublishResult
+from content.generators.claude_generator import ClaudeContentGenerator
 
 
 @dataclass

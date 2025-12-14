@@ -37,15 +37,71 @@ AI-powered SEO automation that analyzes your Google Search Console data, identif
 
 ### 1. Install Dependencies
 
+**Create and activate virtual environment (recommended):**
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+
+# Activate it (macOS/Linux)
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+**Or install globally (not recommended):**
+
 ```bash
 pip install -r requirements.txt
 ```
 
+**Note:** Always activate the virtual environment before running commands:
+```bash
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate    # Windows
+```
+
 ### 2. Set Environment Variables
+
+**Option A: Use .env file (Recommended for Local Development)**
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your credentials:
+   ```bash
+   # WordPress Site Credentials
+   # Format: WP_{DOMAIN}_USERNAME and WP_{DOMAIN}_PASSWORD
+   # Replace dots with underscores in domain names
+   
+   WP_GRIDDLEKING_COM_USERNAME=your_username
+   WP_GRIDDLEKING_COM_PASSWORD=your_app_password
+   WP_GRIDDLEKING_COM_URL=https://griddleking.com
+   WP_GRIDDLEKING_COM_NICHE=outdoor cooking
+   
+   WP_PHOTOTIPSGUY_COM_USERNAME=your_username
+   WP_PHOTOTIPSGUY_COM_PASSWORD=your_app_password
+   WP_PHOTOTIPSGUY_COM_URL=https://phototipsguy.com
+   WP_PHOTOTIPSGUY_COM_NICHE=photography
+   
+   # API Keys
+   ANTHROPIC_API_KEY=your-anthropic-key
+   GOOGLE_GEMINI_API_KEY=your-gemini-key
+   ```
+
+**Option B: Export Environment Variables**
 
 ```bash
 export ANTHROPIC_API_KEY="your-anthropic-key"
+export WP_GRIDDLEKING_COM_USERNAME="your_username"
+export WP_GRIDDLEKING_COM_PASSWORD="your_app_password"
 ```
+
+**Note:** The `.env` file is gitignored and will never be committed to version control. Your credentials are safe!
 
 ### 3. WordPress Setup
 
@@ -64,7 +120,27 @@ Create an application password in WordPress:
 
 ## 💻 Usage
 
-### Option 1: Command Line (Local)
+### Option 1: Technical SEO Audit (Standalone)
+
+**Audit a single URL:**
+```bash
+python seo_audit_cli.py https://yoursite.com --url https://yoursite.com/specific-page --output html --output-file audit.html
+```
+
+**Audit entire site:**
+```bash
+python seo_audit_cli.py https://yoursite.com --max-urls 50 --output json --output-file audit.json
+```
+
+**Options:**
+- `--url`: Audit single URL instead of full site
+- `--max-urls`: Limit number of URLs (default: all)
+- `--output`: Format (json, csv, html)
+- `--output-file`: Save to file
+- `--rate-limit`: Seconds between requests (default: 2.0)
+- `--check-orphaned`: Check for orphaned pages (requires full crawl)
+
+### Option 2: Command Line (Content Automation)
 
 ```bash
 python seo_automation_main.py \
@@ -78,7 +154,7 @@ python seo_automation_main.py \
   --max-actions 10
 ```
 
-### Option 2: API (Vercel Deployment)
+### Option 3: API (Vercel Deployment)
 
 **Analysis Only (No Execution):**
 
@@ -102,6 +178,15 @@ curl -X POST https://wordpress-magic-seo.vercel.app/execute \
   -F "batch_size=3" \
   -F "delay_hours=8" \
   -F "max_actions=5"
+```
+
+**Technical SEO Audit:**
+
+```bash
+curl -X POST https://wordpress-magic-seo.vercel.app/api/seo-audit \
+  -F "site_url=https://yoursite.com" \
+  -F "max_urls=50" \
+  -F "output_format=json"
 ```
 
 ## 🎛️ Configuration Options

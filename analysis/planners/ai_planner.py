@@ -541,7 +541,7 @@ Return a JSON array of 12-18 actions, sorted by priority_score (10 = most critic
             Formatted string showing all existing pages with their titles
         """
         try:
-            from wordpress_publisher import WordPressPublisher
+            from wordpress.publisher import WordPressPublisher
 
             print("  📋 Fetching all existing WordPress content for duplicate detection...")
 

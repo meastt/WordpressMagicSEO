@@ -1,0 +1,680 @@
+"""
+seo_automation_main.py
+=====================
+Main orchestrator for the complete SEO automation system.
+
+Phase 5: Enhanced Pipeline with AI Intelligence
+- Multi-site support via config.py
+- Dual data input (GSC + GA4) via DataProcessor
+- AI niche intelligence via NicheAnalyzer
+- AI strategic planning via AIStrategicPlanner
+- State tracking via StateManager
+"""
+
+import os
+import sys
+import json
+from typing import Dict, Optional
+import pandas as pd
+from datetime import datetime
+
+# Import all our modules
+from data.processor import DataProcessor  # Phase 2: GSC + GA4 support
+from data.sitemap_analyzer import SitemapAnalyzer
+from analysis.planners.rule_planner import StrategicPlanner  # Legacy planner (will be deprecated)
+from content.generators.claude_generator import ClaudeContentGenerator
+from wordpress.publisher import WordPressPublisher
+from core.execution_scheduler import ExecutionScheduler, ScheduleConfig
+
+# Phase 1-4: New AI-powered modules
+from config import get_site, list_sites
+from core.state_manager import StateManager
+from analysis.niche_analyzer import NicheAnalyzer
+from analysis.planners.ai_planner import AIStrategicPlanner
+
+
+class SEOAutomationPipeline:
+    """
+    Complete SEO automation pipeline orchestrator.
+    
+    Enhanced in Phase 5 with:
+    - Multi-site configuration support
+    - GA4 + GSC dual data input
+    - AI-powered niche research
+    - AI-powered strategic planning
+    - State tracking and caching
+    """
+    
+    def __init__(
+        self,
+        site_name: str = None,
+        gsc_csv_path: str = None,
+        ga4_csv_path: str = None,
+        site_url: str = None,
+        wp_username: str = None,
+        wp_app_password: str = None,
+        anthropic_api_key: str = None
+    ):
+        """
+        Initialize pipeline with either:
+        - site_name (loads from config) OR
+        - individual parameters (legacy mode)
+        
+        Args:
+            site_name: Configured site name (e.g., "griddleking.com")
+            gsc_csv_path: Path to GSC CSV export
+            ga4_csv_path: Path to GA4 CSV export (optional)
+            site_url: WordPress site URL
+            wp_username: WordPress username
+            wp_app_password: WordPress application password
+            anthropic_api_key: Anthropic API key
+        """
+        
+        # Mode 1: Multi-site mode (use config)
+        if site_name:
+            try:
+                site_config = get_site(site_name)  # May raise ValueError if site not found
+                self.site_name = site_name
+                self.site_url = site_config['url']
+                self.wp_username = site_config['wp_username']
+                self.wp_app_password = site_config['wp_app_password']
+                self.niche = site_config['niche']
+                self.gsc_csv_path = gsc_csv_path  # Still need to provide data files
+                self.ga4_csv_path = ga4_csv_path
+            except KeyError as e:
+                raise ValueError(f"Site config for '{site_name}' is missing required field: {e}")
+        
+        # Mode 2: Legacy mode (individual parameters)
+        else:
+            if not all([gsc_csv_path, site_url, wp_username, wp_app_password]):
+                raise ValueError("Must provide either site_name OR all individual parameters")
+            
+            # Extract domain from URL for site_name (e.g., "https://example.com" -> "example.com")
+            from urllib.parse import urlparse
+            parsed = urlparse(site_url)
+            self.site_name = parsed.netloc or site_url  # Use domain only as identifier
+            self.gsc_csv_path = gsc_csv_path
+            self.ga4_csv_path = ga4_csv_path
+            self.site_url = site_url
+            self.wp_username = wp_username
+            self.wp_app_password = wp_app_password
+            self.niche = None  # Will skip niche research if not set
+        
+        self.anthropic_api_key = anthropic_api_key or os.getenv("ANTHROPIC_API_KEY")
+        
+        # Initialize state manager
+        self.state_mgr = StateManager(self.site_name)
+        
+        # Initialize components
+        self.data_processor = None
+        self.sitemap_analyzer = None
+        self.niche_analyzer = None
+        self.ai_planner = None  # New AI planner
+        self.legacy_planner = None  # Old rule-based planner
+        self.content_generator = None
+        self.wp_publisher = None
+        self.scheduler = None
+        
+        # Data storage
+        self.merged_df = None
+        self.sitemap_data = None
+        self.duplicate_analysis = None
+        self.niche_report = None
+        self.action_plan = None
+    
+    def run(
+        self,
+        execution_mode: str = "view_plan",
+        schedule_mode: str = "all_at_once",
+        posts_per_batch: int = 3,
+        delay_hours: float = 8,
+        limit: int = None,
+        output_csv: str = "seo_automation_results.csv",
+        use_ai_planner: bool = True,
+        force_new_plan: bool = False
+    ) -> Dict:
+        """
+        Run the complete enhanced pipeline.
+
+        Args:
+            execution_mode: "view_plan" (analyze only), "execute_all", "execute_top_n", "continue"
+            schedule_mode: "all_at_once", "daily", "hourly", "custom"
+            posts_per_batch: Number of posts to process per batch
+            delay_hours: Hours to wait between batches
+            limit: Maximum number of actions to execute (for execute_top_n mode)
+            output_csv: Path to save results CSV
+            use_ai_planner: Use AI planner (True) or legacy rule-based planner (False)
+            force_new_plan: Force regeneration of action plan (ignores existing saved plan)
+
+        Returns:
+            Dictionary with execution summary and action plan
+        """
+        
+        print("=" * 80)
+        print(f"🎯 SEO AUTOMATION PIPELINE - {self.site_name}")
+        print("=" * 80)
+        print(f"Mode: {'AI-Powered' if use_ai_planner else 'Legacy Rule-Based'}")
+        print(f"Execution: {execution_mode}")
+        
+        # STEP 1: Load and analyze GSC + GA4 data
+        print("\n📊 STEP 1: Loading data (GSC + GA4)...")
+        self.data_processor = DataProcessor(self.gsc_csv_path, self.ga4_csv_path)
+        self.merged_df = self.data_processor.merge_data()
+        
+        # Check if GA4 data was loaded
+        has_ga4 = 'engagement_rate' in self.merged_df.columns
+        print(f"  ✓ Loaded {len(self.merged_df)} GSC rows")
+        if has_ga4:
+            ga4_count = self.merged_df['engagement_rate'].notna().sum()
+            print(f"  ✓ Merged with GA4 data ({ga4_count} pages with engagement metrics)")
+        else:
+            print(f"  ℹ No GA4 data available (GSC only)")
+        
+        # STEP 2: Niche Intelligence (if AI mode and niche is set)
+        if use_ai_planner and self.niche and self.anthropic_api_key:
+            print("\n🔍 STEP 2: AI Niche Intelligence...")
+            
+            # Check for cached research
+            cached_research = self.state_mgr.get_niche_research()
+            if cached_research:
+                print("  ✓ Using cached niche research (30-day cache)")
+                self.niche_report = json.loads(cached_research)
+            else:
+                print(f"  🌐 Researching '{self.niche}' niche with AI...")
+                self.niche_analyzer = NicheAnalyzer(self.anthropic_api_key)
+                self.niche_report = self.niche_analyzer.research_niche(self.niche, self.site_url)
+                
+                # Cache the research
+                self.state_mgr.cache_niche_research(json.dumps(self.niche_report), cache_days=30)
+                print("  ✓ Niche research complete (cached for 30 days)")
+            
+            # Show key insights
+            print(f"\n  📈 Key Trends:")
+            for trend in self.niche_report.get('trends', [])[:3]:
+                print(f"     • {trend}")
+            print(f"\n  💡 Top Opportunities:")
+            for opp in self.niche_report.get('opportunities', [])[:3]:
+                print(f"     • {opp}")
+        else:
+            print("\n⏭️  STEP 2: Skipping niche intelligence (not in AI mode or no niche set)")
+            self.niche_report = None
+        
+        # STEP 3: Fetch and analyze sitemap
+        print("\n🗺️  STEP 3: Fetching and analyzing sitemap...")
+        self.sitemap_analyzer = SitemapAnalyzer(self.site_url)
+        sitemap_urls = self.sitemap_analyzer.fetch_sitemap()
+        print(f"  ✓ Found {len(sitemap_urls)} URLs in sitemap")
+        
+        # Compare sitemap with GSC data
+        self.sitemap_data = self.sitemap_analyzer.compare_with_gsc(
+            sitemap_urls,
+            self.merged_df
+        )
+        
+        print(f"  ✓ Dead content: {len(self.sitemap_data['dead_content'])} URLs")
+        print(f"  ✓ Performing content: {len(self.sitemap_data['performing_content'])} URLs")
+        print(f"  ✓ Orphaned content: {len(self.sitemap_data['orphaned_content'])} URLs")
+        
+        # STEP 3: Find duplicate content
+        print("\n🔍 STEP 3: Identifying duplicate content...")
+        self.duplicate_analysis = self.sitemap_analyzer.find_duplicate_content_candidates(
+            self.merged_df
+        )
+        print(f"  ✓ Found {len(self.duplicate_analysis)} potential duplicate groups")
+
+        # STEP 4: Create strategic action plan
+        print("\n🎯 STEP 4: Creating strategic action plan...")
+
+        # Check if we have a saved plan with pending actions
+        pending_actions_data = self.state_mgr.get_pending_actions()
+        stats = self.state_mgr.get_stats()
+
+        # Decision logic: Use existing plan or create new one
+        use_existing_plan = False
+
+        if force_new_plan:
+            # User explicitly wants to regenerate the plan
+            print(f"  ⚠️  Force regenerating action plan (existing plan will be replaced)")
+            use_existing_plan = False
+        elif pending_actions_data and stats['completed'] > 0:
+            # We have an existing plan with some completed actions - resume it
+            use_existing_plan = True
+            print(f"  ✓ Resuming existing plan: {stats['completed']} completed, {len(pending_actions_data)} pending")
+        elif pending_actions_data and execution_mode == "view_plan":
+            # In view_plan mode, always show the current plan if it exists
+            use_existing_plan = True
+            print(f"  ✓ Showing existing plan with {len(pending_actions_data)} pending actions")
+        elif pending_actions_data and execution_mode != "view_plan":
+            # Execution mode but no completed actions yet - fresh plan from previous view
+            use_existing_plan = True
+            print(f"  ✓ Executing existing plan: {len(pending_actions_data)} actions ready")
+
+        if use_existing_plan:
+            # Convert stored actions back to ActionItem objects
+            from analysis.planners.rule_planner import ActionItem, ActionType
+            import hashlib
+            self.action_plan = []
+            for i, action_data in enumerate(pending_actions_data):
+                action = ActionItem(
+                    action_type=ActionType(action_data['action_type']),
+                    url=action_data.get('url', ''),
+                    title=action_data.get('title', ''),
+                    keywords=action_data.get('keywords', []),
+                    priority_score=action_data.get('priority_score', 0),
+                    reasoning=action_data.get('reasoning', ''),
+                    redirect_target=action_data.get('redirect_target', ''),
+                    estimated_impact=action_data.get('estimated_impact', '')
+                )
+                # Store the ID for later tracking - generate if missing
+                if 'id' in action_data:
+                    action.id = action_data['id']
+                else:
+                    # Generate a unique ID based on action content (same pattern as api/generate.py)
+                    id_string = f"{action_data.get('action_type', '')}_{action_data.get('url', '')}_{action_data.get('title', '')}_{i}"
+                    action.id = hashlib.md5(id_string.encode()).hexdigest()[:12]
+                    print(f"  ⚠️  Generated ID for action missing id: {action.id}")
+                self.action_plan.append(action)
+        else:
+            # No existing plan or user wants to regenerate
+            print(f"  ✓ Creating new action plan...")
+
+            # CHOOSE PLANNER: AI-Powered vs Rule-Based
+            if use_ai_planner and self.anthropic_api_key and self.niche_report:
+                print(f"  🤖 Using AI Strategic Planner (Claude-powered contextual analysis)")
+
+                # Initialize AI planner
+                self.ai_planner = AIStrategicPlanner(self.anthropic_api_key)
+
+                # Get completed actions to avoid duplication
+                completed_actions = []
+                stats = self.state_mgr.get_stats()
+                if stats.get('completed', 0) > 0:
+                    # TODO: Fetch completed actions from state manager
+                    pass
+
+                # Create AI-powered plan
+                site_config = {
+                    'url': self.site_url,
+                    'niche': self.niche
+                }
+
+                ai_plan = self.ai_planner.create_plan(
+                    site_config=site_config,
+                    merged_data=self.merged_df,
+                    niche_report=self.niche_report,
+                    completed_actions=completed_actions
+                )
+
+                # Convert AI plan format to ActionItem objects
+                from analysis.planners.rule_planner import ActionItem, ActionType
+                self.action_plan = []
+                for action_data in ai_plan:
+                    # Map 'redirect' to 'redirect_301' for backwards compatibility
+                    action_type_str = action_data['action_type']
+                    if action_type_str == 'redirect':
+                        action_type_str = 'redirect_301'
+
+                    action = ActionItem(
+                        action_type=ActionType(action_type_str),
+                        url=action_data.get('url', ''),
+                        title=action_data.get('title', ''),
+                        keywords=action_data.get('keywords', []),
+                        priority_score=action_data.get('priority_score', 0),
+                        reasoning=action_data.get('reasoning', ''),
+                        redirect_target=action_data.get('redirect_target', ''),
+                        estimated_impact=action_data.get('estimated_impact', '')
+                    )
+                    action.id = action_data.get('id', '')
+                    self.action_plan.append(action)
+
+                print(f"  ✓ AI analysis complete: {len(self.action_plan)} strategic actions generated")
+
+                # Analysis transparency summary
+                total_pages = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
+                action_percentage = (len(self.action_plan) / total_pages * 100) if total_pages > 0 else 0
+                pages_not_flagged = total_pages - len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect']])
+
+                print(f"\n  📊 ANALYSIS SUMMARY:")
+                print(f"     • Total URLs analyzed: {total_pages}")
+                print(f"     • Actions recommended: {len(self.action_plan)} ({action_percentage:.1f}%)")
+                print(f"     • URLs performing adequately: {pages_not_flagged}")
+                print(f"     • Reason: No critical issues detected (good intent matching, recent content,")
+                print(f"               no cannibalization, stable rankings, adequate engagement)")
+
+                # Breakdown by action type
+                by_type = {}
+                for action in self.action_plan:
+                    action_type = action.action_type.value
+                    by_type[action_type] = by_type.get(action_type, 0) + 1
+
+                print(f"\n  🎯 ACTION BREAKDOWN:")
+                for action_type in ['update', 'create', 'redirect', 'delete']:
+                    count = by_type.get(action_type, 0)
+                    if count > 0:
+                        print(f"     • {action_type.upper()}: {count}")
+                print()
+
+            else:
+                # Fall back to rule-based planner
+                if use_ai_planner and not self.anthropic_api_key:
+                    print(f"  ⚠️  AI planner requested but no API key - falling back to rule-based")
+                elif use_ai_planner and not self.niche_report:
+                    print(f"  ⚠️  AI planner requested but no niche data - falling back to rule-based")
+                else:
+                    print(f"  📊 Using Rule-Based Strategic Planner (formula-based scoring)")
+
+                self.strategic_planner = StrategicPlanner(self.merged_df, self.sitemap_data)
+                self.action_plan = self.strategic_planner.create_master_plan(
+                    self.duplicate_analysis
+                )
+
+            # Save the plan to state manager with unique IDs
+            import hashlib
+            plan_data = []
+            for i, action in enumerate(self.action_plan):
+                # Create unique ID if not already set
+                if not hasattr(action, 'id') or not action.id:
+                    action_id = hashlib.md5(
+                        f"{action.action_type.value}_{action.url or action.title}_{i}".encode()
+                    ).hexdigest()[:12]
+                    action.id = action_id
+
+                plan_data.append({
+                    'id': action.id,
+                    'action_type': action.action_type.value,
+                    'url': action.url,
+                    'title': action.title,
+                    'keywords': action.keywords,
+                    'priority_score': action.priority_score,
+                    'reasoning': action.reasoning,
+                    'redirect_target': action.redirect_target,
+                    'estimated_impact': action.estimated_impact,
+                    'status': 'pending'
+                })
+
+            self.state_mgr.update_plan(plan_data)
+            print(f"  ✓ Saved {len(plan_data)} actions to state tracker")
+
+        # Get summary from current plan
+        try:
+            total_urls = len(self.merged_df['page'].unique()) if 'page' in self.merged_df.columns else len(self.merged_df)
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not calculate total URLs: {e}")
+            total_urls = 0
+
+        try:
+            # Count actions that modify existing URLs (not creates)
+            existing_url_actions = len([a for a in self.action_plan if a.action_type.value in ['update', 'delete', 'redirect', 'redirect_301']])
+            urls_not_requiring_action = max(0, total_urls - existing_url_actions)
+            analysis_coverage_percent = round((len(self.action_plan) / total_urls * 100) if total_urls > 0 else 0, 1)
+        except Exception as e:
+            print(f"  ⚠️  Warning: Could not calculate coverage stats: {e}")
+            urls_not_requiring_action = 0
+            analysis_coverage_percent = 0
+
+        plan_summary = {
+            'total_actions': len(self.action_plan),
+            'deletes': len([a for a in self.action_plan if a.action_type.value == 'delete']),
+            'redirects': len([a for a in self.action_plan if a.action_type.value in ['redirect_301', 'redirect']]),
+            'updates': len([a for a in self.action_plan if a.action_type.value == 'update']),
+            'creates': len([a for a in self.action_plan if a.action_type.value == 'create']),
+            'high_priority': len([a for a in self.action_plan if a.priority_score >= 7]),
+            'medium_priority': len([a for a in self.action_plan if 3 <= a.priority_score < 7]),
+            'low_priority': len([a for a in self.action_plan if a.priority_score < 3]),
+            'total_urls_analyzed': total_urls,
+            'urls_not_requiring_action': urls_not_requiring_action,
+            'analysis_coverage_percent': analysis_coverage_percent,
+        }
+
+        print(f"  ✓ Total actions planned: {plan_summary['total_actions']}")
+        print(f"    - Delete: {plan_summary['deletes']}")
+        print(f"    - Redirect (301): {plan_summary['redirects']}")
+        print(f"    - Update: {plan_summary['updates']}")
+        print(f"    - Create: {plan_summary['creates']}")
+        print(f"  ✓ Priority breakdown:")
+        print(f"    - High: {plan_summary['high_priority']}")
+        print(f"    - Medium: {plan_summary['medium_priority']}")
+        print(f"    - Low: {plan_summary['low_priority']}")
+
+        # Show top 5 actions
+        print("\n  📋 Top 5 Priority Actions:")
+        for i, action in enumerate(self.action_plan[:5], 1):
+            status = "✅" if hasattr(action, 'id') else "📋"
+            print(f"    {i}. {status} [{action.action_type.value.upper()}] "
+                  f"Priority: {action.priority_score:.1f} - {action.reasoning[:60]}...")
+
+        # If view_plan mode, return here without executing
+        if execution_mode == "view_plan":
+            print("\n" + "=" * 80)
+            print("✅ ANALYSIS COMPLETE (View Plan Mode)")
+            print("=" * 80)
+            print("Use execution_mode='execute_all' or 'execute_top_n' to run actions.")
+            print("=" * 80)
+
+            # Return the analysis results
+            return {
+                'site': self.site_name,
+                'summary': plan_summary,
+                'action_plan': [
+                    {
+                        'action_type': a.action_type.value,
+                        'url': a.url,
+                        'title': a.title,
+                        'priority_score': a.priority_score,
+                        'reasoning': a.reasoning,
+                        'estimated_impact': a.estimated_impact
+                    }
+                    for a in self.action_plan
+                ],
+                'stats': {
+                    'total_actions': len(self.action_plan),
+                    'pending': len(self.action_plan),
+                    'completed': 0
+                },
+                'niche_insights': self.niche_report
+            }
+
+        # STEP 5: Initialize execution components
+        print("\n⚙️  STEP 5: Initializing execution components...")
+        
+        self.content_generator = ClaudeContentGenerator(self.anthropic_api_key)
+        print("  ✓ Claude content generator ready")
+        
+        self.wp_publisher = WordPressPublisher(
+            self.site_url,
+            self.wp_username,
+            self.wp_app_password,
+            rate_limit_delay=2.0
+        )
+        print("  ✓ WordPress publisher ready")
+        
+        # STEP 6: Execute the plan
+        print("\n🚀 STEP 6: Executing action plan...")
+        print(f"  Schedule: {schedule_mode}")
+        
+        if schedule_mode == "all_at_once":
+            print(f"  ⚡ All actions processed continuously (no batching)")
+        else:
+            print(f"  Batch size: {posts_per_batch} posts")
+            print(f"  Delay between batches: {delay_hours} hours")
+
+        if limit:
+            print(f"  ⚠️  Limited to first {limit} actions (for testing)")
+
+        # Confirm before execution
+        if limit is None and len(self.action_plan) > 50:
+            print(f"\n  ⚠️  Warning: About to execute {len(self.action_plan)} actions!")
+            print("  This will modify your WordPress site.")
+            print("  Continuing automatically (set limit to restrict)...")
+        
+        schedule_config = ScheduleConfig(
+            mode=schedule_mode,
+            posts_per_batch=posts_per_batch,
+            delay_between_batches=delay_hours * 3600,  # Convert to seconds
+            max_api_calls_per_minute=10
+        )
+        
+        # Initialize affiliate manager if available
+        affiliate_manager = None
+        try:
+            from affiliate.manager import AffiliateLinkManager
+            affiliate_manager = AffiliateLinkManager(self.site_name)
+            # Check if there are any links configured
+            if affiliate_manager.get_all_links():
+                print(f"  ✓ Loaded {len(affiliate_manager.get_all_links())} affiliate links")
+        except Exception as e:
+            print(f"  ℹ Affiliate links not configured (optional): {e}")
+        
+        self.scheduler = ExecutionScheduler(
+            self.action_plan,
+            self.wp_publisher,
+            self.content_generator,
+            schedule_config,
+            planner=self.strategic_planner,
+            state_manager=self.state_mgr,
+            affiliate_manager=affiliate_manager
+        )
+        
+        # Execute!
+        results = self.scheduler.execute_plan(max_actions=limit)
+        
+        # STEP 7: Save results and summary
+        print("\n📊 STEP 7: Saving results...")
+        self.scheduler.save_results_to_csv(output_csv)
+
+        summary = self.scheduler.get_summary()
+
+        print("\n" + "=" * 80)
+        print("✅ EXECUTION COMPLETE")
+        print("=" * 80)
+        print(f"Total actions: {summary['total_actions']}")
+        print(f"Successful: {summary['successful']}")
+        print(f"Failed: {summary['failed']}")
+        print(f"Success rate: {summary['success_rate']}")
+
+        # Show detailed results
+        if results:
+            print(f"\n📋 DETAILED RESULTS:")
+            for i, result in enumerate(results, 1):
+                status_icon = "✅" if result.success else "❌"
+                print(f"\n{i}. {status_icon} {result.action.upper()}")
+                print(f"   URL: {result.url}")
+                if result.post_id:
+                    print(f"   Post ID: {result.post_id}")
+                if result.error:
+                    print(f"   Error: {result.error}")
+
+        print(f"\n💾 Results saved to: {output_csv}")
+        print("=" * 80)
+
+        # Collect error details and success details from actions
+        error_details = []
+        completed_actions = []
+
+        for result in results:
+            if not result.success and result.error:
+                error_details.append({
+                    'action': result.action,
+                    'url': result.url,
+                    'error': result.error
+                })
+            elif result.success:
+                completed_actions.append({
+                    'action': result.action,
+                    'url': result.url,
+                    'post_id': result.post_id
+                })
+
+        # Return comprehensive results
+        return {
+            'site': self.site_name,
+            'summary': plan_summary,
+            'execution_summary': summary,
+            'stats': {
+                'total_actions': summary['total_actions'],
+                'successful': summary['successful'],
+                'failed': summary['failed'],
+                'success_rate': summary['success_rate']
+            },
+            'errors': error_details,
+            'completed_actions': completed_actions,
+            'niche_insights': self.niche_report
+        }
+
+
+def main():
+    """CLI entry point."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description="SEO Automation Pipeline - Analyze, plan, and execute content strategy"
+    )
+    
+    parser.add_argument("gsc_csv", help="Path to GSC CSV export (12 months)")
+    parser.add_argument("site_url", help="WordPress site URL")
+    parser.add_argument("wp_username", help="WordPress username")
+    parser.add_argument("wp_app_password", help="WordPress application password")
+    
+    parser.add_argument(
+        "--schedule",
+        choices=["all_at_once", "daily", "hourly", "custom"],
+        default="all_at_once",
+        help="Execution schedule mode"
+    )
+    
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=3,
+        help="Number of posts per batch"
+    )
+    
+    parser.add_argument(
+        "--delay-hours",
+        type=float,
+        default=8,
+        help="Hours between batches"
+    )
+    
+    parser.add_argument(
+        "--max-actions",
+        type=int,
+        default=None,
+        help="Limit execution to first N actions (for testing)"
+    )
+    
+    parser.add_argument(
+        "--output",
+        default=f"seo_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+        help="Output CSV file path"
+    )
+    
+    parser.add_argument(
+        "--anthropic-key",
+        default=None,
+        help="Anthropic API key (or set ANTHROPIC_API_KEY env var)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Create pipeline
+    pipeline = SEOAutomationPipeline(
+        gsc_csv_path=args.gsc_csv,
+        site_url=args.site_url,
+        wp_username=args.wp_username,
+        wp_app_password=args.wp_app_password,
+        anthropic_api_key=args.anthropic_key
+    )
+    
+    # Run it!
+    pipeline.run(
+        schedule_mode=args.schedule,
+        posts_per_batch=args.batch_size,
+        delay_hours=args.delay_hours,
+        max_actions=args.max_actions,
+        output_csv=args.output
+    )
+
+
+if __name__ == "__main__":
+    main()

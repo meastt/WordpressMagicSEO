@@ -896,11 +896,11 @@ GSCProcessor = DataProcessor
 # Legacy run_pipeline_for_site function removed
 # Use seo_automation_main.py -> SEOAutomationPipeline for the modern implementation
 # Example:
-#   from seo_automation_main import SEOAutomationPipeline
+#   from core.pipeline import SEOAutomationPipeline
 #   pipeline = SEOAutomationPipeline(site_name="example.com", gsc_csv_path="data.csv")
 #   result = pipeline.run()
 
 if __name__ == "__main__":
     print("This module has been refactored.")
     print("Use: python seo_automation_main.py --help for the modern CLI interface")
-    print("Or import: from seo_automation_main import SEOAutomationPipeline")
+    print("Or import: from core.pipeline import SEOAutomationPipeline")

@@ -17,9 +17,9 @@ import json
 
 # Lazy imports to avoid loading heavy modules at function startup
 try:
-    from seo_automation_main import SEOAutomationPipeline
-    from affiliate_link_manager import AffiliateLinkManager
-    from affiliate_link_updater import AffiliateLinkUpdater
+    from core.pipeline import SEOAutomationPipeline
+    from affiliate.manager import AffiliateLinkManager
+    from affiliate.updater import AffiliateLinkUpdater
 except ImportError as e:
     print(f"⚠️  Warning: Some modules failed to import: {e}")
     # These will be imported inside functions that need them
@@ -173,7 +173,7 @@ def analyze_only():
 
         # Enrich UPDATE actions with titles from WordPress
         # Create a temporary WordPress publisher to fetch titles
-        from wordpress_publisher import WordPressPublisher
+        from wordpress.publisher import WordPressPublisher
         temp_wp = WordPressPublisher(
             pipeline.site_url,
             pipeline.wp_username,
@@ -240,7 +240,7 @@ def save_state():
     Manually save state for a site.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         
         data = request.get_json()
         site_name = data.get('site_name')
@@ -273,7 +273,7 @@ def refresh_sites():
     """
     try:
         from config import list_sites
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         
         sites = list_sites()
         site_status = []
@@ -304,7 +304,7 @@ def create_test_plan():
     Create a test action plan to verify state persistence.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
 
         data = request.get_json()
         site_name = data.get('site_name')
@@ -347,7 +347,7 @@ def delete_action():
     Delete a specific action from the plan (cannot be undone).
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
 
         data = request.get_json()
         site_name = data.get('site_name')
@@ -398,7 +398,7 @@ def delete_actions_batch():
     Expects: { site_name: str, action_ids: list[str] }
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
 
         data = request.get_json()
         site_name = data.get('site_name')
@@ -455,7 +455,7 @@ def clear_plan():
     Clear the action plan for a site (wipes all state).
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
 
         data = request.get_json()
         site_name = data.get('site_name')
@@ -483,7 +483,7 @@ def load_state():
     Manually load state for a site.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         
         data = request.get_json()
         site_name = data.get('site_name')
@@ -664,10 +664,10 @@ def execute_selected_actions():
             return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
 
         from config import get_site
-        from state_manager import StateManager
-        from wordpress_publisher import WordPressPublisher
-        from claude_content_generator import ClaudeContentGenerator
-        from affiliate_link_manager import AffiliateLinkManager
+        from core.state_manager import StateManager
+        from wordpress.publisher import WordPressPublisher
+        from content.generators.claude_generator import ClaudeContentGenerator
+        from affiliate.manager import AffiliateLinkManager
 
         site_config = get_site(site_name)
         state_mgr = StateManager(site_name)
@@ -766,7 +766,7 @@ def execute_selected_actions():
         if redirect_actions_needing_targets and merged_data_df is not None and 'page' in merged_data_df.columns:
             # Use AI-based selection for missing redirect targets
             print(f"  🤖 Using AI to select redirect targets (with GSC data) for {len(redirect_actions_needing_targets)} actions...")
-            from ai_strategic_planner import AIStrategicPlanner
+            from analysis.planners.ai_planner import AIStrategicPlanner
             
             try:
                 ai_planner = AIStrategicPlanner(anthropic_key)
@@ -834,7 +834,7 @@ def execute_selected_actions():
                 
                 if available_urls:
                     print(f"  ✓ Loaded {len(available_urls)} URLs from WordPress")
-                    from ai_strategic_planner import AIStrategicPlanner
+                    from analysis.planners.ai_planner import AIStrategicPlanner
                     ai_planner = AIStrategicPlanner(anthropic_key)
                     
                     # Create simple URL list with default metrics
@@ -1006,8 +1006,8 @@ def execute_selected_actions():
                     # SIMPLIFIED QA/SEO Validation to avoid timeout
                     # Only log summary, skip detailed reports
                     try:
-                        from content_qa_validator import ContentQAValidator
-                        from seo_checklist_validator import SEOChecklistValidator
+                        from content.validators.qa_validator import ContentQAValidator
+                        from content.validators.seo_validator import SEOChecklistValidator
 
                         # Quick content QA
                         validator = ContentQAValidator()
@@ -1219,7 +1219,7 @@ def execute_selected_actions():
                                 # Generate images if requested
                                 if generate_images:
                                     try:
-                                        from gemini_image_generator import GeminiImageGenerator
+                                        from content.generators.gemini_images import GeminiImageGenerator
                                         gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
                                         if gemini_key:
                                             print(f"  🖼️  Image generation enabled - processing image placeholders...")
@@ -1385,9 +1385,9 @@ def quick_create_post():
             return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
 
         from config import get_site
-        from wordpress_publisher import WordPressPublisher
-        from claude_content_generator import ClaudeContentGenerator
-        from affiliate_link_manager import AffiliateLinkManager
+        from wordpress.publisher import WordPressPublisher
+        from content.generators.claude_generator import ClaudeContentGenerator
+        from affiliate.manager import AffiliateLinkManager
 
         # Get site config (includes niche context)
         site_config = get_site(site_name)
@@ -1449,7 +1449,7 @@ def quick_create_post():
             generate_images = data.get('generate_images', False)
             if generate_images:
                 try:
-                    from gemini_image_generator import GeminiImageGenerator
+                    from content.generators.gemini_images import GeminiImageGenerator
                     gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
                     if gemini_key:
                         print(f"  🖼️  Image generation enabled - processing image placeholders...")
@@ -1546,9 +1546,9 @@ def quick_update_post():
             return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
         
         from config import get_site
-        from wordpress_publisher import WordPressPublisher
-        from claude_content_generator import ClaudeContentGenerator
-        from affiliate_link_manager import AffiliateLinkManager
+        from wordpress.publisher import WordPressPublisher
+        from content.generators.claude_generator import ClaudeContentGenerator
+        from affiliate.manager import AffiliateLinkManager
         from page_type_detector import PageTypeDetector
         
         # Get site config
@@ -1628,7 +1628,7 @@ def quick_update_post():
             # Generate images if requested
             if generate_images:
                 try:
-                    from gemini_image_generator import GeminiImageGenerator
+                    from content.generators.gemini_images import GeminiImageGenerator
                     gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
                     if gemini_key:
                         print(f"  🖼️  Image generation enabled - processing image placeholders...")
@@ -1723,10 +1723,10 @@ def execute_next_action():
 
     try:
         from config import get_site
-        from state_manager import StateManager
-        from wordpress_publisher import WordPressPublisher
-        from claude_content_generator import ClaudeContentGenerator
-        from affiliate_link_manager import AffiliateLinkManager
+        from core.state_manager import StateManager
+        from wordpress.publisher import WordPressPublisher
+        from content.generators.claude_generator import ClaudeContentGenerator
+        from affiliate.manager import AffiliateLinkManager
 
         # Get site config
         print(f"Getting config for site: {site_name}")
@@ -1877,7 +1877,7 @@ def execute_next_action():
                 # Generate images if requested
                 if generate_images:
                     try:
-                        from gemini_image_generator import GeminiImageGenerator
+                        from content.generators.gemini_images import GeminiImageGenerator
                         gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
                         if gemini_key:
                             print(f"  🖼️  Image generation enabled - processing image placeholders...")
@@ -2192,7 +2192,7 @@ def execute_next_action():
                         # Generate images if requested
                         if generate_images:
                             try:
-                                from gemini_image_generator import GeminiImageGenerator
+                                from content.generators.gemini_images import GeminiImageGenerator
                                 gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY")
                                 if gemini_key:
                                     print(f"  🖼️  Image generation enabled - processing image placeholders...")
@@ -2299,7 +2299,7 @@ def list_sites_endpoint():
             }), 200
 
         try:
-            from state_manager import StateManager
+            from core.state_manager import StateManager
         except Exception as import_error:
             print(f"❌ ERROR importing state_manager: {import_error}")
             # Still return sites, just without stats
@@ -2338,13 +2338,29 @@ def list_sites_endpoint():
 
         site_status = []
 
+        # Import get_site to get site URLs
+        try:
+            from config import get_site
+        except:
+            get_site = None
+        
         for site_name in sites:
             try:
                 state_mgr = StateManager(site_name)
                 stats = state_mgr.get_stats()
                 
+                # Get site URL if available
+                site_url = None
+                if get_site:
+                    try:
+                        site_config = get_site(site_name)
+                        site_url = site_config.get('url')
+                    except:
+                        pass
+                
                 site_status.append({
                     'name': site_name,
+                    'url': site_url,
                     'pending_actions': stats.get('pending', 0) if stats else 0,
                     'completed_actions': stats.get('completed', 0) if stats else 0,
                     'total_actions': stats.get('total_actions', 0) if stats else 0
@@ -2352,8 +2368,19 @@ def list_sites_endpoint():
             except Exception as site_error:
                 # If state loading fails for a site, still include it with zero stats
                 print(f"  ⚠️  Error loading state for {site_name}: {site_error}")
+                
+                # Try to get URL even if state fails
+                site_url = None
+                if get_site:
+                    try:
+                        site_config = get_site(site_name)
+                        site_url = site_config.get('url')
+                    except:
+                        pass
+                
                 site_status.append({
                     'name': site_name,
+                    'url': site_url,
                     'pending_actions': 0,
                     'completed_actions': 0,
                     'total_actions': 0
@@ -2384,7 +2411,7 @@ def get_niche_research(site_name):
     Returns 404 if no cached research available.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         
         state_mgr = StateManager(site_name)
         cached = state_mgr.get_niche_research()
@@ -2418,7 +2445,7 @@ def get_action_plan(site_name):
     Returns ALL actions with their full details and status.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
 
         state_mgr = StateManager(site_name)
         
@@ -2466,7 +2493,7 @@ def update_action_plan(site_name):
     }
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         from utils.error_handler import validate_required_fields, handle_api_error, AppError, ErrorCategory
         
         data = request.get_json()
@@ -2541,7 +2568,7 @@ def export_analysis_pdf(site_name):
     Export the last analysis result as a styled PDF report.
     """
     try:
-        from state_manager import StateManager
+        from core.state_manager import StateManager
         from flask import make_response
         from reportlab.lib.pagesizes import letter, A4
         from reportlab.lib import colors
@@ -2886,7 +2913,7 @@ def update_content_with_affiliates():
         # If post_id provided but no content, fetch from WordPress
         if post_id and not content:
             from config import get_site
-            from wordpress_publisher import WordPressPublisher
+            from wordpress.publisher import WordPressPublisher
             
             site_config = get_site(site_name)
             wp = WordPressPublisher(
@@ -2921,7 +2948,7 @@ def update_content_with_affiliates():
         # Auto-publish if requested
         if auto_publish and post_id and result.get('success'):
             from config import get_site
-            from wordpress_publisher import WordPressPublisher
+            from wordpress.publisher import WordPressPublisher
             
             site_config = get_site(site_name)
             wp = WordPressPublisher(
@@ -2978,7 +3005,7 @@ def bulk_update_posts_with_affiliates():
     
     try:
         from config import get_site
-        from wordpress_publisher import WordPressPublisher
+        from wordpress.publisher import WordPressPublisher
         
         # Get site config and WordPress connection
         site_config = get_site(site_name)
@@ -3051,6 +3078,98 @@ def bulk_update_posts_with_affiliates():
         return jsonify({
             "error": "Failed to bulk update posts",
             "details": str(e)
+        }), 500
+
+
+@app.route("/api/seo-audit", methods=["POST"])
+def seo_audit():
+    """
+    Run technical SEO audit on a site.
+    
+    Accepts:
+    - site_url: Site to audit (required)
+    - max_urls: Optional limit on number of URLs
+    - output_format: json, csv, or html (default: json)
+    - check_orphaned: Whether to check for orphaned pages (default: false)
+    - rate_limit: Seconds between requests (default: 2.0)
+    """
+    try:
+        # Handle both form data and JSON
+        if request.is_json:
+            data = request.get_json() or {}
+        else:
+            data = request.form.to_dict()
+        
+        site_url = data.get("site_url")
+        if not site_url:
+            return jsonify({"error": "site_url is required"}), 400
+        
+        max_urls = data.get("max_urls")
+        if max_urls:
+            try:
+                max_urls = int(max_urls)
+            except (ValueError, TypeError):
+                return jsonify({"error": "max_urls must be an integer"}), 400
+        
+        output_format = data.get("output_format", "json")
+        if output_format not in ["json", "csv", "html"]:
+            return jsonify({"error": "output_format must be json, csv, or html"}), 400
+        
+        check_orphaned = False
+        if isinstance(data.get("check_orphaned"), bool):
+            check_orphaned = data.get("check_orphaned")
+        elif isinstance(data.get("check_orphaned"), str):
+            check_orphaned = data.get("check_orphaned", "false").lower() == "true"
+        
+        rate_limit = data.get("rate_limit", 2.0)
+        try:
+            rate_limit = float(rate_limit)
+        except (ValueError, TypeError):
+            rate_limit = 2.0
+        
+        # Run audit
+        from seo.technical_auditor import TechnicalSEOAuditor
+        from seo.report_generator import SEOReportGenerator
+        
+        auditor = TechnicalSEOAuditor(
+            site_url=site_url,
+            rate_limit_delay=rate_limit
+        )
+        
+        audit_results = auditor.audit_site(
+            max_urls=max_urls,
+            check_orphaned=check_orphaned
+        )
+        
+        # Generate report
+        generator = SEOReportGenerator(audit_results)
+        
+        if output_format == "json":
+            report = generator.generate_json()
+            return jsonify(json.loads(report))
+        elif output_format == "csv":
+            report = generator.generate_csv()
+            response = app.response_class(
+                report,
+                mimetype='text/csv',
+                headers={'Content-Disposition': f'attachment; filename=seo_audit_{datetime.now().strftime("%Y%m%d")}.csv'}
+            )
+            return response
+        elif output_format == "html":
+            report = generator.generate_html()
+            response = app.response_class(
+                report,
+                mimetype='text/html',
+                headers={'Content-Disposition': f'attachment; filename=seo_audit_{datetime.now().strftime("%Y%m%d")}.html'}
+            )
+            return response
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to run SEO audit",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
         }), 500
 
 
