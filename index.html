@@ -1684,6 +1684,27 @@
             margin-top: 8px;
         }
 
+        .vercel-timeout-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .vercel-timeout-warning strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .vercel-timeout-warning p {
+            margin: 0;
+            font-size: 14px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
         .audit-progress {
             background: white;
             border: 2px solid #e0e0e0;
@@ -2130,7 +2151,7 @@
                         <div id="custom_audit_field" style="display: none; margin-top: 20px;">
                             <div class="form-group">
                                 <label for="custom_max_urls">Maximum URLs to Audit</label>
-                                <input type="number" id="custom_max_urls" value="100" min="1" max="1000">
+                                <input type="number" id="custom_max_urls" value="100" min="1" max="1000" onchange="checkCustomUrlLimit()" class="form-control">
                                 <div class="help-text">Enter the maximum number of URLs to audit (1-1000)</div>
                             </div>
                         </div>
@@ -2140,6 +2161,14 @@
                                 <input type="checkbox" id="check_orphaned" style="width: auto;">
                                 <span>Check for orphaned pages (requires full crawl, slower)</span>
                             </label>
+                        </div>
+
+                        <div id="vercel_timeout_warning" class="vercel-timeout-warning" style="display: none; margin-top: 20px; padding: 16px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                            <strong>⚠️ Vercel Timeout Warning</strong>
+                            <p style="margin: 8px 0 0 0; font-size: 14px; color: #856404;">
+                                Full audits with many URLs may timeout on Vercel (5-minute limit). 
+                                For sites with 100+ URLs, use <strong>Sample Audit (50 URLs)</strong> or run full audits locally via CLI.
+                            </p>
                         </div>
                     </div>
 
@@ -4560,10 +4589,32 @@
             document.querySelector(`input[value="${type}"]`).checked = true;
             
             const customField = document.getElementById('custom_audit_field');
+            const warningDiv = document.getElementById('vercel_timeout_warning');
+            
             if (type === 'custom') {
                 customField.style.display = 'block';
+                checkCustomUrlLimit();
             } else {
                 customField.style.display = 'none';
+            }
+            
+            // Show/hide timeout warning
+            if (type === 'full') {
+                if (warningDiv) warningDiv.style.display = 'block';
+            } else if (type === 'sample') {
+                if (warningDiv) warningDiv.style.display = 'none';
+            }
+        }
+
+        function checkCustomUrlLimit() {
+            const warningDiv = document.getElementById('vercel_timeout_warning');
+            if (!warningDiv) return;
+            
+            const maxUrls = parseInt(document.getElementById('custom_max_urls').value) || 0;
+            const auditType = document.querySelector('input[name="audit_type"]:checked')?.value;
+            
+            if (auditType === 'custom') {
+                warningDiv.style.display = maxUrls > 100 ? 'block' : 'none';
             }
         }
 
@@ -4593,11 +4644,25 @@
             let maxUrls = null;
             if (auditType === 'sample') {
                 maxUrls = 50;
+            } else if (auditType === 'full') {
+                // Warn about Vercel timeout for full audits
+                const warningDiv = document.getElementById('vercel_timeout_warning');
+                if (warningDiv) {
+                    warningDiv.style.display = 'block';
+                }
+                // Don't set maxUrls - will audit all
             } else if (auditType === 'custom') {
                 maxUrls = parseInt(document.getElementById('custom_max_urls').value) || null;
                 if (!maxUrls || maxUrls < 1) {
                     showToast('Invalid Input', 'Please enter a valid number of URLs (1-1000)', 'warning');
                     return;
+                }
+                // Warn if custom number is high
+                if (maxUrls > 100) {
+                    const warningDiv = document.getElementById('vercel_timeout_warning');
+                    if (warningDiv) {
+                        warningDiv.style.display = 'block';
+                    }
                 }
             }
             
@@ -4637,7 +4702,10 @@
                 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                    const error = new Error(errorData.error || `HTTP ${response.status}`);
+                    error.response = response; // Attach response for timeout detection
+                    error.responseData = errorData; // Attach parsed error data
+                    throw error;
                 }
                 
                 const auditResults = await response.json();
@@ -4653,9 +4721,26 @@
                 
             } catch (error) {
                 console.error('Audit error:', error);
-                showToast('Audit Failed', error.message, 'error');
                 document.getElementById('audit_progress').style.display = 'none';
                 document.getElementById('run_audit_btn').disabled = false;
+                
+                // Check if it's a timeout error
+                const errorResponse = error.responseData || null;
+                
+                if (error.message.includes('504') || error.message.includes('timeout') || error.message.includes('Timeout') || 
+                    (errorResponse && (errorResponse.error === 'Audit timed out' || (errorResponse.details && errorResponse.details.includes('timeout'))))) {
+                    const details = errorResponse?.details || 'The audit exceeded Vercel\'s 5-minute limit.';
+                    const suggestion = errorResponse?.suggestion || 'Try a Sample Audit (50 URLs) or run full audits locally via CLI.';
+                    showToast(
+                        'Audit Timed Out ⏱️', 
+                        `${details} ${suggestion}`,
+                        'error',
+                        12000
+                    );
+                } else {
+                    const errorMsg = errorResponse?.details || errorResponse?.error || error.message;
+                    showToast('Audit Failed', errorMsg, 'error');
+                }
             }
         }
 

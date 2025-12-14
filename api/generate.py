@@ -3166,9 +3166,19 @@ def seo_audit():
         
     except Exception as e:
         import traceback
+        error_details = str(e)
+        
+        # Check if it's a timeout
+        if "timeout" in error_details.lower() or "timed out" in error_details.lower():
+            return jsonify({
+                "error": "Audit timed out",
+                "details": "The audit exceeded Vercel's 5-minute serverless function timeout. For large sites (100+ URLs), use a Sample Audit (50 URLs) or run full audits locally via CLI.",
+                "suggestion": "Try reducing the number of URLs or use the CLI: ./run_audit.sh https://yoursite.com --max-urls 50"
+            }), 504
+        
         return jsonify({
             "error": "Failed to run SEO audit",
-            "details": str(e),
+            "details": error_details,
             "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
         }), 500
 
