@@ -1892,6 +1892,30 @@
             background: #f59e0b;
         }
 
+        .btn-validate-fix {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-validate-fix:hover:not(:disabled) {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-validate-fix:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .category-breakdown {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -4714,6 +4738,7 @@
                 }
                 formData.append('output_format', 'json');
                 formData.append('check_orphaned', checkOrphaned);
+                formData.append('skip_fixed', document.getElementById('skip_fixed').checked);
                 formData.append('rate_limit', '2.0');
                 
                 progressBar.style.width = '30%';
@@ -4793,11 +4818,19 @@
                             <strong>${issue.check_name}</strong> (${issue.category})<br>
                             <small>${issue.count} URLs affected - ${issue.message}</small>
                         </div>
-                        <button class="btn-fix-issue" onclick="fixIssue('${issue.check_name}', '${issue.category}', ${issue.count})" 
-                                data-check-name="${issue.check_name}" 
-                                data-category="${issue.category}">
-                            🔧 Fix (${issue.count})
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-fix-issue" onclick="fixIssue('${issue.check_name}', '${issue.category}', ${issue.count})" 
+                                    data-check-name="${issue.check_name}" 
+                                    data-category="${issue.category}">
+                                🔧 Fix (${issue.count})
+                            </button>
+                            <button class="btn-validate-fix" onclick="validateFix('${issue.check_name}', '${issue.category}')" 
+                                    data-check-name="${issue.check_name}" 
+                                    data-category="${issue.category}"
+                                    title="Validate fixes for this issue type">
+                                ✅ Validate
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -4934,6 +4967,86 @@
                 'schema': '📱 Schema & Social'
             };
             return names[category] || category;
+        }
+
+        async function validateFix(checkName, category) {
+            if (!window.lastAuditResults || !window.lastAuditSiteUrl) {
+                showToast('No Audit Results', 'Run an audit first', 'warning');
+                return;
+            }
+            
+            // Find all URLs with this issue that were fixed
+            const issueUrls = [];
+            window.lastAuditResults.urls.forEach(urlData => {
+                const categoryIssues = urlData.issues[category] || [];
+                const hasIssue = categoryIssues.some(issue => 
+                    issue.check_name === checkName && 
+                    (issue.status === 'critical' || issue.status === 'warning')
+                );
+                if (hasIssue) {
+                    issueUrls.push(urlData.url);
+                }
+            });
+            
+            if (issueUrls.length === 0) {
+                showToast('No URLs Found', 'No URLs with this issue to validate', 'info');
+                return;
+            }
+            
+            const button = document.querySelector(`button[data-check-name="${checkName}"][data-category="${category}"].btn-validate-fix`);
+            if (button) {
+                button.disabled = true;
+                button.textContent = '⏳ Validating...';
+            }
+            
+            try {
+                // Validate first URL as a sample
+                const sampleUrl = issueUrls[0];
+                
+                const response = await fetch(`${API_BASE}/seo-validate-fix`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        site_url: window.lastAuditSiteUrl,
+                        url: sampleUrl,
+                        issue_type: checkName,
+                        category: category
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    if (result.is_fixed) {
+                        showToast(
+                            'Fix Validated ✅', 
+                            `${sampleUrl}: Issue is now fixed (${result.issue_status || 'optimal'})`,
+                            'success',
+                            6000
+                        );
+                    } else {
+                        showToast(
+                            'Fix Not Complete ⚠️', 
+                            `${sampleUrl}: Issue still present (${result.issue_status || 'warning'}) - ${result.message || ''}`,
+                            'warning',
+                            8000
+                        );
+                    }
+                } else {
+                    throw new Error(result.error || 'Validation failed');
+                }
+                
+            } catch (error) {
+                console.error('Validation error:', error);
+                showToast('Validation Failed', error.message || 'An error occurred', 'error');
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = '✅ Validate';
+                }
+            }
         }
 
         function exportAuditResults() {

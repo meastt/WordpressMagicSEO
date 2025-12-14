@@ -3136,10 +3136,19 @@ def seo_audit():
             rate_limit_delay=rate_limit
         )
         
+        skip_fixed = data.get("skip_fixed", "true").lower() == "true"
+        
         audit_results = auditor.audit_site(
             max_urls=max_urls,
-            check_orphaned=check_orphaned
+            check_orphaned=check_orphaned,
+            skip_fixed=skip_fixed
         )
+        
+        # Add fix statistics
+        from seo.fix_tracker import SEOFixTracker
+        fix_tracker = SEOFixTracker(site_url=site_url)
+        fix_stats = fix_tracker.get_stats()
+        audit_results["fix_statistics"] = fix_stats
         
         # Generate report
         generator = SEOReportGenerator(audit_results)
@@ -3261,6 +3270,83 @@ def seo_fix_issue():
         import traceback
         return jsonify({
             "error": "Failed to fix issue",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+@app.route("/api/seo-validate-fix", methods=["POST"])
+def seo_validate_fix():
+    """
+    Validate that a fix was successful by re-auditing a single URL.
+    
+    Accepts:
+    - site_url: Site URL (required)
+    - url: Single URL to validate (required)
+    - issue_type: Type of issue that was fixed (optional)
+    - category: Category of issue (optional)
+    """
+    try:
+        if request.is_json:
+            data = request.get_json() or {}
+        else:
+            data = request.form.to_dict()
+        
+        site_url = data.get("site_url")
+        url = data.get("url")
+        issue_type = data.get("issue_type")
+        category = data.get("category")
+        
+        if not all([site_url, url]):
+            return jsonify({"error": "site_url and url are required"}), 400
+        
+        # Run single URL audit
+        from seo.technical_auditor import TechnicalSEOAuditor
+        
+        auditor = TechnicalSEOAuditor(site_url=site_url, rate_limit_delay=1.0)
+        result = auditor.audit_url(url)
+        
+        # Check if the specific issue is now fixed
+        validation_result = {
+            "url": url,
+            "status_code": result.status_code,
+            "fetch_time": result.fetch_time,
+            "is_fixed": True,
+            "issue_status": "unknown"
+        }
+        
+        if issue_type and category:
+            # Check specific issue
+            category_issues = result.issues.get(category, [])
+            issue_found = None
+            for issue in category_issues:
+                if issue.check_name == issue_type:
+                    issue_found = issue
+                    break
+            
+            if issue_found:
+                validation_result["issue_status"] = issue_found.status
+                validation_result["is_fixed"] = issue_found.status in ["optimal", "info"]
+                validation_result["message"] = issue_found.message
+            else:
+                validation_result["is_fixed"] = True  # Issue not found = likely fixed
+                validation_result["message"] = f"Issue {issue_type} not found (may be fixed)"
+        else:
+            # General validation - check if there are critical issues
+            all_issues = []
+            for cat_issues in result.issues.values():
+                all_issues.extend(cat_issues)
+            
+            critical_count = sum(1 for issue in all_issues if issue.status == "critical")
+            validation_result["critical_issues"] = critical_count
+            validation_result["is_fixed"] = critical_count == 0
+        
+        return jsonify(validation_result)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to validate fix",
             "details": str(e),
             "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
         }), 500

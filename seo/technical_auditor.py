@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from collections import defaultdict
 
 from data.sitemap_analyzer import SitemapAnalyzer
+from seo.fix_tracker import SEOFixTracker
 
 
 @dataclass
@@ -83,10 +84,34 @@ class TechnicalSEOAuditor:
         # Link graph for orphaned page detection
         self._link_graph = defaultdict(set)  # url -> set of URLs that link to it
         
+        # Fix tracker to skip already-fixed URLs
+        self.fix_tracker = SEOFixTracker(site_url=site_url)
+        
+    def _is_fully_fixed(self, url: str) -> bool:
+        """
+        Check if URL has been fixed for all common issues.
+        This is a heuristic - we skip URLs that were fixed for multiple issues.
+        """
+        fix_history = self.fix_tracker.get_fix_history(url)
+        if not fix_history:
+            return False
+        
+        # Count successful fixes
+        successful_fixes = sum(
+            1 for issues in fix_history.values()
+            for fix in issues
+            if fix.get("success", False)
+        )
+        
+        # If URL has 3+ successful fixes, consider it "fully fixed" and skip
+        # This is a heuristic - adjust as needed
+        return successful_fixes >= 3
+    
     def audit_site(
         self,
         max_urls: Optional[int] = None,
-        check_orphaned: bool = False
+        check_orphaned: bool = False,
+        skip_fixed: bool = True
     ) -> Dict:
         """
         Audit entire site by crawling sitemap.
@@ -116,6 +141,17 @@ class TechnicalSEOAuditor:
             }
         
         urls_to_audit = [url_obj.url for url_obj in sitemap_urls]
+        
+        # Filter out URLs that were already fixed (if skip_fixed is enabled)
+        if skip_fixed:
+            original_count = len(urls_to_audit)
+            urls_to_audit = [
+                url for url in urls_to_audit
+                if not self._is_fully_fixed(url)
+            ]
+            skipped_count = original_count - len(urls_to_audit)
+            if skipped_count > 0:
+                print(f"   Skipped {skipped_count} URLs that were already fixed")
         
         if max_urls:
             urls_to_audit = urls_to_audit[:max_urls]

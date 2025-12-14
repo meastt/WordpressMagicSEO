@@ -13,6 +13,7 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 
 from wordpress.publisher import WordPressPublisher
+from seo.fix_tracker import SEOFixTracker
 
 
 class SEOIssueFixer:
@@ -36,6 +37,7 @@ class SEOIssueFixer:
         self.api_base = f"{self.site_url}/wp-json/wp/v2"
         self.auth = (wp_username, wp_app_password)
         self.use_ai = use_ai
+        self.fix_tracker = SEOFixTracker(site_url=site_url)
         
         # Initialize AI generator if available
         self.ai_generator = None
@@ -78,6 +80,13 @@ class SEOIssueFixer:
                     results["errors"].append(f"Could not find post ID for {url}")
                     continue
                 
+                # Check if already fixed
+                if self.fix_tracker.is_fixed(url, issue_type, category):
+                    results["fixed_count"] += 1
+                    results["fixed_urls"].append(url)
+                    results["errors"].append(f"{url} was already fixed (skipped)")
+                    continue
+                
                 # Fix the specific issue
                 fix_method = f"_fix_{issue_type}"
                 if hasattr(self, fix_method):
@@ -85,18 +94,24 @@ class SEOIssueFixer:
                     if fix_result:
                         results["fixed_count"] += 1
                         results["fixed_urls"].append(url)
+                        # Record successful fix
+                        self.fix_tracker.record_fix(url, issue_type, category, success=True)
                     else:
                         results["failed_count"] += 1
                         results["errors"].append(f"Failed to fix {issue_type} for {url}")
+                        # Record failed fix attempt
+                        self.fix_tracker.record_fix(url, issue_type, category, success=False)
                 else:
                     # Generic fix attempt
                     fix_result = self._fix_generic(post_id, post_type, url, issue_type, category)
                     if fix_result:
                         results["fixed_count"] += 1
                         results["fixed_urls"].append(url)
+                        self.fix_tracker.record_fix(url, issue_type, category, success=True)
                     else:
                         results["failed_count"] += 1
                         results["errors"].append(f"No fix handler for {issue_type}")
+                        self.fix_tracker.record_fix(url, issue_type, category, success=False)
                 
                 time.sleep(self.wp_publisher.rate_limit_delay)
                 
