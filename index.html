@@ -2076,9 +2076,21 @@
                         <div class="form-group">
                             <label for="audit_site_selector">Choose a site to audit</label>
                             <select id="audit_site_selector" class="form-control">
-                                <option value="">-- Select a site --</option>
+                                <option value="">-- Loading sites... --</option>
                             </select>
-                            <div class="help-text">Sites are configured in your Vercel environment variables</div>
+                            <div class="help-text">
+                                Sites are configured in your Vercel environment variables.<br>
+                                <strong>Format:</strong> WP_{DOMAIN}_USERNAME, WP_{DOMAIN}_PASSWORD, WP_{DOMAIN}_URL
+                            </div>
+                            <div id="audit_sites_error" style="display: none; margin-top: 8px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; color: #856404;">
+                                <strong>⚠️ No sites found.</strong> Configure sites in Vercel environment variables or use a custom URL below.
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="custom_site_url">Or enter custom site URL</label>
+                            <input type="url" id="custom_site_url" class="form-control" placeholder="https://example.com">
+                            <div class="help-text">Use this if your site isn't in the dropdown above</div>
                         </div>
                     </div>
 
@@ -2661,6 +2673,7 @@
         async function init() {
             await loadSites();
             populateSiteSelectors();
+            populateAuditSiteSelector();
 
             // Show welcome modal on first visit
             const hasVisited = localStorage.getItem('wp_magic_seo_visited');
@@ -2706,7 +2719,12 @@
             
             // Load sites for SEO audit view
             if (viewName === 'seo-audit') {
-                loadSites().then(() => populateAuditSiteSelector());
+                // Sites should already be loaded, but refresh if needed
+                if (sitesData.length === 0) {
+                    loadSites().then(() => populateAuditSiteSelector());
+                } else {
+                    populateAuditSiteSelector();
+                }
             }
         }
 
@@ -2723,6 +2741,7 @@
                         console.warn('Sites loaded with warning:', data.error);
                     }
                     renderDashboard();
+                    populateAuditSiteSelector(); // Populate audit selector after loading
                 } else {
                     const errorMsg = data?.error || data?.details || `HTTP ${response.status}`;
                     console.error('Failed to load sites - API error:', response.status, errorMsg);
@@ -4483,17 +4502,56 @@
         // SEO Audit Functions
         function populateAuditSiteSelector() {
             const selector = document.getElementById('audit_site_selector');
-            if (!selector) return;
+            if (!selector) {
+                console.warn('audit_site_selector not found');
+                return;
+            }
             
+            console.log('Populating audit site selector with', sitesData.length, 'sites');
             selector.innerHTML = '<option value="">-- Select a site --</option>';
+            
+            if (!sitesData || sitesData.length === 0) {
+                console.warn('No sites data available for audit selector');
+                // Show helpful message
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '-- No sites configured --';
+                option.disabled = true;
+                selector.appendChild(option);
+                
+                // Show error message
+                const errorDiv = document.getElementById('audit_sites_error');
+                if (errorDiv) {
+                    errorDiv.style.display = 'block';
+                }
+                return;
+            }
+            
+            // Hide error message if sites are found
+            const errorDiv = document.getElementById('audit_sites_error');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
             
             sitesData.forEach(site => {
                 const option = document.createElement('option');
-                option.value = site.url || site.name;
+                // Use URL if available, otherwise construct from site name
+                let siteUrl = site.url;
+                if (!siteUrl && site.name) {
+                    // If site name looks like a domain, add https://
+                    if (site.name.includes('.')) {
+                        siteUrl = site.name.startsWith('http') ? site.name : `https://${site.name}`;
+                    } else {
+                        siteUrl = site.name;
+                    }
+                }
+                option.value = siteUrl || site.name;
                 option.textContent = site.name + (site.url ? ` (${site.url})` : '');
                 option.dataset.siteName = site.name;
                 selector.appendChild(option);
             });
+            
+            console.log('Audit site selector populated with', selector.options.length - 1, 'sites');
         }
 
         function selectAuditType(type) {
@@ -4511,11 +4569,22 @@
 
         async function runSEOAudit() {
             const siteSelector = document.getElementById('audit_site_selector');
-            const siteUrl = siteSelector.value;
+            const customUrlInput = document.getElementById('custom_site_url');
+            let siteUrl = siteSelector.value;
+            
+            // If no site selected, try custom URL
+            if (!siteUrl || siteUrl === '') {
+                siteUrl = customUrlInput.value.trim();
+            }
             
             if (!siteUrl) {
-                showToast('Select Site', 'Please select a site to audit', 'warning');
+                showToast('Select Site', 'Please select a site from the dropdown or enter a custom URL', 'warning');
                 return;
+            }
+            
+            // Validate URL format
+            if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+                siteUrl = 'https://' + siteUrl;
             }
             
             const auditType = document.querySelector('input[name="audit_type"]:checked').value;
