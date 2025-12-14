@@ -2214,6 +2214,14 @@
                             </label>
                         </div>
 
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="skip_fixed" checked style="width: auto;">
+                                <span>Skip URLs that were already fixed (saves time & credits)</span>
+                            </label>
+                            <div class="help-text">URLs that were successfully fixed will be skipped in future audits</div>
+                        </div>
+
                         <div id="vercel_timeout_warning" class="vercel-timeout-warning" style="display: none; margin-top: 20px; padding: 16px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                             <strong>⚠️ Vercel Timeout Warning</strong>
                             <p style="margin: 8px 0 0 0; font-size: 14px; color: #856404;">
@@ -4738,7 +4746,12 @@
                 }
                 formData.append('output_format', 'json');
                 formData.append('check_orphaned', checkOrphaned);
-                formData.append('skip_fixed', document.getElementById('skip_fixed').checked);
+                
+                // Get skip_fixed checkbox (with fallback if element doesn't exist)
+                const skipFixedCheckbox = document.getElementById('skip_fixed');
+                const skipFixed = skipFixedCheckbox ? skipFixedCheckbox.checked : true; // Default to true
+                formData.append('skip_fixed', skipFixed);
+                
                 formData.append('rate_limit', '2.0');
                 
                 progressBar.style.width = '30%';
