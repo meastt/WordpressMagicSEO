@@ -1865,6 +1865,33 @@
             background: rgba(245, 158, 11, 0.05);
         }
 
+        .btn-fix-issue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .btn-fix-issue:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-fix-issue:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-fix-issue.fixing {
+            background: #f59e0b;
+        }
+
         .category-breakdown {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -4710,12 +4737,15 @@
                 
                 const auditResults = await response.json();
                 
+                // Store site URL for fixing
+                window.lastAuditSiteUrl = siteUrl;
+                
                 progressBar.style.width = '100%';
                 progressStatus.textContent = 'Complete!';
                 
                 setTimeout(() => {
                     document.getElementById('audit_progress').style.display = 'none';
-                    displayAuditResults(auditResults);
+                    displayAuditResults(auditResults, siteUrl);
                     document.getElementById('run_audit_btn').disabled = false;
                 }, 500);
                 
@@ -4744,7 +4774,7 @@
             }
         }
 
-        function displayAuditResults(results) {
+        function displayAuditResults(results, siteUrl = null) {
             const summary = results.summary || {};
             
             // Update summary cards
@@ -4753,13 +4783,22 @@
             document.getElementById('summary_passed').textContent = summary.passed || 0;
             document.getElementById('summary_total').textContent = results.total_urls_checked || 0;
             
-            // Top issues
+            // Top issues with Fix buttons
             const topIssues = getTopIssues(results);
             const topIssuesDiv = document.getElementById('top_issues');
             topIssuesDiv.innerHTML = topIssues.map(issue => `
                 <div class="issue-item ${issue.status === 'critical' ? 'critical' : 'warning'}">
-                    <strong>${issue.check_name}</strong> (${issue.category})<br>
-                    <small>${issue.count} URLs affected - ${issue.message}</small>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                        <div style="flex: 1;">
+                            <strong>${issue.check_name}</strong> (${issue.category})<br>
+                            <small>${issue.count} URLs affected - ${issue.message}</small>
+                        </div>
+                        <button class="btn-fix-issue" onclick="fixIssue('${issue.check_name}', '${issue.category}', ${issue.count})" 
+                                data-check-name="${issue.check_name}" 
+                                data-category="${issue.category}">
+                            🔧 Fix (${issue.count})
+                        </button>
+                    </div>
                 </div>
             `).join('');
             
@@ -4796,7 +4835,7 @@
                 </div>
             `).join('');
             
-            // Store results for export
+            // Store results for export and fixing
             window.lastAuditResults = results;
             
             // Show results
@@ -4805,6 +4844,7 @@
 
         function getTopIssues(results) {
             const issueCounts = {};
+            const issueUrls = {}; // Track URLs for each issue
             
             results.urls.forEach(urlData => {
                 Object.entries(urlData.issues || {}).forEach(([category, issues]) => {
@@ -4819,16 +4859,29 @@
                                     count: 0,
                                     message: issue.message
                                 };
+                                issueUrls[key] = [];
                             }
                             issueCounts[key].count++;
+                            issueUrls[key].push({
+                                url: urlData.url,
+                                status_code: urlData.status_code
+                            });
                         }
                     });
                 });
             });
             
-            return Object.values(issueCounts)
+            // Attach URLs to each issue
+            const topIssues = Object.values(issueCounts)
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 10);
+            
+            topIssues.forEach(issue => {
+                const key = `${issue.category}.${issue.check_name}`;
+                issue.urls = issueUrls[key] || [];
+            });
+            
+            return topIssues;
         }
 
         function getCategoryBreakdown(results) {
@@ -4898,6 +4951,93 @@
             link.click();
             URL.revokeObjectURL(url);
             showToast('Export Complete', 'Audit results downloaded', 'success');
+        }
+
+        async function fixIssue(checkName, category, urlCount) {
+            if (!window.lastAuditResults) {
+                showToast('No Audit Results', 'Run an audit first', 'warning');
+                return;
+            }
+            
+            if (!window.lastAuditSiteUrl) {
+                showToast('No Site URL', 'Site URL is required for fixing', 'warning');
+                return;
+            }
+            
+            // Find the button and disable it
+            const button = document.querySelector(`button[data-check-name="${checkName}"][data-category="${category}"]`);
+            if (button && button.disabled) {
+                return; // Already fixing
+            }
+            
+            if (!confirm(`Fix "${checkName}" issue for ${urlCount} URLs?\n\nThis will update WordPress posts/pages via the REST API.`)) {
+                return;
+            }
+            
+            if (button) {
+                button.disabled = true;
+                button.classList.add('fixing');
+                button.textContent = `🔧 Fixing...`;
+            }
+            
+            try {
+                // Find all URLs with this issue
+                const issueUrls = [];
+                window.lastAuditResults.urls.forEach(urlData => {
+                    const categoryIssues = urlData.issues[category] || [];
+                    const hasIssue = categoryIssues.some(issue => 
+                        issue.check_name === checkName && 
+                        (issue.status === 'critical' || issue.status === 'warning')
+                    );
+                    if (hasIssue) {
+                        issueUrls.push(urlData.url);
+                    }
+                });
+                
+                const response = await fetch(`${API_BASE}/seo-fix-issue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        site_url: window.lastAuditSiteUrl,
+                        issue_type: checkName,
+                        category: category,
+                        urls: issueUrls
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showToast(
+                        'Fix Complete ✅', 
+                        `Fixed ${result.fixed_count || 0} of ${urlCount} URLs. ${result.failed_count || 0} failed.`,
+                        'success',
+                        8000
+                    );
+                    
+                    // Optionally refresh the audit results
+                    if (result.refresh_audit) {
+                        showToast('Refreshing...', 'Re-running audit to see updated results', 'info', 3000);
+                        setTimeout(() => {
+                            document.getElementById('run_audit_btn').click();
+                        }, 2000);
+                    }
+                } else {
+                    throw new Error(result.error || 'Fix failed');
+                }
+                
+            } catch (error) {
+                console.error('Fix error:', error);
+                showToast('Fix Failed', error.message || 'An error occurred while fixing the issue', 'error');
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.classList.remove('fixing');
+                    button.textContent = `🔧 Fix (${urlCount})`;
+                }
+            }
         }
 
         async function clearAllStates() {

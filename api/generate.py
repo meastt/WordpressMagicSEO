@@ -3183,6 +3183,89 @@ def seo_audit():
         }), 500
 
 
+@app.route("/api/seo-fix-issue", methods=["POST"])
+def seo_fix_issue():
+    """
+    Fix a specific SEO issue across multiple URLs.
+    
+    Accepts:
+    - site_url: Site URL (required)
+    - issue_type: Type of issue to fix (e.g., 'h1_presence', 'title_presence')
+    - category: Category of issue (e.g., 'onpage', 'technical')
+    - urls: List of URLs to fix
+    """
+    try:
+        if request.is_json:
+            data = request.get_json() or {}
+        else:
+            data = request.form.to_dict()
+        
+        site_url = data.get("site_url")
+        issue_type = data.get("issue_type")
+        category = data.get("category")
+        urls = data.get("urls", [])
+        
+        if not all([site_url, issue_type, category]):
+            return jsonify({"error": "site_url, issue_type, and category are required"}), 400
+        
+        if not urls:
+            return jsonify({"error": "urls list is required"}), 400
+        
+        # Get site credentials from config
+        from config import get_site, list_sites
+        from urllib.parse import urlparse
+        
+        parsed_url = urlparse(site_url)
+        site_domain = parsed_url.netloc.replace('www.', '')
+        
+        # Try to find matching site in config
+        site_config = None
+        try:
+            site_config = get_site(site_domain)
+        except ValueError:
+            # Try without www prefix if it was there
+            if site_domain.startswith('www.'):
+                try:
+                    site_config = get_site(site_domain[4:])
+                except:
+                    pass
+        
+        if not site_config:
+            # List available sites for better error message
+            available_sites = list_sites()
+            return jsonify({
+                "error": f"Site {site_domain} not found in configuration",
+                "available_sites": available_sites,
+                "suggestion": "Make sure the site is configured in your .env file or Vercel environment variables"
+            }), 400
+        
+        # Import fix handler
+        from seo.issue_fixer import SEOIssueFixer
+        
+        fixer = SEOIssueFixer(
+            site_url=site_url,
+            wp_username=site_config['wp_username'],
+            wp_app_password=site_config['wp_app_password']
+        )
+        
+        # Fix the issue
+        result = fixer.fix_issue(
+            issue_type=issue_type,
+            category=category,
+            urls=urls
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to fix issue",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
 if __name__ == "__main__":
     # For local testing
     app.run(debug=True, port=5000)

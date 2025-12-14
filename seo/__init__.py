@@ -4,6 +4,7 @@ SEO modules for technical auditing and intelligence.
 
 from .technical_auditor import TechnicalSEOAuditor, AuditResult, URLAuditResult
 from .report_generator import SEOReportGenerator
+from .issue_fixer import SEOIssueFixer
 from .linking_engine import SmartLinkingEngine
 
 __all__ = [
@@ -11,6 +12,7 @@ __all__ = [
     'AuditResult',
     'URLAuditResult',
     'SEOReportGenerator',
-    'SmartLinkingEngine'
+    'SmartLinkingEngine',
+    'SEOIssueFixer'
 ]
 
