@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WordPress Magic SEO - AI Portfolio Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -24,7 +26,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             min-height: calc(100vh - 40px);
             display: flex;
@@ -47,7 +49,7 @@
         }
 
         .app-badge {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 12px;
@@ -125,6 +127,271 @@
             margin-bottom: 48px;
         }
 
+        /* Portfolio Health Section */
+        .portfolio-health-section {
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 32px;
+            border: 2px solid #e0e0e0;
+        }
+
+        /* Automation Section */
+        .automation-section {
+            margin-top: 48px;
+            padding-top: 48px;
+            border-top: 2px solid #e8e8e8;
+        }
+
+        .automation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .automation-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .automation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .automation-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .automation-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .automation-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .automation-status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-inactive {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .portfolio-score-card {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .portfolio-score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            flex-shrink: 0;
+        }
+
+        .portfolio-score-circle.excellent {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+        }
+
+        .portfolio-score-circle.good {
+            background: linear-gradient(135deg, #8bc34a 0%, #558b2f 100%);
+        }
+
+        .portfolio-score-circle.needs_work {
+            background: linear-gradient(135deg, #ff9800 0%, #ef6c00 100%);
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+        }
+
+        .portfolio-score-circle.critical {
+            background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
+        }
+
+        .portfolio-score-value {
+            font-size: 42px;
+            font-weight: 700;
+        }
+
+        .portfolio-score-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .portfolio-info h2 {
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+
+        .portfolio-stats {
+            color: #666;
+            margin: 0 0 16px 0;
+        }
+
+        .site-health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .site-health-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .site-health-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .site-health-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn-site-action {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-site-action.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-site-action.secondary {
+            background: #f0f4ff;
+            color: #667eea;
+        }
+
+        .btn-site-action:hover {
+            filter: brightness(1.1);
+        }
+
+        .site-health-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .site-health-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .site-health-emoji {
+            font-size: 20px;
+        }
+
+        .site-health-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .site-health-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .site-health-fill.excellent {
+            background: linear-gradient(90deg, #4caf50 0%, #2e7d32 100%);
+        }
+
+        .site-health-fill.warning {
+            background: linear-gradient(90deg, #ff9800 0%, #ef6c00 100%);
+        }
+
+        .site-health-fill.critical {
+            background: linear-gradient(90deg, #f44336 0%, #c62828 100%);
+        }
+
+        .site-health-fill.unknown {
+            background: #9e9e9e;
+        }
+
+        .site-health-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+
         .quick-create-section {
             margin-top: 48px;
             padding-top: 48px;
@@ -153,7 +420,7 @@
             border-radius: 16px;
             padding: 32px;
             border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .quick-create-actions {
@@ -348,7 +615,7 @@
 
         .workflow-step:hover {
             border-color: #d0d0d0;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         }
 
         .continue-panel {
@@ -490,7 +757,8 @@
             transition: border 0.2s;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -656,7 +924,7 @@
 
         .settings-section:hover {
             border-color: #d0d0d0;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         }
 
         .settings-title {
@@ -846,7 +1114,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -875,12 +1143,18 @@
         }
 
         .spinner::after {
-            display: none; /* Remove the nested circle */
+            display: none;
+            /* Remove the nested circle */
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .loading-text {
@@ -931,14 +1205,27 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         @keyframes slideProgress {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         .results-panel {
@@ -997,7 +1284,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -1015,7 +1302,7 @@
             max-height: 90vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .modal-content.large {
@@ -1116,7 +1403,7 @@
 
         .welcome-step:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
         .welcome-step-icon {
@@ -1243,6 +1530,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1254,8 +1542,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
         }
 
         .pulse {
@@ -1518,7 +1813,7 @@
         .toast {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             padding: 16px 20px;
             display: flex;
             align-items: center;
@@ -1581,6 +1876,7 @@
                 opacity: 0;
                 transform: translateX(100%);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -1592,6 +1888,7 @@
                 opacity: 1;
                 transform: translateX(0);
             }
+
             to {
                 opacity: 0;
                 transform: translateX(100%);
@@ -1842,13 +2139,15 @@
             font-size: 20px;
         }
 
-        .issues-list, .urls-list {
+        .issues-list,
+        .urls-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
-        .issue-item, .url-item {
+        .issue-item,
+        .url-item {
             background: #f8f9fa;
             border-left: 4px solid #667eea;
             border-radius: 8px;
@@ -2023,15 +2322,471 @@
                 font-size: 60px;
             }
         }
+
+        /* ============================================
+           FIX ISSUES VIEW STYLES
+           ============================================ */
+
+        .fix-issues-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .fix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .fix-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .fix-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin: 8px 0 0 0;
+        }
+
+        .fix-header-right select {
+            min-width: 250px;
+            padding: 12px 16px;
+            font-size: 15px;
+        }
+
+        /* Health Score Panel */
+        .fix-health-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .health-score-card {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .health-score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .health-score-circle.health-good {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+        }
+
+        .health-score-circle.health-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #ef6c00 100%);
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+        }
+
+        .health-score-circle.health-critical {
+            background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.3);
+        }
+
+        .health-score-value {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .health-score-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .health-stats {
+            display: flex;
+            gap: 32px;
+        }
+
+        .health-stat {
+            text-align: center;
+        }
+
+        .health-stat-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .health-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+
+        .health-stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        /* Fix All Button */
+        .fix-all-button {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        }
+
+        .fix-all-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        }
+
+        .fix-all-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Issues Grid */
+        .fix-issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .fix-empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .fix-empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Issue Card */
+        .issue-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+
+        .issue-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+        }
+
+        .issue-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .issue-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .issue-card-count {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .issue-card-count.critical {
+            background: #f44336;
+        }
+
+        .issue-card-count.warning {
+            background: #ff9800;
+        }
+
+        .issue-card-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        /* Impact badges */
+        .issue-card-impact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .impact-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .impact-critical .impact-badge {
+            background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+            color: white;
+        }
+
+        .impact-high .impact-badge {
+            background: linear-gradient(135deg, #ff9800 0%, #ef6c00 100%);
+            color: white;
+        }
+
+        .impact-medium .impact-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .impact-low .impact-badge {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .impact-boost {
+            font-size: 11px;
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+
+        .issue-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .issue-fix-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .issue-fix-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .issue-fix-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .issue-fix-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .issue-fix-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Safe Mode Toggle */
+        .safe-mode-container {
+            margin: 16px 0;
+            padding: 12px;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .safe-mode-toggle {
+            cursor: pointer;
+            width: 40px;
+            height: 20px;
+            appearance: none;
+            background: #e0e0e0;
+            border-radius: 10px;
+            position: relative;
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .safe-mode-toggle:checked {
+            background: #ffc107;
+        }
+
+        .safe-mode-toggle::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            background: white;
+            transition: 0.3s;
+        }
+
+        .safe-mode-toggle:checked::before {
+            left: 22px;
+        }
+
+        .safe-mode-label {
+            font-weight: 600;
+            color: #856404;
+        }
+
+        /* Progress Panel */
+        .fix-progress-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #667eea;
+            margin-bottom: 24px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-count {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .progress-log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-log-entry:last-child {
+            border-bottom: none;
+        }
+
+        /* Success Panel */
+        .fix-success-panel {
+            text-align: center;
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2e7d32;
+            margin: 0 0 8px 0;
+        }
+
+        .success-message {
+            font-size: 16px;
+            color: #4caf50;
+            margin: 0 0 24px 0;
+        }
     </style>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header -->
         <div class="app-header">
             <div class="app-title">🎯 WordPress Magic SEO</div>
             <div style="display: flex; align-items: center; gap: 16px;">
-                <button onclick="showWelcomeModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <button onclick="showWelcomeModal()"
+                    style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">
                     🆘 Help
                 </button>
                 <div class="app-badge">v3.0 AI</div>
@@ -2042,6 +2797,7 @@
         <div class="nav-tabs">
             <div class="nav-tab active" onclick="switchView('dashboard')">📊 Dashboard</div>
             <div class="nav-tab" onclick="switchView('seo-audit')">🔍 SEO Audit</div>
+            <div class="nav-tab" onclick="switchView('fix-issues')">🔧 Fix Issues</div>
             <div class="nav-tab" onclick="switchView('execute')">🚀 Execute</div>
             <div class="nav-tab" onclick="switchView('settings')">⚙️ Settings</div>
         </div>
@@ -2056,6 +2812,43 @@
                         Track and manage AI-powered SEO optimizations across all your WordPress sites
                     </p>
                 </div>
+
+                <!-- Portfolio Health Section -->
+                <div id="portfolio-health-section" class="portfolio-health-section">
+                    <div class="portfolio-score-card">
+                        <div class="portfolio-score-circle" id="portfolio-score-circle">
+                            <span class="portfolio-score-value" id="portfolio-score-value">--</span>
+                            <span class="portfolio-score-label">Portfolio Health</span>
+                        </div>
+                        <div class="portfolio-info">
+                            <h2 id="portfolio-message">Loading...</h2>
+                            <p class="portfolio-stats">
+                                <span id="portfolio-sites-count">0</span> sites |
+                                <span id="portfolio-audited-count">0</span> audited
+                            </p>
+                            <button class="btn-primary" onclick="loadPortfolioHealth()">Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="site-health-grid" id="site-health-grid">
+                        <!-- Site health cards will load here -->
+                    </div>
+
+                    <!-- Automation Widget -->
+                    <div class="automation-section">
+                        <div class="section-header">
+                            <div>
+                                <h2>🤖 Automation & Scheduling</h2>
+                                <p style="color: #666; margin-top: 4px;">Audits and fixes that run while you sleep.</p>
+                            </div>
+                            <button class="btn-primary" onclick="saveAllAutomationSettings()">Save Settings</button>
+                        </div>
+                        <div class="automation-grid" id="automation-grid">
+                            <!-- Site automation cards will load here -->
+                        </div>
+                    </div>
+                </div>
+
                 <div id="dashboard-grid" class="dashboard-grid">
                     <!-- Site cards will be loaded here -->
                 </div>
@@ -2065,7 +2858,8 @@
                     <div class="section-header">
                         <div>
                             <h2 class="section-title">? Quick Create Content</h2>
-                            <p class="section-description">Generate AI content without GSC data - just enter your topics</p>
+                            <p class="section-description">Generate AI content without GSC data - just enter your topics
+                            </p>
                         </div>
                     </div>
                     <div class="quick-create-card">
@@ -2090,7 +2884,8 @@
                         </div>
 
                         <div class="alert alert-info">
-                            ? <strong>How it works:</strong> Enter your topic and target keywords. The AI will research the topic and create a fully SEO-optimized article ready for publishing.
+                            ? <strong>How it works:</strong> Enter your topic and target keywords. The AI will research
+                            the topic and create a fully SEO-optimized article ready for publishing.
                         </div>
                     </div>
                 </div>
@@ -2100,7 +2895,8 @@
                     <div class="section-header">
                         <div>
                             <h2 class="section-title">📝 Quick Update Content</h2>
-                            <p class="section-description">Update existing posts/pages by URL - AI will rewrite and optimize the content</p>
+                            <p class="section-description">Update existing posts/pages by URL - AI will rewrite and
+                                optimize the content</p>
                         </div>
                     </div>
                     <div class="quick-create-card">
@@ -2125,7 +2921,9 @@
                         </div>
 
                         <div class="alert alert-info">
-                            🔄 <strong>How it works:</strong> Enter the full URL of any existing post or page. The AI will research the topic, rewrite the content for better SEO, add images (if enabled), update taxonomies, and publish the updated version.
+                            🔄 <strong>How it works:</strong> Enter the full URL of any existing post or page. The AI
+                            will research the topic, rewrite the content for better SEO, add images (if enabled), update
+                            taxonomies, and publish the updated version.
                         </div>
                     </div>
                 </div>
@@ -2154,14 +2952,17 @@
                                 Sites are configured in your Vercel environment variables.<br>
                                 <strong>Format:</strong> WP_{DOMAIN}_USERNAME, WP_{DOMAIN}_PASSWORD, WP_{DOMAIN}_URL
                             </div>
-                            <div id="audit_sites_error" style="display: none; margin-top: 8px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; color: #856404;">
-                                <strong>⚠️ No sites found.</strong> Configure sites in Vercel environment variables or use a custom URL below.
+                            <div id="audit_sites_error"
+                                style="display: none; margin-top: 8px; padding: 12px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px; color: #856404;">
+                                <strong>⚠️ No sites found.</strong> Configure sites in Vercel environment variables or
+                                use a custom URL below.
                             </div>
                         </div>
-                        
+
                         <div class="form-group" style="margin-top: 16px;">
                             <label for="custom_site_url">Or enter custom site URL</label>
-                            <input type="url" id="custom_site_url" class="form-control" placeholder="https://example.com">
+                            <input type="url" id="custom_site_url" class="form-control"
+                                placeholder="https://example.com">
                             <div class="help-text">Use this if your site isn't in the dropdown above</div>
                         </div>
                     </div>
@@ -2172,7 +2973,7 @@
                             <div class="step-number">2</div>
                             <div class="step-title">Choose Audit Type</div>
                         </div>
-                        
+
                         <div class="audit-type-grid">
                             <div class="audit-type-option selected" onclick="selectAuditType('sample')">
                                 <input type="radio" name="audit_type" value="sample" checked>
@@ -2202,7 +3003,8 @@
                         <div id="custom_audit_field" style="display: none; margin-top: 20px;">
                             <div class="form-group">
                                 <label for="custom_max_urls">Maximum URLs to Audit</label>
-                                <input type="number" id="custom_max_urls" value="100" min="1" max="1000" onchange="checkCustomUrlLimit()" class="form-control">
+                                <input type="number" id="custom_max_urls" value="100" min="1" max="1000"
+                                    onchange="checkCustomUrlLimit()" class="form-control">
                                 <div class="help-text">Enter the maximum number of URLs to audit (1-1000)</div>
                             </div>
                         </div>
@@ -2219,14 +3021,17 @@
                                 <input type="checkbox" id="skip_fixed" checked style="width: auto;">
                                 <span>Skip URLs that were already fixed (saves time & credits)</span>
                             </label>
-                            <div class="help-text">URLs that were successfully fixed will be skipped in future audits</div>
+                            <div class="help-text">URLs that were successfully fixed will be skipped in future audits
+                            </div>
                         </div>
 
-                        <div id="vercel_timeout_warning" class="vercel-timeout-warning" style="display: none; margin-top: 20px; padding: 16px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                        <div id="vercel_timeout_warning" class="vercel-timeout-warning"
+                            style="display: none; margin-top: 20px; padding: 16px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
                             <strong>⚠️ Vercel Timeout Warning</strong>
                             <p style="margin: 8px 0 0 0; font-size: 14px; color: #856404;">
-                                Full audits with many URLs may timeout on Vercel (5-minute limit). 
-                                For sites with 100+ URLs, use <strong>Sample Audit (50 URLs)</strong> or run full audits locally via CLI.
+                                Full audits with many URLs may timeout on Vercel (5-minute limit).
+                                For sites with 100+ URLs, use <strong>Sample Audit (50 URLs)</strong> or run full audits
+                                locally via CLI.
                             </p>
                         </div>
                     </div>
@@ -2256,7 +3061,7 @@
                             <h2>📊 Audit Results</h2>
                             <button class="btn-secondary" onclick="exportAuditResults()">💾 Export Results</button>
                         </div>
-                        
+
                         <div class="summary-cards">
                             <div class="summary-card critical">
                                 <div class="summary-icon">🔴</div>
@@ -2293,7 +3098,7 @@
                                 <h3>🔍 Top Issues</h3>
                                 <div id="top_issues" class="issues-list"></div>
                             </div>
-                            
+
                             <div class="results-section">
                                 <h3>📋 Breakdown by Category</h3>
                                 <div id="category_breakdown" class="category-breakdown"></div>
@@ -2308,12 +3113,104 @@
                 </div>
             </div>
 
+            <!-- Fix Issues View -->
+            <div id="fix-issues-view" class="view">
+                <div class="fix-issues-container">
+                    <!-- Header with site selector -->
+                    <div class="fix-header">
+                        <div class="fix-header-left">
+                            <h2 class="fix-title">🔧 Fix SEO Issues</h2>
+                            <p class="fix-subtitle">One-click fixes for common SEO problems</p>
+                        </div>
+                        <div class="fix-header-right">
+                            <select id="fix-site-select" class="form-control" onchange="loadSiteIssues()">
+                                <option value="">-- Select a site --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Health Score Panel -->
+                    <div id="fix-health-panel" class="fix-health-panel" style="display: none;">
+                        <div class="health-score-card">
+                            <div class="health-score-circle" id="health-score-circle">
+                                <span class="health-score-value" id="health-score-value">--</span>
+                                <span class="health-score-label">Health</span>
+                            </div>
+                            <div class="health-stats">
+                                <div class="health-stat">
+                                    <span class="health-stat-icon">🔴</span>
+                                    <span class="health-stat-value" id="critical-count">0</span>
+                                    <span class="health-stat-label">Critical</span>
+                                </div>
+                                <div class="health-stat">
+                                    <span class="health-stat-icon">🟡</span>
+                                    <span class="health-stat-value" id="warning-count">0</span>
+                                    <span class="health-stat-label">Warnings</span>
+                                </div>
+                                <div class="health-stat">
+                                    <span class="health-stat-icon">✅</span>
+                                    <span class="health-stat-value" id="fixable-count">0</span>
+                                    <span class="health-stat-label">Auto-Fixable</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Safe Mode Toggle -->
+                        <div class="safe-mode-container">
+                            <input type="checkbox" id="safe-mode-toggle" class="safe-mode-toggle">
+                            <div>
+                                <span class="safe-mode-label">🛡️ Safe Mode</span>
+                                <p style="margin: 4px 0 0 0; font-size: 11px; opacity: 0.8;">Stronger rate limiting (5s
+                                    delay) for maximum safety.</p>
+                            </div>
+                        </div>
+
+                        <!-- Fix All Critical Button -->
+                        <button id="fix-all-critical-btn" class="fix-all-button" onclick="fixAllCritical()">
+                            🚀 Fix All Critical Issues
+                        </button>
+                    </div>
+
+                    <!-- Issues Grid -->
+                    <div id="fix-issues-grid" class="fix-issues-grid">
+                        <!-- Issue cards will be loaded here -->
+                        <div class="fix-empty-state" id="fix-empty-state">
+                            <div class="empty-icon">👆</div>
+                            <p>Select a site above to see SEO issues</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Panel (hidden until fixing starts) -->
+                    <div id="fix-progress-panel" class="fix-progress-panel" style="display: none;">
+                        <div class="progress-header">
+                            <span class="progress-title">Fixing issues...</span>
+                            <span class="progress-count" id="progress-count">0/0</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="fix-progress-bar"></div>
+                        </div>
+                        <div class="progress-log" id="fix-progress-log">
+                            <!-- Log entries will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Success Celebration (hidden until complete) -->
+                    <div id="fix-success-panel" class="fix-success-panel" style="display: none;">
+                        <div class="success-icon">🎉</div>
+                        <h3 class="success-title">All Done!</h3>
+                        <p class="success-message" id="success-message">X issues fixed successfully</p>
+                        <button class="btn-primary" onclick="loadSiteIssues()">Check Again</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Execute View -->
             <div id="execute-view" class="view">
                 <div class="execute-container">
                     <div class="execute-header">
                         <h2 class="execute-title">🤖 AI-Powered SEO Execution</h2>
-                        <p class="execute-subtitle">Upload your data, let AI analyze it, and execute strategic improvements</p>
+                        <p class="execute-subtitle">Upload your data, let AI analyze it, and execute strategic
+                            improvements</p>
                     </div>
 
                     <!-- Step 1: Select Site -->
@@ -2338,12 +3235,16 @@
                                 <p class="continue-panel-text">This site has pending actions ready to execute.</p>
                                 <div class="form-group" style="margin: 16px 0;">
                                     <label for="continue_limit">Batch Size (Optional)</label>
-                                    <input type="number" id="continue_limit" min="1" placeholder="Leave empty to run all pending actions">
+                                    <input type="number" id="continue_limit" min="1"
+                                        placeholder="Leave empty to run all pending actions">
                                 </div>
                                 <div class="continue-panel-actions">
-                                    <button class="btn-small btn-primary" onclick="continueExecution()">▶️ Continue Execution</button>
-                                    <button class="btn-small btn-secondary" onclick="viewCurrentPlan()">📋 View Plan</button>
-                                    <button class="btn-small btn-secondary" onclick="deleteCurrentPlan()">🗑️ Delete Plan</button>
+                                    <button class="btn-small btn-primary" onclick="continueExecution()">▶️ Continue
+                                        Execution</button>
+                                    <button class="btn-small btn-secondary" onclick="viewCurrentPlan()">📋 View
+                                        Plan</button>
+                                    <button class="btn-small btn-secondary" onclick="deleteCurrentPlan()">🗑️ Delete
+                                        Plan</button>
                                 </div>
                             </div>
                         </div>
@@ -2358,8 +3259,10 @@
 
                         <div class="form-group">
                             <label>Google Search Console Data <span class="required-badge">Required</span></label>
-                            <div class="file-upload-area enhanced" onclick="document.getElementById('gsc_file_input').click()">
-                                <input type="file" id="gsc_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('gsc')">
+                            <div class="file-upload-area enhanced"
+                                onclick="document.getElementById('gsc_file_input').click()">
+                                <input type="file" id="gsc_file_input" accept=".csv,.xlsx,.xls"
+                                    onchange="handleFileSelect('gsc')">
                                 <div class="upload-icon">📊</div>
                                 <div class="upload-text">
                                     <strong>Click or drag to upload GSC data</strong>
@@ -2369,14 +3272,17 @@
                             </div>
                             <div class="help-text">
                                 <strong>How to export:</strong> GSC ? Performance ? Export ? Download CSV<br>
-                                <strong>Data needed:</strong> Last 12 months with queries, pages, clicks, impressions, CTR, and position
+                                <strong>Data needed:</strong> Last 12 months with queries, pages, clicks, impressions,
+                                CTR, and position
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label>Google Analytics 4 Data <span class="optional-badge">Optional</span></label>
-                            <div class="file-upload-area enhanced optional" onclick="document.getElementById('ga4_file_input').click()">
-                                <input type="file" id="ga4_file_input" accept=".csv,.xlsx,.xls" onchange="handleFileSelect('ga4')">
+                            <div class="file-upload-area enhanced optional"
+                                onclick="document.getElementById('ga4_file_input').click()">
+                                <input type="file" id="ga4_file_input" accept=".csv,.xlsx,.xls"
+                                    onchange="handleFileSelect('ga4')">
                                 <div class="upload-icon">📈</div>
                                 <div class="upload-text">
                                     <strong>Upload GA4 data for deeper insights</strong>
@@ -2385,7 +3291,8 @@
                                 <div id="ga4_file_name" class="file-name-display"></div>
                             </div>
                             <div class="help-text">
-                                Include engagement rate, bounce rate, and session duration for more comprehensive analysis
+                                Include engagement rate, bounce rate, and session duration for more comprehensive
+                                analysis
                             </div>
                         </div>
                     </div>
@@ -2458,7 +3365,8 @@
                 <!-- API Configuration -->
                 <div class="settings-section">
                     <div class="settings-title">🔑 API Configuration</div>
-                    <div class="settings-description">Configure your Anthropic API key for AI-powered content generation</div>
+                    <div class="settings-description">Configure your Anthropic API key for AI-powered content generation
+                    </div>
                     <div class="form-group">
                         <label for="settings_anthropic_key">Anthropic API Key</label>
                         <div class="input-with-button">
@@ -2466,7 +3374,8 @@
                             <button class="btn-save" onclick="saveApiKey()">💾 Save</button>
                         </div>
                         <div class="help-text">
-                            <strong>Where to get your key:</strong> Visit <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a><br>
+                            <strong>Where to get your key:</strong> Visit <a href="https://console.anthropic.com"
+                                target="_blank" rel="noopener">console.anthropic.com</a><br>
                             <strong>Alternative:</strong> Set ANTHROPIC_API_KEY as an environment variable in Vercel
                         </div>
                     </div>
@@ -2476,24 +3385,28 @@
                 <!-- WordPress Sites -->
                 <div class="settings-section">
                     <div class="settings-title">🌐 WordPress Sites</div>
-                    <div class="settings-description">Your sites are automatically loaded from Vercel environment variables</div>
+                    <div class="settings-description">Your sites are automatically loaded from Vercel environment
+                        variables</div>
                     <div id="sites_list" class="sites-config-list">
                         <div class="loading-placeholder">Loading sites...</div>
                     </div>
                     <div class="help-text">
-                        <strong>To add new sites:</strong> Configure them as environment variables in Vercel (WORDPRESS_SITE_NAME_URL and WORDPRESS_SITE_NAME_USER_PASS)
+                        <strong>To add new sites:</strong> Configure them as environment variables in Vercel
+                        (WORDPRESS_SITE_NAME_URL and WORDPRESS_SITE_NAME_USER_PASS)
                     </div>
                 </div>
 
                 <!-- Affiliate Links -->
                 <div class="settings-section">
                     <div class="settings-title">🔗 Affiliate Links</div>
-                    <div class="settings-description">Configure affiliate links that will be automatically inserted into your content</div>
+                    <div class="settings-description">Configure affiliate links that will be automatically inserted into
+                        your content</div>
                     <div class="feature-status-box">
                         <div class="status-icon">🚧</div>
                         <div class="status-content">
                             <h4>Coming in Next Update</h4>
-                            <p>Affiliate link management interface is currently in development. For now, affiliate links can be configured via the backend API.</p>
+                            <p>Affiliate link management interface is currently in development. For now, affiliate links
+                                can be configured via the backend API.</p>
                         </div>
                     </div>
                 </div>
@@ -2549,7 +3462,8 @@
                         <button onclick="selectAllActions()">Select All</button>
                         <button onclick="deselectAllActions()">Deselect All</button>
                         <button onclick="togglePendingOnly()" id="pending_only_btn">Show Pending Only</button>
-                        <button onclick="deleteSelectedActions()" style="border-color: #f44336; color: #f44336;" id="delete_selected_btn">🗑️ Delete Selected</button>
+                        <button onclick="deleteSelectedActions()" style="border-color: #f44336; color: #f44336;"
+                            id="delete_selected_btn">🗑️ Delete Selected</button>
                     </div>
                     <div class="selection-stats">
                         <span id="selection_count">0 selected</span>
@@ -2559,7 +3473,8 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeActionPlanModal()">Close</button>
-                <button class="btn-primary" onclick="executeSelectedActions()" id="execute_selected_btn">Execute Selected</button>
+                <button class="btn-primary" onclick="executeSelectedActions()" id="execute_selected_btn">Execute
+                    Selected</button>
             </div>
         </div>
     </div>
@@ -2572,26 +3487,31 @@
                 <button class="modal-close" onclick="closeConfirmationModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="confirmation-message" id="confirmation_message">You're about to execute <strong id="confirm_count">0</strong> actions:</p>
+                <p class="confirmation-message" id="confirmation_message">You're about to execute <strong
+                        id="confirm_count">0</strong> actions:</p>
                 <div id="confirmation_list" class="confirmation-list"></div>
                 <div class="confirmation-summary">
                     <strong>Summary:</strong> <span id="confirmation_summary"></span>
                 </div>
-                
+
                 <!-- Image Generation Toggle -->
-                <div style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <div
+                    style="margin-top: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
                     <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                        <input type="checkbox" id="generate_images_toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                        <input type="checkbox" id="generate_images_toggle"
+                            style="width: 20px; height: 20px; cursor: pointer;">
                         <div>
                             <div style="font-weight: 600; color: #333; margin-bottom: 4px;">🖼️ Generate AI Images</div>
-                            <div style="font-size: 13px; color: #666;">Automatically generate images using Google Gemini AI for image placeholders in content</div>
+                            <div style="font-size: 13px; color: #666;">Automatically generate images using Google Gemini
+                                AI for image placeholders in content</div>
                         </div>
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
-                <button class="btn-primary btn-warning" onclick="confirmExecution()" id="confirm_execute_btn">Confirm & Execute</button>
+                <button class="btn-primary btn-warning" onclick="confirmExecution()" id="confirm_execute_btn">Confirm &
+                    Execute</button>
             </div>
         </div>
     </div>
@@ -2610,17 +3530,20 @@
                     <div class="welcome-step">
                         <div class="welcome-step-icon">📊</div>
                         <div class="welcome-step-title">1. Upload Data</div>
-                        <div class="welcome-step-desc">Export your Google Search Console data (last 12 months) and optionally GA4 metrics</div>
+                        <div class="welcome-step-desc">Export your Google Search Console data (last 12 months) and
+                            optionally GA4 metrics</div>
                     </div>
                     <div class="welcome-step">
                         <div class="welcome-step-icon">🤖</div>
                         <div class="welcome-step-title">2. AI Analysis</div>
-                        <div class="welcome-step-desc">Claude AI analyzes your data and creates a strategic action plan</div>
+                        <div class="welcome-step-desc">Claude AI analyzes your data and creates a strategic action plan
+                        </div>
                     </div>
                     <div class="welcome-step">
                         <div class="welcome-step-icon">🚀</div>
                         <div class="welcome-step-title">3. Execute</div>
-                        <div class="welcome-step-desc">Review and execute actions to optimize your content automatically</div>
+                        <div class="welcome-step-desc">Review and execute actions to optimize your content automatically
+                        </div>
                     </div>
                 </div>
 
@@ -2671,7 +3594,8 @@
                 </div>
 
                 <div class="alert alert-info" style="margin-top: 24px;">
-                    <strong>💡 Pro Tip:</strong> Start by uploading your GSC data in the Execute tab. The AI will create an action plan showing exactly what needs improvement on your site.
+                    <strong>💡 Pro Tip:</strong> Start by uploading your GSC data in the Execute tab. The AI will create
+                    an action plan showing exactly what needs improvement on your site.
                 </div>
             </div>
             <div class="modal-footer">
@@ -2734,7 +3658,7 @@
                 // Use structured error response if available
                 errorTitle = responseData.error || errorTitle;
                 errorMessage = responseData.suggestion || responseData.details || errorMessage;
-                
+
                 if (responseData.category === 'user_error') {
                     errorType = 'warning';
                 } else if (responseData.category === 'system_error') {
@@ -2789,6 +3713,7 @@
                 if (
                     (viewName === 'dashboard' && tabText.includes('📊 Dashboard')) ||
                     (viewName === 'seo-audit' && tabText.includes('🔍 SEO Audit')) ||
+                    (viewName === 'fix-issues' && tabText.includes('🔧 Fix Issues')) ||
                     (viewName === 'execute' && tabText.includes('🚀 Execute')) ||
                     (viewName === 'settings' && tabText.includes('⚙️ Settings'))
                 ) {
@@ -2799,19 +3724,27 @@
             // Update active view
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
             document.getElementById(viewName + '-view').classList.add('active');
-            
+
             // Refresh dashboard when switching to it
             if (viewName === 'dashboard') {
-                loadSites().then(() => renderDashboard());
+                loadSites();
             }
-            
+
             // Load sites for SEO audit view
             if (viewName === 'seo-audit') {
-                // Sites should already be loaded, but refresh if needed
                 if (sitesData.length === 0) {
                     loadSites().then(() => populateAuditSiteSelector());
                 } else {
                     populateAuditSiteSelector();
+                }
+            }
+
+            // Load sites for Fix Issues view
+            if (viewName === 'fix-issues') {
+                if (sitesData.length === 0) {
+                    loadSites().then(() => populateFixSiteSelector());
+                } else {
+                    populateFixSiteSelector();
                 }
             }
         }
@@ -2821,24 +3754,42 @@
             try {
                 const response = await fetch(`${API_BASE}/sites`);
                 const data = await response.json().catch(() => null);
-                
+
                 if (response.ok && data) {
                     sitesData = data.sites || [];
                     console.log('Loaded sites:', sitesData);
-                    if (data.error) {
-                        console.warn('Sites loaded with warning:', data.error);
-                    }
                     renderDashboard();
+                    loadPortfolioHealth(); // Fetch health data too
                     populateAuditSiteSelector(); // Populate audit selector after loading
+
+                    // Auto-select if only one site exists (Grandma-proof)
+                    if (sitesData.length === 1) {
+                        const siteName = sitesData[0].name;
+                        console.log(`Auto-selecting only site: ${siteName}`);
+                        setTimeout(() => {
+                            const selectors = ['fix-site-select', 'site-select', 'planner-site-select'];
+                            selectors.forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) {
+                                    el.value = siteName;
+                                    // Trigger loads
+                                    if (id === 'fix-site-select') loadIssues(siteName);
+                                    if (id === 'site-select') loadAuditData(siteName);
+                                }
+                            });
+                        }, 200);
+                    }
+                    loadAutomationSettings();
                 } else {
                     const errorMsg = data?.error || data?.details || `HTTP ${response.status}`;
                     console.error('Failed to load sites - API error:', response.status, errorMsg);
                     console.error('Full error data:', data);
-                    
+
                     // Show sites even if API fails (empty array)
                     sitesData = [];
                     renderDashboard();
-                    
+                    loadPortfolioHealth();
+
                     // Show user-friendly error message
                     showToast(`⚠️ Could not load sites: ${errorMsg}`, 'warning');
                 }
@@ -2847,6 +3798,7 @@
                 // Show empty state even if fetch fails
                 sitesData = [];
                 renderDashboard();
+                loadPortfolioHealth();
                 showToast('⚠️ Failed to connect to server. Please refresh the page.', 'error');
             }
         }
@@ -2966,7 +3918,7 @@
             if (quickCreateSelector) {
                 addQuickCreateForm();
             }
-            
+
             // Initialize with one quick update form
             if (quickUpdateSelector) {
                 addQuickUpdateForm();
@@ -2974,7 +3926,7 @@
         }
 
         // Site Selection
-        document.getElementById('exec_site_selector')?.addEventListener('change', function() {
+        document.getElementById('exec_site_selector')?.addEventListener('change', function () {
             const siteName = this.value;
             const site = sitesData.find(s => s.name === siteName);
             const continuePanel = document.getElementById('continue_panel');
@@ -3227,7 +4179,7 @@
                         ${action.url ? `<div class="action-url">${action.url}</div>` : ''}
                         <div class="action-details">${action.reasoning || 'No description available'}</div>
                         ${action.keywords && action.keywords.length > 0 ?
-                            `<div class="action-keywords">Keywords: ${action.keywords.join(', ')}</div>` : ''}
+                        `<div class="action-keywords">Keywords: ${action.keywords.join(', ')}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -3280,7 +4232,7 @@
                 showLoading('Updating action...');
                 const response = await fetch(`${API_BASE}/plan/${siteName}`, {
                     method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action_id: actionId,
                         ...updates
@@ -3538,7 +4490,7 @@
 
             // Update progress immediately to show we're starting
             updateProgress(0, actions.length);
-            document.getElementById('loading_text').textContent = 
+            document.getElementById('loading_text').textContent =
                 `Starting execution of ${actions.length} actions...`;
 
             for (const action of actions) {
@@ -3565,7 +4517,7 @@
                         actionData.redirect_target = action.redirect_target || '';
                     }
                     actionsMap[action.id] = actionData;
-                    
+
                     // Debug logging for redirect actions
                     if (action.action_type === 'redirect_301') {
                         console.log(`Redirect action ${action.id}:`, {
@@ -3577,7 +4529,7 @@
 
                     // Check if image generation is enabled
                     const generateImages = document.getElementById('generate_images_toggle')?.checked || false;
-                    
+
                     const response = await fetch(`${API_BASE}/execute-selected`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -3592,17 +4544,17 @@
                     // Get response text first to handle JSON parsing errors gracefully
                     const responseText = await response.text();
                     let data;
-                    
+
                     try {
                         data = JSON.parse(responseText);
                     } catch (jsonError) {
                         console.error(`JSON Parse Error for action ${action.title || action.url}:`, jsonError);
                         console.error('Response text (first 500 chars):', responseText.substring(0, 500));
-                        
+
                         // Try to extract error message from HTML if response is HTML
                         const errorMatch = responseText.match(/error[^>]*>([^<]+)/i);
                         const errorMsg = errorMatch ? errorMatch[1] : 'Invalid JSON response from server';
-                        
+
                         errors.push({
                             action: action.title || action.url,
                             error: `JSON parsing error: ${errorMsg}. Response may be truncated or contain invalid characters.`
@@ -3628,7 +4580,7 @@
 
                     // Rate limiting: 2 seconds between actions
                     if (completed < actions.length) {
-                        document.getElementById('loading_text').textContent = 
+                        document.getElementById('loading_text').textContent =
                             `Waiting 2 seconds before next action...`;
                         await new Promise(resolve => setTimeout(resolve, 2000));
                     }
@@ -3640,7 +4592,7 @@
                     });
                     completed++;
                     console.error(`Action error: ${action.title || action.url}`, error);
-                    
+
                     // Update progress even on error
                     updateProgress(completed, actions.length);
                 }
@@ -3720,17 +4672,17 @@
             try {
                 const response = await fetch(`${API_BASE}/clear-plan`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({site_name: siteName})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site_name: siteName })
                 });
 
-                    const data = await response.json();
-                    if (!response.ok) {
-                        handleApiError(new Error(data.error || 'Delete failed'), data);
-                        return;
-                    }
+                const data = await response.json();
+                if (!response.ok) {
+                    handleApiError(new Error(data.error || 'Delete failed'), data);
+                    return;
+                }
 
-                    // Clear UI elements immediately
+                // Clear UI elements immediately
                 document.getElementById('continue_panel').style.display = 'none';
 
                 const resultsPanel = document.getElementById('results_panel');
@@ -3744,7 +4696,7 @@
 
                 // Reload sites data and refresh - MUST complete before triggering change event
                 await loadSites();
-                
+
                 // After loading sites, manually update the deleted site's data to reflect zero actions
                 // This ensures the UI updates immediately even if backend has slight delay
                 const siteIndex = sitesData.findIndex(s => s.name === siteName);
@@ -3753,10 +4705,10 @@
                     sitesData[siteIndex].total_actions = 0;
                     sitesData[siteIndex].completed_actions = 0;
                 }
-                
+
                 // Re-populate site selectors with updated data
                 populateSiteSelectors();
-                
+
                 // Re-render dashboard with updated site data
                 renderDashboard();
 
@@ -3790,7 +4742,7 @@
             console.log('Data keys:', Object.keys(data));
             console.log('Actions length:', data.actions ? data.actions.length : 'undefined');
             console.log('Stats:', data.stats);
-            
+
             const panel = document.getElementById('results_panel');
             panel.innerHTML = `
                 <div class="results-header">
@@ -4066,8 +5018,8 @@
 
                     const response = await fetch(`${API_BASE}/execute-next`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({site_name: siteName})
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ site_name: siteName })
                     });
 
                     const data = await response.json();
@@ -4340,7 +5292,7 @@
         function addQuickUpdateForm() {
             const container = document.getElementById('quick_update_forms');
             if (!container) return;
-            
+
             const formId = `quick_update_form_${quickUpdateFormCount++}`;
 
             const formDiv = document.createElement('div');
@@ -4415,13 +5367,13 @@
             showConfirmationModal(confirmActions, async (confirmedActions) => {
                 // Get image generation toggle state
                 const generateImages = document.getElementById('generate_images_toggle')?.checked || false;
-                
+
                 // Map confirmed actions back to updates format
                 const confirmedUpdates = confirmedActions.map(action => ({
                     url: action.url,
                     keywords: action.keywords || ''
                 }));
-                
+
                 await executeQuickUpdate(siteName, confirmedUpdates, generateImages);
             });
         }
@@ -4594,10 +5546,10 @@
                 console.warn('audit_site_selector not found');
                 return;
             }
-            
+
             console.log('Populating audit site selector with', sitesData.length, 'sites');
             selector.innerHTML = '<option value="">-- Select a site --</option>';
-            
+
             if (!sitesData || sitesData.length === 0) {
                 console.warn('No sites data available for audit selector');
                 // Show helpful message
@@ -4606,7 +5558,7 @@
                 option.textContent = '-- No sites configured --';
                 option.disabled = true;
                 selector.appendChild(option);
-                
+
                 // Show error message
                 const errorDiv = document.getElementById('audit_sites_error');
                 if (errorDiv) {
@@ -4614,13 +5566,13 @@
                 }
                 return;
             }
-            
+
             // Hide error message if sites are found
             const errorDiv = document.getElementById('audit_sites_error');
             if (errorDiv) {
                 errorDiv.style.display = 'none';
             }
-            
+
             sitesData.forEach(site => {
                 const option = document.createElement('option');
                 // Use URL if available, otherwise construct from site name
@@ -4638,7 +5590,7 @@
                 option.dataset.siteName = site.name;
                 selector.appendChild(option);
             });
-            
+
             console.log('Audit site selector populated with', selector.options.length - 1, 'sites');
         }
 
@@ -4646,17 +5598,17 @@
             document.querySelectorAll('.audit-type-option').forEach(opt => opt.classList.remove('selected'));
             event.currentTarget.classList.add('selected');
             document.querySelector(`input[value="${type}"]`).checked = true;
-            
+
             const customField = document.getElementById('custom_audit_field');
             const warningDiv = document.getElementById('vercel_timeout_warning');
-            
+
             if (type === 'custom') {
                 customField.style.display = 'block';
                 checkCustomUrlLimit();
             } else {
                 customField.style.display = 'none';
             }
-            
+
             // Show/hide timeout warning
             if (type === 'full') {
                 if (warningDiv) warningDiv.style.display = 'block';
@@ -4668,10 +5620,10 @@
         function checkCustomUrlLimit() {
             const warningDiv = document.getElementById('vercel_timeout_warning');
             if (!warningDiv) return;
-            
+
             const maxUrls = parseInt(document.getElementById('custom_max_urls').value) || 0;
             const auditType = document.querySelector('input[name="audit_type"]:checked')?.value;
-            
+
             if (auditType === 'custom') {
                 warningDiv.style.display = maxUrls > 100 ? 'block' : 'none';
             }
@@ -4681,25 +5633,25 @@
             const siteSelector = document.getElementById('audit_site_selector');
             const customUrlInput = document.getElementById('custom_site_url');
             let siteUrl = siteSelector.value;
-            
+
             // If no site selected, try custom URL
             if (!siteUrl || siteUrl === '') {
                 siteUrl = customUrlInput.value.trim();
             }
-            
+
             if (!siteUrl) {
                 showToast('Select Site', 'Please select a site from the dropdown or enter a custom URL', 'warning');
                 return;
             }
-            
+
             // Validate URL format
             if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
                 siteUrl = 'https://' + siteUrl;
             }
-            
+
             const auditType = document.querySelector('input[name="audit_type"]:checked').value;
             const checkOrphaned = document.getElementById('check_orphaned').checked;
-            
+
             let maxUrls = null;
             if (auditType === 'sample') {
                 maxUrls = 50;
@@ -4724,20 +5676,20 @@
                     }
                 }
             }
-            
+
             // Hide results, show progress
             document.getElementById('audit_results').style.display = 'none';
             document.getElementById('audit_progress').style.display = 'block';
             document.getElementById('run_audit_btn').disabled = true;
-            
+
             const progressBar = document.getElementById('progress_bar');
             const progressStatus = document.getElementById('progress_status');
             const progressDetails = document.getElementById('progress_details');
-            
+
             progressBar.style.width = '10%';
             progressStatus.textContent = 'Starting audit...';
             progressDetails.textContent = `Auditing ${siteUrl}...`;
-            
+
             try {
                 const formData = new FormData();
                 formData.append('site_url', siteUrl);
@@ -4746,25 +5698,25 @@
                 }
                 formData.append('output_format', 'json');
                 formData.append('check_orphaned', checkOrphaned);
-                
+
                 // Get skip_fixed checkbox (with fallback if element doesn't exist)
                 const skipFixedCheckbox = document.getElementById('skip_fixed');
                 const skipFixed = skipFixedCheckbox ? skipFixedCheckbox.checked : true; // Default to true
                 formData.append('skip_fixed', skipFixed);
-                
+
                 formData.append('rate_limit', '2.0');
-                
+
                 progressBar.style.width = '30%';
                 progressStatus.textContent = 'Fetching sitemap...';
-                
+
                 const response = await fetch(`${API_BASE}/seo-audit`, {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 progressBar.style.width = '60%';
                 progressStatus.textContent = 'Processing results...';
-                
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     const error = new Error(errorData.error || `HTTP ${response.status}`);
@@ -4772,35 +5724,35 @@
                     error.responseData = errorData; // Attach parsed error data
                     throw error;
                 }
-                
+
                 const auditResults = await response.json();
-                
+
                 // Store site URL for fixing
                 window.lastAuditSiteUrl = siteUrl;
-                
+
                 progressBar.style.width = '100%';
                 progressStatus.textContent = 'Complete!';
-                
+
                 setTimeout(() => {
                     document.getElementById('audit_progress').style.display = 'none';
                     displayAuditResults(auditResults, siteUrl);
                     document.getElementById('run_audit_btn').disabled = false;
                 }, 500);
-                
+
             } catch (error) {
                 console.error('Audit error:', error);
                 document.getElementById('audit_progress').style.display = 'none';
                 document.getElementById('run_audit_btn').disabled = false;
-                
+
                 // Check if it's a timeout error
                 const errorResponse = error.responseData || null;
-                
-                if (error.message.includes('504') || error.message.includes('timeout') || error.message.includes('Timeout') || 
+
+                if (error.message.includes('504') || error.message.includes('timeout') || error.message.includes('Timeout') ||
                     (errorResponse && (errorResponse.error === 'Audit timed out' || (errorResponse.details && errorResponse.details.includes('timeout'))))) {
                     const details = errorResponse?.details || 'The audit exceeded Vercel\'s 5-minute limit.';
                     const suggestion = errorResponse?.suggestion || 'Try a Sample Audit (50 URLs) or run full audits locally via CLI.';
                     showToast(
-                        'Audit Timed Out ⏱️', 
+                        'Audit Timed Out ⏱️',
                         `${details} ${suggestion}`,
                         'error',
                         12000
@@ -4814,13 +5766,13 @@
 
         function displayAuditResults(results, siteUrl = null) {
             const summary = results.summary || {};
-            
+
             // Update summary cards
             document.getElementById('summary_critical').textContent = summary.critical_issues || 0;
             document.getElementById('summary_warnings').textContent = summary.warnings || 0;
             document.getElementById('summary_passed').textContent = summary.passed || 0;
             document.getElementById('summary_total').textContent = results.total_urls_checked || 0;
-            
+
             // Top issues with Fix buttons
             const topIssues = getTopIssues(results);
             const topIssuesDiv = document.getElementById('top_issues');
@@ -4847,7 +5799,7 @@
                     </div>
                 </div>
             `).join('');
-            
+
             // Category breakdown
             const categoryBreakdown = getCategoryBreakdown(results);
             const categoryDiv = document.getElementById('category_breakdown');
@@ -4870,7 +5822,7 @@
                     </div>
                 </div>
             `).join('');
-            
+
             // URLs with most issues
             const urlsWithIssues = getUrlsWithMostIssues(results);
             const urlsDiv = document.getElementById('urls_with_issues');
@@ -4880,10 +5832,10 @@
                     <small>🔴 ${urlData.critical} critical, ⚠️ ${urlData.warning} warnings</small>
                 </div>
             `).join('');
-            
+
             // Store results for export and fixing
             window.lastAuditResults = results;
-            
+
             // Show results
             document.getElementById('audit_results').style.display = 'block';
         }
@@ -4891,7 +5843,7 @@
         function getTopIssues(results) {
             const issueCounts = {};
             const issueUrls = {}; // Track URLs for each issue
-            
+
             results.urls.forEach(urlData => {
                 Object.entries(urlData.issues || {}).forEach(([category, issues]) => {
                     issues.forEach(issue => {
@@ -4916,23 +5868,23 @@
                     });
                 });
             });
-            
+
             // Attach URLs to each issue
             const topIssues = Object.values(issueCounts)
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 10);
-            
+
             topIssues.forEach(issue => {
                 const key = `${issue.category}.${issue.check_name}`;
                 issue.urls = issueUrls[key] || [];
             });
-            
+
             return topIssues;
         }
 
         function getCategoryBreakdown(results) {
             const breakdown = {};
-            
+
             results.urls.forEach(urlData => {
                 Object.entries(urlData.issues || {}).forEach(([category, issues]) => {
                     if (!breakdown[category]) {
@@ -4945,7 +5897,7 @@
                     });
                 });
             });
-            
+
             return breakdown;
         }
 
@@ -4953,14 +5905,14 @@
             return results.urls.map(urlData => {
                 let critical = 0;
                 let warning = 0;
-                
+
                 Object.values(urlData.issues || {}).forEach(issues => {
                     issues.forEach(issue => {
                         if (issue.status === 'critical') critical++;
                         else if (issue.status === 'warning') warning++;
                     });
                 });
-                
+
                 return {
                     url: urlData.url,
                     critical: critical,
@@ -4987,35 +5939,35 @@
                 showToast('No Audit Results', 'Run an audit first', 'warning');
                 return;
             }
-            
+
             // Find all URLs with this issue that were fixed
             const issueUrls = [];
             window.lastAuditResults.urls.forEach(urlData => {
                 const categoryIssues = urlData.issues[category] || [];
-                const hasIssue = categoryIssues.some(issue => 
-                    issue.check_name === checkName && 
+                const hasIssue = categoryIssues.some(issue =>
+                    issue.check_name === checkName &&
                     (issue.status === 'critical' || issue.status === 'warning')
                 );
                 if (hasIssue) {
                     issueUrls.push(urlData.url);
                 }
             });
-            
+
             if (issueUrls.length === 0) {
                 showToast('No URLs Found', 'No URLs with this issue to validate', 'info');
                 return;
             }
-            
+
             const button = document.querySelector(`button[data-check-name="${checkName}"][data-category="${category}"].btn-validate-fix`);
             if (button) {
                 button.disabled = true;
                 button.textContent = '⏳ Validating...';
             }
-            
+
             try {
                 // Validate first URL as a sample
                 const sampleUrl = issueUrls[0];
-                
+
                 const response = await fetch(`${API_BASE}/seo-validate-fix`, {
                     method: 'POST',
                     headers: {
@@ -5028,20 +5980,20 @@
                         category: category
                     })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     if (result.is_fixed) {
                         showToast(
-                            'Fix Validated ✅', 
+                            'Fix Validated ✅',
                             `${sampleUrl}: Issue is now fixed (${result.issue_status || 'optimal'})`,
                             'success',
                             6000
                         );
                     } else {
                         showToast(
-                            'Fix Not Complete ⚠️', 
+                            'Fix Not Complete ⚠️',
                             `${sampleUrl}: Issue still present (${result.issue_status || 'warning'}) - ${result.message || ''}`,
                             'warning',
                             8000
@@ -5050,7 +6002,7 @@
                 } else {
                     throw new Error(result.error || 'Validation failed');
                 }
-                
+
             } catch (error) {
                 console.error('Validation error:', error);
                 showToast('Validation Failed', error.message || 'An error occurred', 'error');
@@ -5067,7 +6019,7 @@
                 showToast('No Results', 'Run an audit first', 'warning');
                 return;
             }
-            
+
             const dataStr = JSON.stringify(window.lastAuditResults, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -5084,42 +6036,42 @@
                 showToast('No Audit Results', 'Run an audit first', 'warning');
                 return;
             }
-            
+
             if (!window.lastAuditSiteUrl) {
                 showToast('No Site URL', 'Site URL is required for fixing', 'warning');
                 return;
             }
-            
+
             // Find the button and disable it
             const button = document.querySelector(`button[data-check-name="${checkName}"][data-category="${category}"]`);
             if (button && button.disabled) {
                 return; // Already fixing
             }
-            
+
             if (!confirm(`Fix "${checkName}" issue for ${urlCount} URLs?\n\nThis will update WordPress posts/pages via the REST API.`)) {
                 return;
             }
-            
+
             if (button) {
                 button.disabled = true;
                 button.classList.add('fixing');
                 button.textContent = `🔧 Fixing...`;
             }
-            
+
             try {
                 // Find all URLs with this issue
                 const issueUrls = [];
                 window.lastAuditResults.urls.forEach(urlData => {
                     const categoryIssues = urlData.issues[category] || [];
-                    const hasIssue = categoryIssues.some(issue => 
-                        issue.check_name === checkName && 
+                    const hasIssue = categoryIssues.some(issue =>
+                        issue.check_name === checkName &&
                         (issue.status === 'critical' || issue.status === 'warning')
                     );
                     if (hasIssue) {
                         issueUrls.push(urlData.url);
                     }
                 });
-                
+
                 const response = await fetch(`${API_BASE}/seo-fix-issue`, {
                     method: 'POST',
                     headers: {
@@ -5132,17 +6084,17 @@
                         urls: issueUrls
                     })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok && result.success) {
                     showToast(
-                        'Fix Complete ✅', 
+                        'Fix Complete ✅',
                         `Fixed ${result.fixed_count || 0} of ${urlCount} URLs. ${result.failed_count || 0} failed.`,
                         'success',
                         8000
                     );
-                    
+
                     // Optionally refresh the audit results
                     if (result.refresh_audit) {
                         showToast('Refreshing...', 'Re-running audit to see updated results', 'info', 3000);
@@ -5153,7 +6105,7 @@
                 } else {
                     throw new Error(result.error || 'Fix failed');
                 }
-                
+
             } catch (error) {
                 console.error('Fix error:', error);
                 showToast('Fix Failed', error.message || 'An error occurred while fixing the issue', 'error');
@@ -5207,7 +6159,7 @@
 
         // Update switchView to populate settings when opened
         const originalSwitchView = switchView;
-        switchView = function(viewName) {
+        switchView = function (viewName) {
             originalSwitchView(viewName);
             if (viewName === 'settings') {
                 populateSettingsSites();
@@ -5218,6 +6170,480 @@
                 }
             }
         };
+
+        // ============================================
+        // FIX ISSUES FUNCTIONS
+        // ============================================
+
+        let currentFixIssues = null;
+
+        function populateFixSiteSelector() {
+            const selector = document.getElementById('fix-site-select');
+            if (!selector) return;
+
+            selector.innerHTML = '<option value="">-- Select a site --</option>';
+
+            sitesData.forEach(site => {
+                const option = document.createElement('option');
+                option.value = site.name;
+                option.textContent = site.name;
+                selector.appendChild(option);
+            });
+        }
+
+        async function loadSiteIssues() {
+            const selector = document.getElementById('fix-site-select');
+            const siteName = selector.value;
+
+            if (!siteName) {
+                document.getElementById('fix-health-panel').style.display = 'none';
+                document.getElementById('fix-empty-state').style.display = 'block';
+                document.getElementById('fix-issues-grid').innerHTML = '<div class="fix-empty-state" id="fix-empty-state"><div class="empty-icon">👆</div><p>Select a site above to see SEO issues</p></div>';
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('fix-issues-grid').innerHTML = '<div class="fix-empty-state"><div class="empty-icon">⏳</div><p>Loading issues...</p></div>';
+            document.getElementById('fix-health-panel').style.display = 'none';
+            document.getElementById('fix-success-panel').style.display = 'none';
+            document.getElementById('fix-progress-panel').style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/seo-issues/${siteName}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('fix-issues-grid').innerHTML = `
+                        <div class="fix-empty-state">
+                            <div class="empty-icon">📋</div>
+                            <p>${data.error}</p>
+                            <button class="btn-primary" onclick="runQuickAudit('${siteName}')">Run SEO Audit First</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                currentFixIssues = data;
+                renderHealthPanel(data.summary);
+                renderIssueCards(data);
+
+            } catch (error) {
+                console.error('Error loading issues:', error);
+                document.getElementById('fix-issues-grid').innerHTML = `
+                    <div class="fix-empty-state">
+                        <div class="empty-icon">❌</div>
+                        <p>Error loading issues: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHealthPanel(summary) {
+            const panel = document.getElementById('fix-health-panel');
+            panel.style.display = 'flex';
+
+            // Calculate health score (inverse of issues)
+            const totalIssues = summary.critical_count + summary.warning_count;
+            const healthScore = Math.max(0, 100 - (totalIssues * 2));
+
+            const circle = document.getElementById('health-score-circle');
+            circle.className = 'health-score-circle';
+            if (healthScore >= 80) {
+                circle.classList.add('health-good');
+            } else if (healthScore >= 50) {
+                circle.classList.add('health-warning');
+            } else {
+                circle.classList.add('health-critical');
+            }
+
+            document.getElementById('health-score-value').textContent = healthScore;
+            document.getElementById('critical-count').textContent = summary.critical_count;
+            document.getElementById('warning-count').textContent = summary.warning_count;
+            document.getElementById('fixable-count').textContent = summary.fixable_count;
+
+            // Enable/disable Fix All button
+            const fixAllBtn = document.getElementById('fix-all-critical-btn');
+            fixAllBtn.disabled = summary.fixable_count === 0;
+        }
+
+        function renderIssueCards(data) {
+            const grid = document.getElementById('fix-issues-grid');
+            const fixable = data.fixable || {};
+            const topIssues = data.summary.top_issues || [];
+
+            if (Object.keys(fixable).length === 0) {
+                grid.innerHTML = `
+                    <div class="fix-empty-state">
+                        <div class="empty-icon">✅</div>
+                        <p>No auto-fixable issues found!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            topIssues.forEach(issue => {
+                if (!issue.fixable) return;
+
+                const urls = fixable[issue.type] || [];
+                if (urls.length === 0) return;
+
+                // Impact badge based on score
+                const impactScore = issue.impact_score || 1;
+                let impactBadge = '';
+                let impactClass = '';
+                if (impactScore >= 9) {
+                    impactBadge = '🔥 Critical';
+                    impactClass = 'impact-critical';
+                } else if (impactScore >= 7) {
+                    impactBadge = '📈 High';
+                    impactClass = 'impact-high';
+                } else if (impactScore >= 5) {
+                    impactBadge = '📊 Medium';
+                    impactClass = 'impact-medium';
+                } else {
+                    impactBadge = '📋 Low';
+                    impactClass = 'impact-low';
+                }
+
+                const countClass = impactScore >= 7 ? 'critical' : 'warning';
+                const rankingBoost = issue.ranking_boost || '';
+                const whyText = issue.why || '';
+
+                html += `
+                    <div class="issue-card" data-issue-type="${issue.type}" title="${whyText}">
+                        <div class="issue-card-header">
+                            <h4 class="issue-card-title">${issue.friendly_name || issue.type}</h4>
+                            <span class="issue-card-count ${countClass}">${issue.count} pages</span>
+                        </div>
+                        <div class="issue-card-impact ${impactClass}">
+                            <span class="impact-badge">${impactBadge}</span>
+                            ${rankingBoost ? `<span class="impact-boost">${rankingBoost}</span>` : ''}
+                        </div>
+                        <p class="issue-card-description">${whyText || `Affects ${issue.count} pages on your site`}</p>
+                        <div class="issue-card-actions">
+                            <button class="issue-fix-btn primary" onclick="fixIssueType('${issue.type}')">
+                                Fix All
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html || '<div class="fix-empty-state"><div class="empty-icon">✅</div><p>No auto-fixable issues!</p></div>';
+        }
+
+        function viewSiteSEO(siteName) {
+            switchView('audit');
+            const select = document.getElementById('site-select');
+            if (select) {
+                select.value = siteName;
+                loadAuditData(siteName);
+            }
+        }
+
+        function fixSiteSEO(siteName) {
+            switchView('fix-issues');
+            const select = document.getElementById('fix-site-select');
+            if (select) {
+                select.value = siteName;
+                loadIssues(siteName);
+            }
+        }
+
+        async function fixIssueType(issueType) {
+            const siteName = document.getElementById('fix-site-select').value;
+            if (!siteName) return;
+
+            // Show progress
+            document.getElementById('fix-progress-panel').style.display = 'block';
+            document.getElementById('fix-progress-bar').style.width = '10%';
+            document.getElementById('progress-count').textContent = 'Starting...';
+            document.getElementById('fix-progress-log').innerHTML = '';
+
+            addProgressLog('🚀', `Starting fix for ${issueType}...`);
+
+            try {
+                const response = await fetch(`${API_BASE}/seo-fix-batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        site_name: siteName,
+                        issue_type: issueType,
+                        safe_mode: document.getElementById('safe-mode-toggle').checked
+                    })
+                });
+
+                const result = await response.json();
+
+                document.getElementById('fix-progress-bar').style.width = '100%';
+
+                if (result.error) {
+                    addProgressLog('❌', result.error);
+                } else {
+                    addProgressLog('✅', `Fixed ${result.fixed_count} pages`);
+                    if (result.not_applicable_count > 0) {
+                        addProgressLog('📁', `${result.not_applicable_count} skipped (category pages)`);
+                    }
+                    if (result.error_count > 0) {
+                        addProgressLog('⚠️', `${result.error_count} need attention`);
+                        if (result.errors && result.errors.length > 0) {
+                            result.errors.forEach(err => {
+                                addProgressLog('  └ 🚨', `${err.url}: ${err.reason}`);
+                            });
+                        }
+                    }
+
+                    // Show success with confetti
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#667eea', '#764ba2', '#4caf50']
+                    });
+
+                    // Show success and reload
+                    setTimeout(() => {
+                        showFixSuccess(result.fixed_count);
+                    }, 1000);
+                }
+
+            } catch (error) {
+                addProgressLog('💥', `Error: ${error.message}`);
+            }
+        }
+
+        async function fixAllCritical() {
+            const siteName = document.getElementById('fix-site-select').value;
+            if (!siteName) return;
+
+            // Disable button
+            const btn = document.getElementById('fix-all-critical-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Fixing...';
+
+            // Show progress
+            document.getElementById('fix-progress-panel').style.display = 'block';
+            document.getElementById('fix-progress-bar').style.width = '5%';
+            document.getElementById('fix-progress-log').innerHTML = '';
+
+            addProgressLog('🚀', 'Starting to fix all critical issues...');
+
+            try {
+                const response = await fetch(`${API_BASE}/seo-fix-all-critical`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        site_name: siteName,
+                        safe_mode: document.getElementById('safe-mode-toggle').checked
+                    })
+                });
+
+                const result = await response.json();
+
+                document.getElementById('fix-progress-bar').style.width = '100%';
+
+                if (result.error) {
+                    addProgressLog('❌', result.error);
+                } else {
+                    // Log each issue type fixed
+                    (result.details || []).forEach(detail => {
+                        if (detail.fixed > 0) {
+                            addProgressLog('✅', `${detail.friendly_name}: ${detail.fixed} fixed`);
+                        }
+                        if (detail.failed > 0) {
+                            addProgressLog('⚠️', `${detail.friendly_name}: ${detail.failed} failed`);
+                        }
+                    });
+
+                    addProgressLog('🎉', `Total: ${result.total_fixed} fixes applied!`);
+
+                    // Celebration!
+                    confetti({
+                        particleCount: 200,
+                        spread: 90,
+                        origin: { y: 0.6 },
+                        colors: ['#667eea', '#764ba2', '#4caf50', '#ffeb3b']
+                    });
+
+                    setTimeout(() => {
+                        showFixSuccess(result.total_fixed);
+                    }, 1500);
+                }
+
+            } catch (error) {
+                addProgressLog('💥', `Error: ${error.message}`);
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Fix All Critical Issues';
+        }
+
+        function addProgressLog(icon, message) {
+            const log = document.getElementById('fix-progress-log');
+            log.innerHTML += `<div class="progress-log-entry"><span>${icon}</span><span>${message}</span></div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function showFixSuccess(count) {
+            document.getElementById('fix-progress-panel').style.display = 'none';
+            document.getElementById('fix-success-panel').style.display = 'block';
+            document.getElementById('success-message').textContent = `${count} issues fixed successfully!`;
+        }
+
+        async function loadPortfolioHealth() {
+            try {
+                const response = await fetch(`${API_BASE}/portfolio-health`);
+                const data = await response.json();
+                renderPortfolioHealth(data);
+            } catch (error) {
+                console.error('Error loading portfolio health:', error);
+            }
+        }
+
+        function renderPortfolioHealth(data) {
+            const scoreCircle = document.getElementById('portfolio-score-circle');
+            const scoreValue = document.getElementById('portfolio-score-value');
+            const message = document.getElementById('portfolio-message');
+            const sitesCount = document.getElementById('portfolio-sites-count');
+            const auditedCount = document.getElementById('portfolio-audited-count');
+            const healthGrid = document.getElementById('site-health-grid');
+
+            if (!scoreCircle || !scoreValue || !message || !sitesCount || !auditedCount || !healthGrid) return;
+
+            // Update portfolio score
+            scoreValue.textContent = data.portfolio_score;
+            scoreCircle.className = 'portfolio-score-circle ' + (data.portfolio_status || 'unknown');
+            message.textContent = data.portfolio_emoji + ' ' + (data.portfolio_message || 'Portfolio Health');
+            sitesCount.textContent = data.total_sites || 0;
+            auditedCount.textContent = data.sites_audited || 0;
+
+            // Update site health grid
+            let html = '';
+            if (data.sites && data.sites.length > 0) {
+                data.sites.forEach(site => {
+                    const score = site.health_score || 0;
+                    const statusClass = site.status || 'unknown';
+
+                    html += `
+                        <div class="site-health-card" onclick="viewSiteSEO('${site.name}')">
+                            <div class="site-health-header">
+                                <span class="site-health-name">${site.name}</span>
+                                <span class="site-health-emoji">${site.status_emoji}</span>
+                            </div>
+                            <div class="site-health-bar">
+                                <div class="site-health-fill ${statusClass}" style="width: ${score || 0}%"></div>
+                            </div>
+                            <div class="site-health-details">
+                                ${site.has_audit ? `${score}% Healthy | ${site.critical_issues} Critical` : 'No audit data yet'}
+                            </div>
+                            <div class="site-health-actions">
+                                <button class="btn-site-action secondary" onclick="event.stopPropagation(); viewSiteSEO('${site.name}')">Audit</button>
+                                <button class="btn-site-action primary" onclick="event.stopPropagation(); fixSiteSEO('${site.name}')">Fix SEO</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<p style="color: #666; font-size: 14px;">No sites found. Add your first site to see health stats!</p>';
+            }
+            healthGrid.innerHTML = html;
+        }
+
+        async function runQuickAudit(siteName) {
+            showToast('Starting audit...', 'info');
+            // Redirect to audit tab with site pre-selected
+            switchView('seo-audit');
+            document.getElementById('audit_site_selector').value = siteName;
+        }
+
+        // --- Automation Logic ---
+        async function loadAutomationSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/automation/settings`);
+                const data = await response.json();
+                renderAutomationGrid(data);
+            } catch (error) {
+                console.error('Error loading automation settings:', error);
+            }
+        }
+
+        function renderAutomationGrid(settings) {
+            const grid = document.getElementById('automation-grid');
+            if (!grid) return;
+
+            let html = '';
+            sitesData.forEach(site => {
+                const siteSettings = settings[site.name] || { enabled: false, auto_fix: false, frequency: 'weekly' };
+                const isActive = siteSettings.enabled;
+
+                html += `
+                    <div class="automation-card" id="automation-${site.name}">
+                        <div class="automation-card-header">
+                            <span class="automation-title">🌐 ${site.name}</span>
+                            <span class="automation-status-badge ${isActive ? 'status-active' : 'status-inactive'}">
+                                ${isActive ? '● Active' : '○ Inactive'}
+                            </span>
+                        </div>
+                        <div class="automation-controls">
+                            <div class="automation-toggle">
+                                <input type="checkbox" id="auto-enabled-${site.name}" class="safe-mode-toggle" ${isActive ? 'checked' : ''}>
+                                <span class="control-label">Enable Background Audit</span>
+                            </div>
+                            <div class="automation-toggle">
+                                <input type="checkbox" id="auto-fix-${site.name}" class="safe-mode-toggle" ${siteSettings.auto_fix ? 'checked' : ''}>
+                                <span class="control-label">Auto-Fix Critical Issues</span>
+                            </div>
+                            <div class="control-group">
+                                <span class="control-label">Frequency</span>
+                                <select id="auto-freq-${site.name}" class="control-input">
+                                    <option value="daily" ${siteSettings.frequency === 'daily' ? 'selected' : ''}>Daily</option>
+                                    <option value="weekly" ${siteSettings.frequency === 'weekly' ? 'selected' : ''}>Weekly</option>
+                                    <option value="monthly" ${siteSettings.frequency === 'monthly' ? 'selected' : ''}>Monthly</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <span class="control-label">Webhook URL (Slack/Discord)</span>
+                                <input type="text" id="auto-webhook-${site.name}" class="control-input" 
+                                       placeholder="https://hooks.slack.com/services/..." 
+                                       value="${siteSettings.webhook_url || ''}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        async function saveAllAutomationSettings() {
+            const promises = sitesData.map(async (site) => {
+                const settings = {
+                    enabled: document.getElementById(`auto-enabled-${site.name}`).checked,
+                    auto_fix: document.getElementById(`auto-fix-${site.name}`).checked,
+                    frequency: document.getElementById(`auto-freq-${site.name}`).value,
+                    webhook_url: document.getElementById(`auto-webhook-${site.name}`).value
+                };
+
+                return fetch(`${API_BASE}/automation/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        site_name: site.name,
+                        settings: settings
+                    })
+                });
+            });
+
+            try {
+                await Promise.all(promises);
+                showToast('Settings Saved', 'Settings updated for all sites.', 'success');
+                loadAutomationSettings(); // Refresh to show "Active" status badges
+            } catch (error) {
+                showToast('Error', 'Failed to save some settings.', 'error');
+            }
+        }
+
     </script>
 </body>
+
 </html>

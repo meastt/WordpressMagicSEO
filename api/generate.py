@@ -51,6 +51,38 @@ UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
+# Helper functions for state persistence (different from StateManager site-specific state)
+def load_app_state(key):
+    try:
+        from utils.state_storage import StateStorage
+        storage = StateStorage()
+        return storage.load(key)
+    except Exception as e:
+        print(f"Error loading app state {key}: {e}")
+        return None
+
+def save_app_state(key, data):
+    try:
+        from utils.state_storage import StateStorage
+        storage = StateStorage()
+        storage.save(key, data)
+        return True
+    except Exception as e:
+        print(f"Error saving app state {key}: {e}")
+        return False
+
+# Environment Validation
+def validate_environment():
+    required = ["ANTHROPIC_API_KEY", "SITES_CONFIG"]
+    missing = [env for env in required if not os.getenv(env)]
+    if missing:
+        print(f"❌ CRITICAL: Missing environment variables: {', '.join(missing)}")
+        return False
+    return True
+
+validate_environment()
+
+
 @app.route("/api", methods=["GET"])
 @app.route("/api/", methods=["GET"])
 def home():
@@ -64,6 +96,9 @@ def home():
             "/analyze": "POST - Analyze GSC data and create action plan (no execution)",
             "/execute": "POST - Full pipeline: analyze + execute content plan (may timeout on Vercel)",
             "/execute-next": "POST - Execute ONE action (serverless-safe, recommended)",
+            "/portfolio-health": "GET - Portfolio-wide health overview",
+            "/automation/settings": "GET/POST - Manage background automation",
+            "/automation/trigger": "POST - Manually trigger pending tasks",
             "/export/pdf/<site_name>": "GET - Export analysis as PDF",
             "/health": "GET - Health check"
         },
@@ -75,6 +110,7 @@ def home():
         },
         "optional_fields": {
             "site_name": "Pre-configured site name (e.g., griddleking.com)",
+            "safe_mode": "true/false - Stricter rate limiting for fixes",
             "schedule_mode": "all_at_once (default), daily, hourly",
             "batch_size": "Posts per batch (default: 3)",
             "delay_hours": "Hours between batches (default: 8)",
@@ -2721,7 +2757,85 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "version": "3.0-ai"
+        "version": "3.1"
+    })
+
+@app.route("/api/validate-config", methods=["GET"])
+def validate_config():
+    """Verify environment variables and site configurations."""
+    from config import SITES
+    
+    env_vars = ["ANTHROPIC_API_KEY", "GITHUB_TOKEN", "CRON_SECRET", "SITES_CONFIG"]
+    env_status = {var: "✅ Set" if os.getenv(var) else "❌ Missing" for var in env_vars}
+    
+    site_status = []
+    for site_name, config in SITES.items():
+        site_status.append({
+            "name": site_name,
+            "url": config.get('url'),
+            "has_auth": bool(config.get('wp_username') and config.get('wp_app_password')),
+            "has_search_console": bool(config.get('search_console_json'))
+        })
+        
+    return jsonify({
+        "environment": env_status,
+        "sites": site_status,
+        "overall_safe": all(v == "✅ Set" for v in env_status.values())
+    })
+
+# ============================================================================
+# AUTOMATION & SCHEDULING ENDPOINTS
+# ============================================================================
+
+@app.route("/api/automation/settings", methods=["GET", "POST"])
+def automation_settings():
+    """Get or update automation settings for sites."""
+    from config import SITES
+    from core.scheduler import SEOScheduler
+    scheduler = SEOScheduler(SITES)
+    
+    if request.method == "GET":
+        results = {}
+        for site_name in SITES.keys():
+            results[site_name] = scheduler.get_site_settings(site_name)
+        return jsonify(results)
+    
+    # POST - Update settings
+    data = request.json
+    site_name = data.get("site_name")
+    if not site_name or site_name not in SITES:
+        return jsonify({"error": f"Invalid site_name: {site_name}"}), 400
+    
+    scheduler.update_site_settings(site_name, data.get("settings", {}))
+    return jsonify({"status": "success", "settings": scheduler.get_site_settings(site_name)})
+
+@app.route("/api/automation/trigger", methods=["POST"])
+def automation_trigger():
+    """
+    Trigger pending automation tasks. 
+    Can be hit by a cron job or manually.
+    """
+    from config import SITES
+    from core.scheduler import SEOScheduler
+    
+    # Simple secret check if CRON_SECRET is set
+    cron_secret = os.getenv("CRON_SECRET")
+    request_secret = request.headers.get("X-Cron-Secret") or request.json.get("secret")
+    
+    if cron_secret and request_secret != cron_secret:
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    scheduler = SEOScheduler(SITES)
+    force_site = request.json.get("site_name") if request.json else None
+    
+    triggered = scheduler.process_automation(force_site=force_site)
+    
+    # For each triggered site, we'd normally start the audit/fix process.
+    # For now, we return what was triggered.
+    return jsonify({
+        "status": "success",
+        "triggered_tasks": triggered,
+        "timestamp": datetime.now().isoformat()
     })
 
 
@@ -3347,6 +3461,558 @@ def seo_validate_fix():
         import traceback
         return jsonify({
             "error": "Failed to validate fix",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+@app.route("/api/seo-issues/<site_name>", methods=["GET"])
+def get_seo_issues(site_name):
+    """
+    Get grouped SEO issues from the last audit for a site.
+    
+    Returns issues categorized by:
+    - Severity (critical, warning)
+    - Fixable vs manual
+    - Issue type with counts
+    - User-friendly labels
+    """
+    try:
+        from core.state_manager import StateManager
+        from seo.issue_grouper import IssueGrouper, group_audit_issues
+        
+        state_mgr = StateManager(site_name)
+        
+        # Check if we have a cached audit
+        audit_data = state_mgr.state.get('last_audit')
+        
+        if not audit_data:
+            return jsonify({
+                "error": "No audit data found for this site",
+                "suggestion": "Run /api/seo-audit first to generate audit data"
+            }), 404
+        
+        # Group the issues
+        grouped = group_audit_issues(audit_data)
+        
+        # Add friendly names
+        for issue in grouped.get('summary', {}).get('top_issues', []):
+            issue['friendly_name'] = IssueGrouper.get_friendly_issue_name(issue['type'])
+        
+        return jsonify({
+            "site": site_name,
+            "audit_date": audit_data.get("audit_date"),
+            **grouped
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to get SEO issues",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+@app.route("/api/seo-fix-batch", methods=["POST"])
+def seo_fix_batch():
+    """
+    Fix a batch of issues by type.
+    
+    Accepts JSON:
+    {
+        "site_name": "example.com",
+        "issue_type": "h1_presence",
+        "urls": ["url1", "url2", ...],  // Optional - if not provided, uses all URLs with this issue
+        "dry_run": false  // Optional - if true, just returns what would be fixed
+    }
+    """
+    try:
+        data = request.get_json() or {}
+        site_name = data.get("site_name")
+        issue_type = data.get("issue_type")
+        urls = data.get("urls", [])
+        dry_run = data.get("dry_run", False)
+        
+        if not site_name:
+            return jsonify({"error": "site_name is required"}), 400
+        
+        if not issue_type:
+            return jsonify({"error": "issue_type is required"}), 400
+        
+        from config import get_site
+        from core.state_manager import StateManager
+        from seo.issue_fixer import SEOIssueFixer
+        from seo.issue_grouper import IssueGrouper, FIXABLE_ISSUES
+        
+        # Check if issue is fixable
+        if issue_type not in FIXABLE_ISSUES:
+            return jsonify({
+                "error": f"Issue type '{issue_type}' is not automatically fixable",
+                "fixable_issues": list(FIXABLE_ISSUES),
+                "friendly_name": IssueGrouper.get_friendly_issue_name(issue_type)
+            }), 400
+        
+        site_config = get_site(site_name)
+        state_mgr = StateManager(site_name)
+        
+        # If no URLs provided, get from last audit
+        if not urls:
+            audit_data = state_mgr.state.get('last_audit')
+            if not audit_data:
+                return jsonify({
+                    "error": "No URLs provided and no audit data found",
+                    "suggestion": "Either provide URLs or run /api/seo-audit first"
+                }), 400
+            
+            # Extract URLs with this issue from audit
+            fixable, _ = IssueGrouper.get_fixable_vs_manual(audit_data)
+            urls = fixable.get(issue_type, [])
+        
+        if not urls:
+            return jsonify({
+                "error": f"No URLs found with issue type '{issue_type}'",
+                "friendly_name": IssueGrouper.get_friendly_issue_name(issue_type)
+            }), 404
+        
+        # Dry run - just return what would be fixed
+        if dry_run:
+            return jsonify({
+                "dry_run": True,
+                "issue_type": issue_type,
+                "friendly_name": IssueGrouper.get_friendly_issue_name(issue_type),
+                "urls_to_fix": urls,
+                "count": len(urls)
+            })
+        
+        # Actually fix the issues
+        fixer = SEOIssueFixer(
+            site_url=site_config['url'],
+            wp_username=site_config['wp_username'],
+            wp_app_password=site_config['wp_app_password']
+        )
+        
+        # Determine category from issue type
+        category = "onpage"  # Default
+        if issue_type in ["canonical_tag", "schema_markup", "open_graph"]:
+            category = "technical"
+        elif issue_type in ["internal_links", "external_links", "broken_links", "anchor_text"]:
+            category = "links"
+        elif issue_type in ["image_alt_text"]:
+            category = "images"
+        
+        result = fixer.fix_issue(
+            issue_type=issue_type,
+            category=category,
+            urls=urls
+        )
+        
+        result["friendly_name"] = IssueGrouper.get_friendly_issue_name(issue_type)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to fix batch",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+@app.route("/api/seo-fix-all-critical", methods=["POST"])
+def seo_fix_all_critical():
+    """
+    One-click fix for ALL critical issues on a site.
+    
+    Accepts JSON:
+    {
+        "site_name": "example.com",
+        "dry_run": false  // Optional
+    }
+    """
+    try:
+        data = request.get_json() or {}
+        site_name = data.get("site_name")
+        dry_run = data.get("dry_run", False)
+        safe_mode = data.get("safe_mode", False)
+        
+        if not site_name:
+            return jsonify({"error": "site_name is required"}), 400
+        
+        from config import get_site
+        from core.state_manager import StateManager
+        from seo.issue_fixer import SEOIssueFixer
+        from seo.issue_grouper import IssueGrouper, FIXABLE_ISSUES, group_audit_issues
+        
+        site_config = get_site(site_name)
+        state_mgr = StateManager(site_name)
+        
+        # Get audit data
+        audit_data = state_mgr.state.get('last_audit')
+        if not audit_data:
+            return jsonify({
+                "error": "No audit data found for this site",
+                "suggestion": "Run /api/seo-audit first"
+            }), 404
+        
+        # Get all fixable issues
+        fixable, manual = IssueGrouper.get_fixable_vs_manual(audit_data)
+        
+        # Filter to only critical issues
+        severity_groups = IssueGrouper.group_by_severity(audit_data)
+        critical_urls = set(item['url'] for item in severity_groups.get('critical', []))
+        
+        # Build fix plan for critical issues only
+        fix_plan = []
+        for issue_type, urls in fixable.items():
+            critical_for_issue = [url for url in urls if url in critical_urls]
+            if critical_for_issue:
+                fix_plan.append({
+                    "issue_type": issue_type,
+                    "friendly_name": IssueGrouper.get_friendly_issue_name(issue_type),
+                    "urls": critical_for_issue,
+                    "count": len(critical_for_issue)
+                })
+        
+        if not fix_plan:
+            return jsonify({
+                "message": "No critical fixable issues found!",
+                "manual_issues": {
+                    k: len(v) for k, v in manual.items()
+                    if any(url in critical_urls for url in v)
+                }
+            })
+        
+        # Dry run
+        if dry_run:
+            return jsonify({
+                "dry_run": True,
+                "fix_plan": fix_plan,
+                "total_fixes": sum(item['count'] for item in fix_plan)
+            })
+        
+        # Execute all fixes
+        fixer = SEOIssueFixer(
+            site_url=site_config['url'],
+            wp_username=site_config['wp_username'],
+            wp_app_password=site_config['wp_app_password'],
+            safe_mode=safe_mode
+        )
+        
+        results = []
+        total_fixed = 0
+        total_failed = 0
+        
+        for fix_item in fix_plan:
+            issue_type = fix_item['issue_type']
+            urls = fix_item['urls']
+            
+            # Determine category
+            category = "onpage"
+            if issue_type in ["canonical_tag", "schema_markup", "open_graph"]:
+                category = "technical"
+            elif issue_type in ["internal_links", "external_links", "broken_links", "anchor_text"]:
+                category = "links"
+            elif issue_type in ["image_alt_text"]:
+                category = "images"
+            
+            result = fixer.fix_issue(
+                issue_type=issue_type,
+                category=category,
+                urls=urls
+            )
+            
+            results.append({
+                "issue_type": issue_type,
+                "friendly_name": fix_item['friendly_name'],
+                "fixed": result.get('fixed_count', 0),
+                "failed": result.get('failed_count', 0)
+            })
+            
+            total_fixed += result.get('fixed_count', 0)
+            total_failed += result.get('failed_count', 0)
+        
+        return jsonify({
+            "success": total_failed == 0,
+            "total_fixed": total_fixed,
+            "total_failed": total_failed,
+            "details": results
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to fix critical issues",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+# ============================================
+# PORTFOLIO HEALTH ENDPOINT
+# Shows health scores across all sites
+# ============================================
+
+@app.route("/api/portfolio-health", methods=["GET"])
+def portfolio_health():
+    """
+    Get health scores for all configured sites.
+    
+    Returns:
+        - Per-site health scores (0-100)
+        - Overall portfolio score
+        - Recent activity feed
+    """
+    try:
+        from config import load_all_sites_list
+        from seo.issue_grouper import IssueGrouper
+        
+        sites = load_all_sites_list()
+        
+        if not sites:
+            return jsonify({
+                "sites": [],
+                "portfolio_score": 0,
+                "message": "No sites configured"
+            })
+        
+        site_health = []
+        total_score = 0
+        sites_with_data = 0
+        
+        for site in sites:
+            site_name = site.get('name', '')
+            site_url = site.get('url', '')
+            
+            # Try to load cached audit data
+            state_key = f"audit_{site_name.replace('.', '_')}"
+            audit_data = load_app_state(state_key)
+            
+            if audit_data and isinstance(audit_data, dict) and 'urls' in audit_data:
+                # Calculate health score from audit
+                summary = IssueGrouper.get_summary(audit_data)
+                
+                total_issues = summary.get('critical_count', 0) + summary.get('warning_count', 0)
+                total_urls = summary.get('total_urls', 1)
+                
+                # Health score: inverse of issues per page
+                issues_per_page = total_issues / max(total_urls, 1)
+                health_score = max(0, min(100, int(100 - (issues_per_page * 10))))
+                
+                # Traffic light status
+                if health_score >= 80:
+                    status = "excellent" # Changed to match CSS classes
+                    status_emoji = "🟢"
+                elif health_score >= 50:
+                    status = "warning"
+                    status_emoji = "🟡"
+                else:
+                    status = "critical"
+                    status_emoji = "🔴"
+                
+                site_health.append({
+                    "name": site_name,
+                    "url": site_url,
+                    "health_score": health_score,
+                    "status": status,
+                    "status_emoji": status_emoji,
+                    "critical_issues": summary.get('critical_count', 0),
+                    "warning_issues": summary.get('warning_count', 0),
+                    "fixable_issues": summary.get('fixable_count', 0),
+                    "total_urls": total_urls,
+                    "has_audit": True,
+                    "last_audit": audit_data.get('audit_date', 'Unknown')
+                })
+                
+                total_score += health_score
+                sites_with_data += 1
+            else:
+                # No audit data - show as unknown
+                site_health.append({
+                    "name": site_name,
+                    "url": site_url,
+                    "health_score": None,
+                    "status": "unknown",
+                    "status_emoji": "⚪",
+                    "critical_issues": 0,
+                    "warning_issues": 0,
+                    "fixable_issues": 0,
+                    "total_urls": 0,
+                    "has_audit": False,
+                    "last_audit": None
+                })
+        
+        # Calculate portfolio average
+        portfolio_score = int(total_score / max(sites_with_data, 1)) if sites_with_data > 0 else 0
+        
+        # Portfolio status
+        if portfolio_score >= 80:
+            portfolio_status = "excellent"
+            portfolio_emoji = "🌟"
+            portfolio_message = "Your sites are doing great!"
+        elif portfolio_score >= 60:
+            portfolio_status = "good"
+            portfolio_emoji = "✅"
+            portfolio_message = "Things look good, minor improvements available"
+        elif portfolio_score >= 40:
+            portfolio_status = "needs_work"
+            portfolio_emoji = "⚠️"
+            portfolio_message = "Some sites need attention"
+        else:
+            portfolio_status = "critical"
+            portfolio_emoji = "🚨"
+            portfolio_message = "Critical issues detected - action needed"
+        
+        return jsonify({
+            "sites": site_health,
+            "portfolio_score": portfolio_score,
+            "portfolio_status": portfolio_status,
+            "portfolio_emoji": portfolio_emoji,
+            "portfolio_message": portfolio_message,
+            "total_sites": len(sites),
+            "sites_audited": sites_with_data
+        })
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Failed to get portfolio health",
+            "details": str(e),
+            "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
+        }), 500
+
+
+# ============================================
+# SCHEDULED MAINTENANCE ENDPOINT
+# Runs automatically via Vercel Cron Jobs
+# ============================================
+
+@app.route("/api/scheduled-maintenance", methods=["GET", "POST"])
+def scheduled_maintenance():
+    """
+    Automated weekly maintenance routine.
+    
+    1. Audits all configured sites
+    2. Fixes critical issues automatically
+    3. Returns summary report
+    
+    Triggered by Vercel Cron: Friday at midnight UTC
+    Can also be triggered manually for testing.
+    """
+    try:
+        # Security: Check for Vercel cron authorization
+        cron_secret = os.getenv("CRON_SECRET")
+        if cron_secret:
+            auth_header = request.headers.get("Authorization")
+            if auth_header != f"Bearer {cron_secret}":
+                # Allow manual trigger in debug mode
+                if not os.getenv("FLASK_DEBUG"):
+                    return jsonify({"error": "Unauthorized"}), 401
+        
+        from config import load_all_sites_list
+        from seo.technical_auditor import TechnicalSEOAuditor
+        from seo.issue_grouper import IssueGrouper
+        from seo.issue_fixer import SEOIssueFixer
+        
+        # Get all configured sites
+        sites = load_all_sites_list()
+        
+        if not sites:
+            return jsonify({
+                "message": "No sites configured for maintenance",
+                "sites_processed": 0
+            })
+        
+        maintenance_report = {
+            "timestamp": datetime.now().isoformat(),
+            "sites_processed": 0,
+            "total_issues_found": 0,
+            "total_issues_fixed": 0,
+            "site_reports": []
+        }
+        
+        for site in sites:
+            site_name = site.get('name')
+            site_url = site.get('url')
+            
+            if not site_url:
+                continue
+            
+            site_report = {
+                "site": site_name,
+                "url": site_url,
+                "audit_complete": False,
+                "issues_found": 0,
+                "issues_fixed": 0,
+                "errors": []
+            }
+            
+            try:
+                # Step 1: Run audit
+                auditor = TechnicalSEOAuditor(site_url=site_url)
+                audit_result = auditor.audit(max_urls=100)
+                
+                if audit_result and 'urls' in audit_result:
+                    site_report["audit_complete"] = True
+                    
+                    # Save audit result for future use
+                    state_key = f"audit_{site_name.replace('.', '_')}"
+                    save_app_state(state_key, audit_result)
+                    
+                    # Step 2: Analyze issues
+                    summary = IssueGrouper.get_summary(audit_result)
+                    site_report["issues_found"] = summary.get('fixable_count', 0)
+                    maintenance_report["total_issues_found"] += site_report["issues_found"]
+                    
+                    # Step 3: Fix critical issues if credentials available
+                    if site.get('wp_username') and site.get('wp_app_password'):
+                        fixer = SEOIssueFixer(
+                            site_url=site_url,
+                            wp_username=site['wp_username'],
+                            wp_app_password=site['wp_app_password']
+                        )
+                        
+                        # Get fixable critical issues
+                        fixable, _ = IssueGrouper.get_fixable_vs_manual(audit_result)
+                        
+                        # Fix top priority issues only (limit to avoid timeout)
+                        priority_issues = ['h1_presence', 'title_presence', 'meta_description_presence']
+                        
+                        for issue_type in priority_issues:
+                            if issue_type in fixable:
+                                urls = fixable[issue_type][:20]  # Max 20 per type
+                                if urls:
+                                    result = fixer.fix_issue(
+                                        issue_type=issue_type,
+                                        category='onpage',
+                                        urls=urls
+                                    )
+                                    site_report["issues_fixed"] += result.get('fixed_count', 0)
+                        
+                        maintenance_report["total_issues_fixed"] += site_report["issues_fixed"]
+                    else:
+                        site_report["errors"].append("No WordPress credentials - skipped fixes")
+                
+            except Exception as e:
+                site_report["errors"].append(str(e))
+            
+            maintenance_report["site_reports"].append(site_report)
+            maintenance_report["sites_processed"] += 1
+        
+        # Summary message
+        maintenance_report["summary"] = (
+            f"Processed {maintenance_report['sites_processed']} sites. "
+            f"Found {maintenance_report['total_issues_found']} fixable issues. "
+            f"Fixed {maintenance_report['total_issues_fixed']} issues automatically."
+        )
+        
+        return jsonify(maintenance_report)
+        
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": "Scheduled maintenance failed",
             "details": str(e),
             "traceback": traceback.format_exc() if os.getenv("FLASK_DEBUG") else None
         }), 500

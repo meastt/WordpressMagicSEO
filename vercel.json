@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/scheduled-maintenance",
+      "schedule": "0 0 * * 5"
+    }
+  ],
   "builds": [
     { "src": "api/index.py", "use": "@vercel/python" },
     { "src": "api/generate.py", "use": "@vercel/python" }
@@ -21,6 +27,13 @@
     { "src": "/api/plan/(.*)", "dest": "api/generate.py" },
     { "src": "/api/export/pdf/(.*)", "dest": "api/generate.py" },
     { "src": "/api/health", "dest": "api/generate.py" },
+    { "src": "/api/seo-audit", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/seo-issues/(.*)", "dest": "api/generate.py" },
+    { "src": "/api/seo-fix-batch", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/seo-fix-all-critical", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/seo-fix-issue", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/seo-validate-fix", "dest": "api/generate.py", "methods": ["POST"] },
+    { "src": "/api/scheduled-maintenance", "dest": "api/generate.py", "methods": ["GET", "POST"] },
     { "src": "/api/affiliate/links", "dest": "api/generate.py" },
     { "src": "/api/affiliate/links/add", "dest": "api/generate.py", "methods": ["POST"] },
     { "src": "/api/affiliate/links/upload", "dest": "api/generate.py", "methods": ["POST"] },
