@@ -2,44 +2,210 @@
   "crons": [
     {
       "path": "/api/scheduled-maintenance",
-      "schedule": "0 0 * * 5"
+      "schedule": "0 * * * *"
     }
   ],
   "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "api/generate.py", "use": "@vercel/python" }
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/generate.py",
+      "use": "@vercel/python"
+    }
   ],
   "routes": [
-    { "src": "/", "dest": "api/index.py" },
-    { "src": "/api/sites", "dest": "api/generate.py" },
-    { "src": "/api/analyze", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/execute", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/execute-next", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/execute-selected", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/quick-create", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/save-state", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/load-state", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/refresh-sites", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/create-test-plan", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/delete-action", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/clear-plan", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/niche/(.*)", "dest": "api/generate.py" },
-    { "src": "/api/plan/(.*)", "dest": "api/generate.py" },
-    { "src": "/api/export/pdf/(.*)", "dest": "api/generate.py" },
-    { "src": "/api/health", "dest": "api/generate.py" },
-    { "src": "/api/seo-audit", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/seo-issues/(.*)", "dest": "api/generate.py" },
-    { "src": "/api/seo-fix-batch", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/seo-fix-all-critical", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/seo-fix-issue", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/seo-validate-fix", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/scheduled-maintenance", "dest": "api/generate.py", "methods": ["GET", "POST"] },
-    { "src": "/api/affiliate/links", "dest": "api/generate.py" },
-    { "src": "/api/affiliate/links/add", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/affiliate/links/upload", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/affiliate/links/delete/(.*)", "dest": "api/generate.py", "methods": ["DELETE"] },
-    { "src": "/api/affiliate/update-content", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/affiliate/bulk-update", "dest": "api/generate.py", "methods": ["POST"] },
-    { "src": "/api/(.*)", "dest": "api/generate.py" }
+    {
+      "src": "/",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/api/sites",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/analyze",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/execute",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/execute-next",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/execute-selected",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/quick-create",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/save-state",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/load-state",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/refresh-sites",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/create-test-plan",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/delete-action",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/clear-plan",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/niche/(.*)",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/plan/(.*)",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/export/pdf/(.*)",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/health",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/seo-audit",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/seo-issues/(.*)",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/seo-fix-batch",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/seo-fix-all-critical",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/seo-fix-issue",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/seo-validate-fix",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/scheduled-maintenance",
+      "dest": "api/generate.py",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/affiliate/links",
+      "dest": "api/generate.py"
+    },
+    {
+      "src": "/api/affiliate/links/add",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/affiliate/links/upload",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/affiliate/links/delete/(.*)",
+      "dest": "api/generate.py",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "src": "/api/affiliate/update-content",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/affiliate/bulk-update",
+      "dest": "api/generate.py",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "api/generate.py"
+    }
   ]
 }

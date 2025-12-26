@@ -2809,6 +2809,17 @@ def automation_settings():
     scheduler.update_site_settings(site_name, data.get("settings", {}))
     return jsonify({"status": "success", "settings": scheduler.get_site_settings(site_name)})
 
+@app.route("/api/automation/logs", methods=["GET"])
+def get_automation_logs():
+    log_file = os.path.join(os.getcwd(), "automation_runs.json")
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r') as f:
+                return jsonify(json.load(f))
+        except:
+            return jsonify([])
+    return jsonify([])
+
 @app.route("/api/automation/trigger", methods=["POST"])
 def automation_trigger():
     """
@@ -3793,12 +3804,10 @@ def portfolio_health():
                 # Calculate health score from audit
                 summary = IssueGrouper.get_summary(audit_data)
                 
-                total_issues = summary.get('critical_count', 0) + summary.get('warning_count', 0)
-                total_urls = summary.get('total_urls', 1)
-                
-                # Health score: inverse of issues per page
-                issues_per_page = total_issues / max(total_urls, 1)
-                health_score = max(0, min(100, int(100 - (issues_per_page * 10))))
+                # Health score formula consistent with scheduler
+                critical = summary.get('critical_count', 0)
+                warning = summary.get('warning_count', 0)
+                health_score = max(0, min(100, 100 - (critical * 5) - (warning * 1)))
                 
                 # Traffic light status
                 if health_score >= 80:
@@ -3910,102 +3919,22 @@ def scheduled_maintenance():
                 if not os.getenv("FLASK_DEBUG"):
                     return jsonify({"error": "Unauthorized"}), 401
         
-        from config import load_all_sites_list
-        from seo.technical_auditor import TechnicalSEOAuditor
-        from seo.issue_grouper import IssueGrouper
-        from seo.issue_fixer import SEOIssueFixer
+        from config import get_sites_config
+        from core.scheduler import SEOScheduler
         
-        # Get all configured sites
-        sites = load_all_sites_list()
+        # Use the granular scheduler for processing
+        sites_config = get_sites_config()
+        scheduler = SEOScheduler(sites_config=sites_config)
         
-        if not sites:
-            return jsonify({
-                "message": "No sites configured for maintenance",
-                "sites_processed": 0
-            })
+        # Run automation for all "due" sites
+        results = scheduler.process_automation()
         
         maintenance_report = {
             "timestamp": datetime.now().isoformat(),
-            "sites_processed": 0,
-            "total_issues_found": 0,
-            "total_issues_fixed": 0,
-            "site_reports": []
+            "sites_processed": len(results),
+            "results": results,
+            "summary": f"Processed {len(results)} pending automation tasks."
         }
-        
-        for site in sites:
-            site_name = site.get('name')
-            site_url = site.get('url')
-            
-            if not site_url:
-                continue
-            
-            site_report = {
-                "site": site_name,
-                "url": site_url,
-                "audit_complete": False,
-                "issues_found": 0,
-                "issues_fixed": 0,
-                "errors": []
-            }
-            
-            try:
-                # Step 1: Run audit
-                auditor = TechnicalSEOAuditor(site_url=site_url)
-                audit_result = auditor.audit(max_urls=100)
-                
-                if audit_result and 'urls' in audit_result:
-                    site_report["audit_complete"] = True
-                    
-                    # Save audit result for future use
-                    state_key = f"audit_{site_name.replace('.', '_')}"
-                    save_app_state(state_key, audit_result)
-                    
-                    # Step 2: Analyze issues
-                    summary = IssueGrouper.get_summary(audit_result)
-                    site_report["issues_found"] = summary.get('fixable_count', 0)
-                    maintenance_report["total_issues_found"] += site_report["issues_found"]
-                    
-                    # Step 3: Fix critical issues if credentials available
-                    if site.get('wp_username') and site.get('wp_app_password'):
-                        fixer = SEOIssueFixer(
-                            site_url=site_url,
-                            wp_username=site['wp_username'],
-                            wp_app_password=site['wp_app_password']
-                        )
-                        
-                        # Get fixable critical issues
-                        fixable, _ = IssueGrouper.get_fixable_vs_manual(audit_result)
-                        
-                        # Fix top priority issues only (limit to avoid timeout)
-                        priority_issues = ['h1_presence', 'title_presence', 'meta_description_presence']
-                        
-                        for issue_type in priority_issues:
-                            if issue_type in fixable:
-                                urls = fixable[issue_type][:20]  # Max 20 per type
-                                if urls:
-                                    result = fixer.fix_issue(
-                                        issue_type=issue_type,
-                                        category='onpage',
-                                        urls=urls
-                                    )
-                                    site_report["issues_fixed"] += result.get('fixed_count', 0)
-                        
-                        maintenance_report["total_issues_fixed"] += site_report["issues_fixed"]
-                    else:
-                        site_report["errors"].append("No WordPress credentials - skipped fixes")
-                
-            except Exception as e:
-                site_report["errors"].append(str(e))
-            
-            maintenance_report["site_reports"].append(site_report)
-            maintenance_report["sites_processed"] += 1
-        
-        # Summary message
-        maintenance_report["summary"] = (
-            f"Processed {maintenance_report['sites_processed']} sites. "
-            f"Found {maintenance_report['total_issues_found']} fixable issues. "
-            f"Fixed {maintenance_report['total_issues_fixed']} issues automatically."
-        )
         
         return jsonify(maintenance_report)
         

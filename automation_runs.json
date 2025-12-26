@@ -1,0 +1,15 @@
+[
+    {
+        "timestamp": "2025-12-26T20:45:00.000000",
+        "site": "griddleking.com",
+        "status": "success",
+        "score": 92,
+        "fixed": 5
+    },
+    {
+        "timestamp": "2025-12-26T19:30:00.000000",
+        "site": "phototipsguy.com",
+        "status": "error",
+        "error": "WordPress API Timeout"
+    }
+]

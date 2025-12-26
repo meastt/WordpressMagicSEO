@@ -221,6 +221,65 @@
             color: #c62828;
         }
 
+        .automation-logs-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .log-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-site {
+            font-weight: 600;
+            color: #333;
+            width: 150px;
+        }
+
+        .log-info {
+            flex: 1;
+            color: #666;
+        }
+
+        .log-status {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .log-status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .log-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .automation-run-info {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .portfolio-score-card {
             display: flex;
             align-items: center;
@@ -2845,6 +2904,15 @@
                         </div>
                         <div class="automation-grid" id="automation-grid">
                             <!-- Site automation cards will load here -->
+                        </div>
+
+                        <div class="automation-logs-container" style="margin-top: 32px;">
+                            <h3 style="font-size: 16px; margin-bottom: 16px; color: #333;">📜 Recent Autopilot Activity
+                            </h3>
+                            <div id="automation-logs" class="automation-logs-list">
+                                <div style="text-align: center; color: #999; padding: 20px;">No recent activity logged
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6563,6 +6631,7 @@
                 const response = await fetch(`${API_BASE}/automation/settings`);
                 const data = await response.json();
                 renderAutomationGrid(data);
+                loadAutomationLogs();
             } catch (error) {
                 console.error('Error loading automation settings:', error);
             }
@@ -6584,6 +6653,10 @@
                             <span class="automation-status-badge ${isActive ? 'status-active' : 'status-inactive'}">
                                 ${isActive ? '● Active' : '○ Inactive'}
                             </span>
+                        </div>
+                        <div class="automation-run-info">
+                            <span>🕒 Last Run: ${siteSettings.last_run ? new Date(siteSettings.last_run).toLocaleString() : 'Never'}</span>
+                            <span>📅 Next Run: ${siteSettings.next_run ? new Date(siteSettings.next_run).toLocaleString() : 'Scheduled on next cron'}</span>
                         </div>
                         <div class="automation-controls">
                             <div class="automation-toggle">
@@ -6613,6 +6686,39 @@
                 `;
             });
             grid.innerHTML = html;
+        }
+
+        async function loadAutomationLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/automation/logs`);
+                const data = await response.json();
+                const container = document.getElementById('automation-logs');
+                if (!container) return;
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No recent activity logged</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(log => {
+                    const date = new Date(log.timestamp).toLocaleString();
+                    const statusClass = log.status === 'success' ? 'success' : 'error';
+                    const info = log.status === 'success'
+                        ? `Score: ${log.score || '?'} | Fixed: ${log.fixed || 0}`
+                        : `Error: ${log.error || 'Unknown error'}`;
+
+                    return `
+                        <div class="log-entry">
+                            <span class="log-site">${log.site}</span>
+                            <span class="log-info">${info}</span>
+                            <span style="color: #999; margin-left: 12px; font-size: 11px;">${date}</span>
+                            <span class="log-status ${statusClass}">${log.status.toUpperCase()}</span>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading logs:', error);
+            }
         }
 
         async function saveAllAutomationSettings() {

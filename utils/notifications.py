@@ -65,3 +65,15 @@ class SEONotifier:
             f"The site should be healthier now!"
         )
         return self.send_notification(title, message, "#667eea" if failures == 0 else "#ff9800")
+
+    def send_urgent_alert(self, site_name: str, issues: list):
+        """High-priority alert for critical foundation failures."""
+        title = f"🚨 URGENT: SEO Foundation Failure - {site_name}"
+        issues_text = "\n".join([f"• {issue}" for issue in issues])
+        message = (
+            f"*Immediate action recommended!*\n"
+            f"We detected critical issues that may block indexing:\n"
+            f"{issues_text}\n"
+            f"Please check your site settings immediately."
+        )
+        return self.send_notification(title, message, "#d32f2f")
