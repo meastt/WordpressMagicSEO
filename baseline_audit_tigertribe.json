@@ -1,0 +1,5081 @@
+{
+  "site_url": "https://tigertribe.net",
+  "audit_date": "2025-12-26T16:00:44.481775",
+  "total_urls_checked": 20,
+  "summary": {
+    "critical_issues": 27,
+    "warnings": 135,
+    "passed": 318
+  },
+  "urls": [
+    {
+      "url": "https://tigertribe.net/how-much-do-lions-sleep-what-time-where-do-they-sleep/",
+      "status_code": 200,
+      "fetch_time": 0.5373718738555908,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "xml_sitemap",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "XML sitemap exists with 566 URLs",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 77 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "How Much Do Lions Sleep (What Time & Where Do They Sleep) \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 71 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1211 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 43 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 15 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.495s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/what-animals-are-lions-afraid-of/",
+      "status_code": 200,
+      "fetch_time": 0.267657995223999,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 56 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "What Animals Hunt and Threaten Lions in 2025: Complete Guide \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 74 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 2199 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 48 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.worldwildlife.org/', 'http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 12 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.222s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Valid schema markup found: Article",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-birds/",
+      "status_code": 200,
+      "fetch_time": 0.4515419006347656,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 42 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Birds? Wild vs Captive Diet Facts 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 65 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1492 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 39 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 12 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.403s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-fish-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.5223619937896729,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 69 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Fish? (The Answer May Surprise You) \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 62 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1195 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 41 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 13 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.490s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-male-lions-love-their-cubs-do-they-even-know-their-cubs/",
+      "status_code": 200,
+      "fetch_time": 0.37862610816955566,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 82 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Male Lions Love Their Cubs? 2025 Complete Guide \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 64 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1860 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 42 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.nationalgeographic.com/animals/article/lions-behavior-paternal-care', 'https://academic.oup.com/jmammal', 'http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.335s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-tigers-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.7854571342468262,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 71 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Tigers? Wild Apex Predator Facts 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 64 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1557 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 45 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "TTFB is 0.734s (acceptable, but could be improved)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/how-many-babies-can-a-lion-have-at-once-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.27913498878479004,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 91 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "How Many Cubs Can Lions Have? 2025 Facts & Survival Rates \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 71 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1596 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 44 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.233s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/lion-bite-force-psi/",
+      "status_code": 200,
+      "fetch_time": 0.7285430431365967,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 43 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Sink Your Teeth Into This: Analyzing the Powerful Lion Bite Force \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 79 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1613 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 12 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "TTFB is 0.663s (acceptable, but could be improved)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-foxes-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 1.3618650436401367,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 4 HTTP resources on HTTPS page",
+            "value": "4",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 70 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Foxes? African Predator Facts 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 61 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1408 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 41 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No external links found (consider adding authoritative sources)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "No broken external links detected (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 12 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.310s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-leopards-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 1.3958320617675781,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 73 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Leopards? 2025 Wildlife Truth Revealed \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 65 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1094 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 46 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.349s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-rhinos-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.48742103576660156,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 71 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Rhinos? The Surprising Truth in 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 63 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1060 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 43 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.425s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-snakes-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 1.5109500885009766,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 71 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Snakes? Wildlife Facts 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 54 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1459 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://onlinelibrary.wiley.com/journal/13652028', 'https://www.nationalgeographic.com/animals/article/african-lions-snakes-predator-prey', 'http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.466s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/bear-vs-lion-who-would-win-in-a-fight/",
+      "status_code": 200,
+      "fetch_time": 0.22771215438842773,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 61 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Bear vs Lion: Who Would Win This Epic Battle? \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 59 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1757 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 43 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.182s (excellent)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/are-lions-friendly-toward-humans/",
+      "status_code": 200,
+      "fetch_time": 0.29407620429992676,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 56 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Are Lions Friendly to Humans? 2025 Safety Guide \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 61 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1270 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 42 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 15 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.230s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-mountain-lions-eat-cats-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.9182190895080566,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 78 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Mountain Lions Eat Cats? Pet Safety Guide 2025 \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 63 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1200 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 44 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "TTFB is 0.871s (acceptable, but could be improved)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/can-lions-be-tamed-domesticated-as-a-pet/",
+      "status_code": 200,
+      "fetch_time": 0.33426594734191895,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 64 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can Lions Be Tamed as Pets? The Truth About Big Cats \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Title length is 66 characters (outside optimal range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1274 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 40 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.285s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/what-color-are-lions-lots-of-different-colors/",
+      "status_code": 200,
+      "fetch_time": 0.3746960163116455,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 5 HTTP resources on HTTPS page",
+            "value": "5",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 69 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Lion Colors: From Golden Coats to Dark Manes (2025 Guide) \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 71 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1696 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 46 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 8 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://globalwhitelionprotectiontrust.org/', 'http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.312s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-wild-dogs/",
+      "status_code": 200,
+      "fetch_time": 0.4042012691497803,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 46 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Wild Dogs? The Surprising Truth (2025) \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 65 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1320 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 41 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.358s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-lions-eat-vultures-the-answer-may-surprise-you/",
+      "status_code": 200,
+      "fetch_time": 0.6301097869873047,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 73 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Do Lions Eat Vultures? Surprising Facts About These Predators \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 75 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1146 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 42 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "TTFB is 0.571s (acceptable, but could be improved)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://tigertribe.net/do-male-lions-eat-their-cubs/",
+      "status_code": 200,
+      "fetch_time": 0.26643824577331543,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 52 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Why Male Lions Kill and Eat Their Cubs: The Harsh Reality \u2013 Tiger Tribe",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 71 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1021 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 44 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 3 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['http://tigertribe.com', 'http://tigertribe.com', 'http://tigertribe.com']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 14 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "2 images missing width/height attributes (may cause layout shift)",
+            "value": "2",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "TTFB is 0.203s (good)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Content compression not detected (GZIP/Brotli recommended)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "No schema markup (JSON-LD) found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:title, og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "info",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No Twitter Card tags found (optional)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    }
+  ]
+}

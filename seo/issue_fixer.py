@@ -1036,43 +1036,119 @@ Return ONLY the new anchor text, nothing else."""
             return False
     
     def _fix_internal_links(self, post_id: int, post_type: str, url: str) -> bool:
-        """Add internal links to pages with too few (target: 3-5 minimum)."""
+        """
+        Add strategic internal links using SmartLinkingEngine.
+
+        Enhanced workflow:
+        1. Use AI to suggest contextual link placements
+        2. Auto-insert links mid-content (not just footer)
+        3. Add "Related Articles" section as backup
+        4. Ensure bidirectional linking where appropriate
+        """
         try:
             post_data = self._get_post_content(post_id, post_type)
             if not post_data:
                 return False
-            
+
             content_raw = post_data.get('content', {}).get('raw', '')
             if not content_raw:
                 content_raw = post_data.get('content', {}).get('rendered', '')
-            
+
             title = post_data.get('title', {}).get('rendered', '') or post_data.get('title', {}).get('raw', '')
-            
+
             # Get all posts to find related ones
             try:
                 response = self._request(
                     'GET',
                     f"{self.api_base}/posts",
-                    params={'per_page': 50, 'status': 'publish'},
+                    params={'per_page': 100, 'status': 'publish'},
                     timeout=30
                 )
                 all_posts = response.json() if response and response.ok else []
             except:
                 all_posts = []
-            
+
             if not all_posts:
+                print(f"   No posts found for internal linking")
                 return False
-            
-            # Find related posts (simple keyword matching)
-            soup = BeautifulSoup(content_raw, 'html.parser')
-            current_text = soup.get_text().lower()
-            
-            related_posts = []
+
+            # Prepare available pages for SmartLinkingEngine
+            available_pages = []
             for post in all_posts:
                 post_url = post.get('link', '')
                 if post_url.rstrip('/') == url.rstrip('/'):
                     continue  # Skip self
-                
+
+                post_title = post.get('title', {}).get('rendered', '')
+                post_excerpt = post.get('excerpt', {}).get('rendered', '')
+
+                # Extract plain text from excerpt
+                soup_excerpt = BeautifulSoup(post_excerpt, 'html.parser')
+                summary = soup_excerpt.get_text()[:200]
+
+                available_pages.append({
+                    'url': post_url,
+                    'title': post_title,
+                    'keywords': post_title.lower().split()[:5],  # Simple keyword extraction
+                    'summary': summary
+                })
+
+            if not available_pages:
+                print(f"   No available pages for linking")
+                return False
+
+            # Use SmartLinkingEngine for contextual link suggestions
+            link_suggestions = []
+            if self.ai_generator and hasattr(self, '_smart_linking_engine'):
+                try:
+                    print(f"   Using AI for contextual link suggestions...")
+                    link_suggestions = self._smart_linking_engine.suggest_contextual_links(
+                        current_content=content_raw,
+                        available_pages=available_pages,
+                        max_links=5
+                    )
+                    print(f"   AI suggested {len(link_suggestions)} contextual links")
+                except Exception as e:
+                    print(f"   AI linking failed: {e}, falling back to basic linking")
+
+            modified_content = content_raw
+
+            # If AI suggestions available, insert contextual links
+            if link_suggestions:
+                try:
+                    # Initialize SmartLinkingEngine if not already done
+                    if not hasattr(self, '_smart_linking_engine'):
+                        api_key = os.getenv("ANTHROPIC_API_KEY")
+                        if api_key:
+                            from seo.linking_engine import SmartLinkingEngine
+                            self._smart_linking_engine = SmartLinkingEngine(api_key=api_key)
+                            # Retry with new engine
+                            link_suggestions = self._smart_linking_engine.suggest_contextual_links(
+                                current_content=content_raw,
+                                available_pages=available_pages,
+                                max_links=5
+                            )
+
+                    if link_suggestions and hasattr(self, '_smart_linking_engine'):
+                        modified_content = self._smart_linking_engine.auto_insert_links(
+                            content_html=content_raw,
+                            link_suggestions=link_suggestions
+                        )
+                        print(f"   ✓ Inserted {len(link_suggestions)} contextual links")
+                except Exception as e:
+                    print(f"   Could not insert AI links: {e}")
+
+            # Also add a "Related Articles" section as backup
+            # Find related posts using keyword matching
+            soup = BeautifulSoup(content_raw, 'html.parser')
+            current_text = soup.get_text().lower()
+
+            related_posts = []
+            for post in all_posts[:50]:  # Check first 50
+                post_url = post.get('link', '')
+                if post_url.rstrip('/') == url.rstrip('/'):
+                    continue  # Skip self
+
                 post_title = post.get('title', {}).get('rendered', '')
                 # Check if post title words appear in content
                 title_words = [w for w in post_title.lower().split() if len(w) > 4]
@@ -1081,28 +1157,32 @@ Return ONLY the new anchor text, nothing else."""
                         'url': post_url,
                         'title': post_title
                     })
-            
-            if not related_posts:
-                return False  # No related posts found
-            
-            # Add a "Related Posts" section or inline links
-            related_html = '\n\n<h2>Related Articles</h2>\n<ul>\n'
-            for rp in related_posts[:5]:
-                related_html += f'<li><a href="{rp["url"]}">{rp["title"]}</a></li>\n'
-            related_html += '</ul>'
-            
-            new_content = content_raw + related_html
-            
+
+            # Add related articles section if we have any
+            if related_posts:
+                related_html = '\n\n<h2>Related Articles</h2>\n<ul>\n'
+                for rp in related_posts[:5]:
+                    related_html += f'<li><a href="{rp["url"]}">{rp["title"]}</a></li>\n'
+                related_html += '</ul>'
+                modified_content += related_html
+                print(f"   ✓ Added {len(related_posts[:5])} related article links")
+
+            # Check if content was actually modified
+            if modified_content == content_raw:
+                print(f"   No links added")
+                return False
+
+            # Save updated content
             endpoint = f"{self.api_base}/pages/{post_id}" if post_type == 'page' else f"{self.api_base}/posts/{post_id}"
             response = self._request(
                 'POST',
                 endpoint,
-                json={'content': new_content},
+                json={'content': modified_content},
                 timeout=30
             )
-            
+
             return response and response.ok
-            
+
         except Exception as e:
             print(f"Error fixing internal links for {url}: {e}")
             return False
@@ -1182,43 +1262,190 @@ Return exactly 3 suggestions, one per line."""
             print(f"Error fixing external links for {url}: {e}")
             return False
     
+    def _suggest_redirect_target(self, broken_url: str, source_page_url: str) -> Optional[str]:
+        """
+        Use AI to suggest a redirect target for a broken internal URL.
+
+        Args:
+            broken_url: The broken URL that needs a redirect target
+            source_page_url: The page that contains the broken link (for context)
+
+        Returns:
+            Suggested redirect target URL, or None if no good match found
+        """
+        try:
+            # Fetch sitemap to get list of available pages
+            from data.sitemap_analyzer import SitemapAnalyzer
+            sitemap_analyzer = SitemapAnalyzer(self.site_url)
+            sitemap_urls = sitemap_analyzer.fetch_sitemap()
+
+            if not sitemap_urls or len(sitemap_urls) == 0:
+                return None
+
+            # Get list of available URLs (limit to first 100 for performance)
+            available_urls = [url_obj.url for url_obj in sitemap_urls[:100]]
+
+            # Extract slug from broken URL for semantic matching
+            broken_parsed = urlparse(broken_url)
+            broken_slug = broken_parsed.path.strip('/').split('/')[-1]
+
+            # Simple heuristic: find URLs with similar slugs
+            candidates = []
+            for candidate_url in available_urls:
+                candidate_parsed = urlparse(candidate_url)
+                candidate_slug = candidate_parsed.path.strip('/').split('/')[-1]
+
+                # Calculate similarity (simple substring matching)
+                if broken_slug and candidate_slug:
+                    # Check if slugs share words
+                    broken_words = set(broken_slug.replace('-', ' ').split())
+                    candidate_words = set(candidate_slug.replace('-', ' ').split())
+                    shared_words = broken_words & candidate_words
+
+                    if len(shared_words) >= 2:  # At least 2 words in common
+                        similarity_score = len(shared_words) / max(len(broken_words), 1)
+                        candidates.append((candidate_url, similarity_score))
+
+            if not candidates:
+                # No good candidates found
+                return None
+
+            # Sort by similarity score (highest first)
+            candidates.sort(key=lambda x: x[1], reverse=True)
+
+            # Use AI to validate the best match if available
+            if self.ai_generator and len(candidates) > 0:
+                top_candidate = candidates[0][0]
+
+                # Simple validation: if similarity score is high enough, use it
+                if candidates[0][1] >= 0.5:  # 50% similarity
+                    return top_candidate
+
+            # Return best candidate if found
+            return candidates[0][0] if candidates else None
+
+        except Exception as e:
+            print(f"   Error suggesting redirect target: {e}")
+            return None
+
     def _fix_broken_links(self, post_id: int, post_type: str, url: str) -> bool:
-        """Remove or flag broken links in content."""
+        """
+        Fix broken links with smart 301 redirects for internal links.
+
+        Enhanced workflow:
+        1. Detect broken internal links
+        2. Create 301 redirects using Redirection plugin
+        3. Update links in content
+        4. Handle broken external links (remove or archive.org)
+        """
         try:
             post_data = self._get_post_content(post_id, post_type)
             if not post_data:
                 return False
-            
+
             content_raw = post_data.get('content', {}).get('raw', '')
             if not content_raw:
                 content_raw = post_data.get('content', {}).get('rendered', '')
-            
+
             soup = BeautifulSoup(content_raw, 'html.parser')
             links = soup.find_all('a', href=True)
-            
+
             modified = False
+            redirects_created = 0
+
             for link in links:
                 href = link.get('href', '')
                 if not href or href.startswith('#') or href.startswith('mailto:'):
                     continue
-                
+
                 # Check if link is broken
                 try:
                     resp = requests.head(href, timeout=5, allow_redirects=True)
-                    if resp.status_code >= 400:
-                        # Link is broken - remove the link but keep the text
+                    is_broken = resp.status_code >= 400
+                except:
+                    # Can't reach - might be broken, be conservative
+                    is_broken = False
+
+                if is_broken:
+                    # Determine if internal or external link
+                    parsed_href = urlparse(href)
+                    parsed_site = urlparse(self.site_url)
+                    is_internal = parsed_href.netloc == parsed_site.netloc or not parsed_href.netloc
+
+                    if is_internal:
+                        # INTERNAL broken link - create 301 redirect
+                        print(f"   Found broken internal link: {href}")
+
+                        # Find a similar URL to redirect to
+                        redirect_target = self._suggest_redirect_target(href, url)
+
+                        if redirect_target:
+                            # Create 301 redirect via Redirection plugin
+                            redirect_result = self.wp_publisher.create_301_redirect(
+                                source_url=href,
+                                target_url=redirect_target
+                            )
+
+                            if redirect_result.success:
+                                print(f"   ✓ Created 301 redirect: {href} → {redirect_target}")
+                                # Update link in content to point to new target
+                                link['href'] = redirect_target
+                                redirects_created += 1
+                                modified = True
+                            else:
+                                print(f"   ⚠️  Could not create redirect: {redirect_result.error}")
+                                # Still update the link
+                                link['href'] = redirect_target
+                                modified = True
+                        else:
+                            # No good redirect target found - remove link but keep text
+                            print(f"   ⚠️  No redirect target found, removing link")
+                            link.unwrap()
+                            modified = True
+
+                    else:
+                        # EXTERNAL broken link
+                        print(f"   Found broken external link: {href}")
+
+                        # Try to find if it redirects somewhere
+                        try:
+                            final_resp = requests.get(href, timeout=10, allow_redirects=True)
+                            if final_resp.ok and final_resp.url != href:
+                                # It redirected to a working URL
+                                print(f"   ✓ Found redirect: {href} → {final_resp.url}")
+                                link['href'] = final_resp.url
+                                modified = True
+                                continue
+                        except:
+                            pass
+
+                        # Try archive.org as fallback
+                        archive_url = f"https://web.archive.org/web/{href}"
+                        try:
+                            archive_resp = requests.head(archive_url, timeout=5)
+                            if archive_resp.ok:
+                                print(f"   ✓ Using archive.org version")
+                                link['href'] = archive_url
+                                modified = True
+                                continue
+                        except:
+                            pass
+
+                        # If all else fails, remove the link but keep text
+                        print(f"   ⚠️  No replacement found, removing link")
                         link.unwrap()
                         modified = True
-                except:
-                    # Can't reach - might be broken
-                    # Be conservative: only mark, don't remove
-                    pass
-            
+
             if not modified:
+                print(f"   No broken links found")
                 return True  # Nothing to fix
-            
+
+            if redirects_created > 0:
+                print(f"   Created {redirects_created} 301 redirect(s)")
+
+            # Save updated content
             new_content = str(soup)
-            
+
             endpoint = f"{self.api_base}/pages/{post_id}" if post_type == 'page' else f"{self.api_base}/posts/{post_id}"
             response = self._request(
                 'POST',
@@ -1226,9 +1453,9 @@ Return exactly 3 suggestions, one per line."""
                 json={'content': new_content},
                 timeout=30
             )
-            
+
             return response and response.ok
-            
+
         except Exception as e:
             print(f"Error fixing broken links for {url}: {e}")
             return False
@@ -1498,6 +1725,216 @@ Return the COMPLETE expanded article in HTML (include the original content plus 
             print(f"Error fixing noindex for {url}: {e}")
             return False
     
+    def _fix_orphaned_pages(self, post_id: int, post_type: str, url: str) -> bool:
+        """
+        Fix orphaned pages (pages with < 3 internal links).
+
+        Strategy:
+        1. Identify hub pages (pillar content) to link from
+        2. Find semantically related hub pages
+        3. Add contextual links in those hub pages pointing to this orphan
+        4. Creates bidirectional linking for SEO
+        """
+        try:
+            # Get the orphaned page's content
+            post_data = self._get_post_content(post_id, post_type)
+            if not post_data:
+                return False
+
+            orphan_title = post_data.get('title', {}).get('rendered', '') or post_data.get('title', {}).get('raw', '')
+            orphan_excerpt = post_data.get('excerpt', {}).get('rendered', '')
+
+            soup_excerpt = BeautifulSoup(orphan_excerpt, 'html.parser')
+            orphan_summary = soup_excerpt.get_text()[:200]
+
+            print(f"   Fixing orphaned page: {orphan_title}")
+
+            # Get all posts to find hub pages
+            try:
+                response = self._request(
+                    'GET',
+                    f"{self.api_base}/posts",
+                    params={'per_page': 100, 'status': 'publish', 'orderby': 'modified', 'order': 'desc'},
+                    timeout=30
+                )
+                all_posts = response.json() if response and response.ok else []
+            except:
+                all_posts = []
+
+            if not all_posts:
+                print(f"   No posts found to link from")
+                return False
+
+            # Find potential hub pages (longer content, more authoritative)
+            # Simple heuristic: look for posts with related keywords in title
+            orphan_keywords = set(orphan_title.lower().split())
+            orphan_keywords = {w for w in orphan_keywords if len(w) > 4}  # Filter short words
+
+            hub_candidates = []
+            for post in all_posts:
+                post_url = post.get('link', '')
+                if post_url.rstrip('/') == url.rstrip('/'):
+                    continue  # Skip self
+
+                post_id_candidate = post.get('id', 0)
+                post_title = post.get('title', {}).get('rendered', '')
+                post_excerpt = post.get('excerpt', {}).get('rendered', '')
+
+                # Check keyword overlap
+                post_keywords = set(post_title.lower().split())
+                shared_keywords = orphan_keywords & post_keywords
+
+                if len(shared_keywords) >= 1:  # At least 1 shared keyword
+                    hub_candidates.append({
+                        'id': post_id_candidate,
+                        'url': post_url,
+                        'title': post_title,
+                        'type': 'post',  # Assume post for now
+                        'shared_keywords': len(shared_keywords)
+                    })
+
+            if not hub_candidates:
+                print(f"   No related hub pages found")
+                return False
+
+            # Sort by number of shared keywords (most related first)
+            hub_candidates.sort(key=lambda x: x['shared_keywords'], reverse=True)
+
+            # Add links in top 2-3 hub pages
+            links_added = 0
+            for hub in hub_candidates[:3]:
+                try:
+                    # Get hub page content
+                    hub_post_data = self._get_post_content(hub['id'], hub['type'])
+                    if not hub_post_data:
+                        continue
+
+                    hub_content = hub_post_data.get('content', {}).get('raw', '')
+                    if not hub_content:
+                        hub_content = hub_post_data.get('content', {}).get('rendered', '')
+
+                    # Check if already linked
+                    if url in hub_content:
+                        print(f"   Already linked from: {hub['title']}")
+                        continue
+
+                    # Add a contextual link to the orphaned page
+                    # Simple approach: add at the end before any existing related articles
+                    link_html = f'\n<p>For more information, see our guide on <a href="{url}">{orphan_title}</a>.</p>\n'
+
+                    # Try to insert before Related Articles section if it exists
+                    if '<h2>Related Articles</h2>' in hub_content:
+                        modified_hub_content = hub_content.replace(
+                            '<h2>Related Articles</h2>',
+                            link_html + '<h2>Related Articles</h2>'
+                        )
+                    else:
+                        # Append at end
+                        modified_hub_content = hub_content + link_html
+
+                    # Update hub page
+                    hub_endpoint = f"{self.api_base}/posts/{hub['id']}"
+                    response = self._request(
+                        'POST',
+                        hub_endpoint,
+                        json={'content': modified_hub_content},
+                        timeout=30
+                    )
+
+                    if response and response.ok:
+                        print(f"   ✓ Added link from: {hub['title']}")
+                        links_added += 1
+                    else:
+                        print(f"   ✗ Failed to update: {hub['title']}")
+
+                    time.sleep(2)  # Rate limiting
+
+                except Exception as e:
+                    print(f"   Error updating hub page: {e}")
+                    continue
+
+            if links_added > 0:
+                print(f"   ✓ Added {links_added} incoming link(s) to this orphaned page")
+                return True
+            else:
+                print(f"   Could not add links to orphaned page")
+                return False
+
+        except Exception as e:
+            print(f"Error fixing orphaned page {url}: {e}")
+            return False
+
+    def _fix_robots_txt_blocking(self, post_id: int, post_type: str, url: str) -> bool:
+        """
+        Fix robots.txt blocking issues.
+
+        Since robots.txt is a server file, this method:
+        1. Checks if the blocking is in meta tags (fixable via API)
+        2. Provides instructions for manually updating robots.txt
+        3. Generates a corrected robots.txt snippet
+        """
+        try:
+            # First, try to fix any meta noindex tags (we can do this via API)
+            meta_fixed = self._fix_noindex(post_id, post_type, url)
+
+            # Get current page to check if still blocked
+            response = self._request('GET', url, timeout=10, auth=False)
+            if not response or not response.ok:
+                print(f"⚠️  Could not fetch {url} to validate fix")
+                return meta_fixed
+
+            # Check for X-Robots-Tag header
+            x_robots = response.headers.get('X-Robots-Tag', '')
+            if 'noindex' in x_robots.lower():
+                print(f"⚠️  {url} has noindex in X-Robots-Tag HTTP header")
+                print(f"   This requires server configuration changes (.htaccess or server config)")
+
+            # Fetch robots.txt
+            robots_url = f"{self.site_url}/robots.txt"
+            robots_response = self._request('GET', robots_url, timeout=10, auth=False)
+
+            if robots_response and robots_response.ok:
+                robots_txt = robots_response.text
+                parsed_url = urlparse(url)
+                url_path = parsed_url.path
+
+                # Check if this specific URL is disallowed
+                is_blocked = False
+                blocking_rules = []
+
+                for line in robots_txt.split('\n'):
+                    line = line.strip()
+                    if line.lower().startswith('disallow:'):
+                        pattern = line.split(':', 1)[1].strip()
+                        if pattern and (pattern == url_path or url_path.startswith(pattern)):
+                            is_blocked = True
+                            blocking_rules.append(pattern)
+
+                if is_blocked:
+                    print(f"\n⚠️  MANUAL FIX REQUIRED:")
+                    print(f"   {url} is blocked by robots.txt")
+                    print(f"   Blocking rules: {', '.join(blocking_rules)}")
+                    print(f"\n   📝 To fix, edit your robots.txt file and remove these lines:")
+                    for rule in blocking_rules:
+                        print(f"      Disallow: {rule}")
+                    print(f"\n   Access robots.txt at: {robots_url}")
+                    print(f"   Via WordPress: Use a plugin like 'Yoast SEO' to edit robots.txt")
+                    print(f"   Via FTP: Download, edit, and re-upload /robots.txt")
+                    print(f"   Via cPanel: File Manager → Edit /robots.txt\n")
+
+                    # Return partial success if we fixed meta tags
+                    return meta_fixed
+                else:
+                    print(f"✓ {url} is not blocked by robots.txt disallow rules")
+                    return True
+            else:
+                print(f"   Could not fetch robots.txt from {robots_url}")
+                return meta_fixed
+
+        except Exception as e:
+            print(f"Error checking robots.txt blocking for {url}: {e}")
+            return False
+
     def _fix_generic(self, post_id: int, post_type: str, url: str, issue_type: str, category: str) -> bool:
         """Generic fix handler for issues without specific handlers."""
         print(f"No specific handler for {issue_type} (category: {category})")

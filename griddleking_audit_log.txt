@@ -1,0 +1,141 @@
+🔍 Auditing site: https://griddleking.com
+🔍 Starting technical SEO audit for: https://griddleking.com
+   Rate limit: 2.0s between requests
+
+📋 Fetching sitemap...
+  Trying sitemap: https://griddleking.com/sitemap.xml
+  ✓ Found sitemap at: https://griddleking.com/sitemap.xml
+  Found sitemap index with 4 child sitemaps
+  Fetching child sitemap: https://griddleking.com/post-sitemap.xml
+    ✓ Got 322 URLs
+  Fetching child sitemap: https://griddleking.com/page-sitemap.xml
+    ✓ Got 8 URLs
+  Fetching child sitemap: https://griddleking.com/category-sitemap.xml
+    ✓ Got 50 URLs
+  Fetching child sitemap: https://griddleking.com/author-sitemap.xml
+    ✓ Got 1 URLs
+   Limited to first 100 URLs
+   Found 100 URLs to audit
+
+[1/100] Auditing: https://griddleking.com/blog/
+  Trying sitemap: https://griddleking.com/sitemap.xml
+  ✓ Found sitemap at: https://griddleking.com/sitemap.xml
+  Found sitemap index with 4 child sitemaps
+  Fetching child sitemap: https://griddleking.com/post-sitemap.xml
+    ✓ Got 322 URLs
+  Fetching child sitemap: https://griddleking.com/page-sitemap.xml
+    ✓ Got 8 URLs
+  Fetching child sitemap: https://griddleking.com/category-sitemap.xml
+    ✓ Got 50 URLs
+  Fetching child sitemap: https://griddleking.com/author-sitemap.xml
+    ✓ Got 1 URLs
+[2/100] Auditing: https://griddleking.com/what-to-know-before-buying-a-pellet-grill/
+[3/100] Auditing: https://griddleking.com/how-to-grill-without-smoke/
+[4/100] Auditing: https://griddleking.com/using-a-masterbuilt-electric-smoker-extension-cord/
+[5/100] Auditing: https://griddleking.com/can-you-use-forklift-propane-gas-grill/
+[6/100] Auditing: https://griddleking.com/can-you-use-grill-after-a-fire/
+[7/100] Auditing: https://griddleking.com/can-you-use-oil-drum-for-smoker-build/
+[8/100] Auditing: https://griddleking.com/can-you-use-fig-wood-bbq-smoke/
+[9/100] Auditing: https://griddleking.com/should-you-flip-ribs-when-grilling/
+[10/100] Auditing: https://griddleking.com/best-portable-pellet-grills-and-smokers/
+[11/100] Auditing: https://griddleking.com/how-to-know-when-chicken-is-done-on-the-grill/
+[12/100] Auditing: https://griddleking.com/can-you-use-mapp-gas-on-a-propane-grill/
+[13/100] Auditing: https://griddleking.com/how-far-should-a-propane-grill-be-from-a-wood-fence/
+[14/100] Auditing: https://griddleking.com/can-you-have-a-gas-grill-under-a-covered-patio/
+[15/100] Auditing: https://griddleking.com/best-grill-prep-stations/
+[16/100] Auditing: https://griddleking.com/is-wifi-worth-it-on-pellet-grills/
+[17/100] Auditing: https://griddleking.com/why-does-my-propane-grill-smoke-so-much/
+[18/100] Auditing: https://griddleking.com/can-you-use-lava-rocks-in-charcoal-grill/
+[19/100] Auditing: https://griddleking.com/can-i-add-wifi-to-my-pellet-smoker/
+[20/100] Auditing: https://griddleking.com/are-grilla-grills-made-in-the-usa-and-who-owns-grilla-grills/
+[21/100] Auditing: https://griddleking.com/best-budget-smokers/
+[22/100] Auditing: https://griddleking.com/vertical-vs-offset-which-smoker-is-best-for-you/
+[23/100] Auditing: https://griddleking.com/do-you-need-a-regulator-for-a-natural-gas-grill/
+[24/100] Auditing: https://griddleking.com/what-should-i-name-my-smoker/
+[25/100] Auditing: https://griddleking.com/offset-smoker-vs-weber-smokey-mountain/
+[26/100] Auditing: https://griddleking.com/kamado-vs-offset-smoker/
+[27/100] Auditing: https://griddleking.com/pellet-smoker-pros-and-cons/
+[28/100] Auditing: https://griddleking.com/can-you-build-in-a-weber-genesis/
+[29/100] Auditing: https://griddleking.com/pellet-smoker-vs-stick-burner/
+[30/100] Auditing: https://griddleking.com/how-hot-will-a-weber-charcoal-grill-get/
+[31/100] Auditing: https://griddleking.com/can-a-gas-grill-get-too-hot/
+[32/100] Auditing: https://griddleking.com/z-grills-vs-pit-boss-pellet-grill-showdown/
+[33/100] Auditing: https://griddleking.com/can-you-use-copper-for-a-gas-grill/
+[34/100] Auditing: https://griddleking.com/z-grills-vs-pit-boss-pellet-grill-showdown-2/
+[35/100] Auditing: https://griddleking.com/best-portable-pellet-grills/
+[36/100] Auditing: https://griddleking.com/vertical-pellet-smoker-vs-pellet-grill/
+[37/100] Auditing: https://griddleking.com/321-ribs-on-pit-boss-pellet-grill/
+[38/100] Auditing: https://griddleking.com/compare-weber-kettle-original-vs-premium-vs-master-touch/
+[39/100] Auditing: https://griddleking.com/grill-for-truck-hitch/
+[40/100] Auditing: https://griddleking.com/11-reasons-you-need-a-griddle-grill-combo/
+[41/100] Auditing: https://griddleking.com/new-blackstone-steel-outdoor-pizza-oven-add-on/
+[42/100] Auditing: https://griddleking.com/nomad-grills-and-smokers-review/
+[43/100] Auditing: https://griddleking.com/sapporo-grilling-kits/
+[44/100] Auditing: https://griddleking.com/why-does-bbq-smoke-follow-you/
+[45/100] Auditing: https://griddleking.com/difference-between-ribeye-steak-and-rib-steak/
+[46/100] Auditing: https://griddleking.com/can-you-grill-frozen-sausage/
+[47/100] Auditing: https://griddleking.com/where-is-the-pk360-grill-made/
+[48/100] Auditing: https://griddleking.com/does-charcoal-go-bad/
+[49/100] Auditing: https://griddleking.com/pellet-smoker-vs-electric-smoker/
+[50/100] Auditing: https://griddleking.com/is-the-pk-grill-good-for-smoking-yes-its-awesome/
+[51/100] Auditing: https://griddleking.com/propane-smokers/
+[52/100] Auditing: https://griddleking.com/grill-tray/
+[53/100] Auditing: https://griddleking.com/why-a-flat-top-grill-is-better-than-a-traditional-grill/
+[54/100] Auditing: https://griddleking.com/whats-the-smoke-point-of-grapeseed-oil-on-cast-iron/
+[55/100] Auditing: https://griddleking.com/the-best-flat-top-grill-oils-for-tasty-results/
+[56/100] Auditing: https://griddleking.com/1lb-propane-tanks/
+[57/100] Auditing: https://griddleking.com/small-charcoal-grills/
+[58/100] Auditing: https://griddleking.com/top-10-griddle-accessories-for-taking-your-griddle-cooking-to-the-next-level/
+[59/100] Auditing: https://griddleking.com/the-perfect-cooking-surface-for-your-needs-griddle-vs-grill/
+[60/100] Auditing: https://griddleking.com/the-best-griddle-for-a-glass-top-stove-and-how-to-use-it/
+[61/100] Auditing: https://griddleking.com/flax-seed-oil-vs-canola-oil-which-has-the-higher-smoke-point/
+[62/100] Auditing: https://griddleking.com/the-importance-of-a-seasoned-griddle-what-it-looks-like/
+[63/100] Auditing: https://griddleking.com/grapeseed-oil-smoke-point-the-impact-on-cast-iron-cooking/
+[64/100] Auditing: https://griddleking.com/from-burgers-to-brunch-delicious-recipes-for-your-flat-top-grill/
+[65/100] Auditing: https://griddleking.com/how-to-season-your-flat-top-grill-for-a-non-stick-cooking-surface/
+[66/100] Auditing: https://griddleking.com/is-american-wagyu-worth-the-price-tag-an-experts-opinion/
+[67/100] Auditing: https://griddleking.com/what-should-my-blackstone-griddle-look-like-after-seasoning/
+[68/100] Auditing: https://griddleking.com/5-tips-for-perfect-griddle-cooking-every-time/
+[69/100] Auditing: https://griddleking.com/the-smoke-point-of-crisco-what-you-need-to-know/
+[70/100] Auditing: https://griddleking.com/pit-boss-griddle/
+[71/100] Auditing: https://griddleking.com/flat-top-grilling-101-how-to/
+[72/100] Auditing: https://griddleking.com/can-a-pit-boss-griddle-be-converted-into-natural-gas/
+[73/100] Auditing: https://griddleking.com/can-i-sand-my-blackstone-griddle/
+[74/100] Auditing: https://griddleking.com/9-griddle-hack-basics/
+[75/100] Auditing: https://griddleking.com/can-you-cook-on-a-rusty-grill/
+[76/100] Auditing: https://griddleking.com/hard-nitriding-cast-iron-vs-carbon-steel-for-cooking-which-is-better/
+[77/100] Auditing: https://griddleking.com/smoking-with-cherry-wood-tips-for-smoked-meats/
+[78/100] Auditing: https://griddleking.com/smoking-with-cedar-wood-a-flavorful-twist-to-your-grilling-experience/
+[79/100] Auditing: https://griddleking.com/how-to-clean-hard-nitriding-cast-iron/
+[80/100] Auditing: https://griddleking.com/griddle-recipes/
+[81/100] Auditing: https://griddleking.com/what-causes-my-propane-grill-regulator-to-freeze/
+[82/100] Auditing: https://griddleking.com/best-camping-kitchen-grill-griddle-pellet-smoker/
+[83/100] Auditing: https://griddleking.com/best-grill-for-pontoon-boat-top-picks-and-buying-guide/
+[84/100] Auditing: https://griddleking.com/amerigas-vs-blue-rhino-propane/
+[85/100] Auditing: https://griddleking.com/maximizing-your-flat-top-grill-the-ultimate-accessory-guide/
+[86/100] Auditing: https://griddleking.com/how-to-use-a-flat-top-grill-a-step-by-step-guide/
+[87/100] Auditing: https://griddleking.com/the-quick-and-easy-guide-to-seasoning-your-flat-top-grill/
+[88/100] Auditing: https://griddleking.com/how-to-season-your-new-griddle/
+[89/100] Auditing: https://griddleking.com/sanding-your-blackstone-griddle-a-how-to-guide/
+[90/100] Auditing: https://griddleking.com/the-ultimate-guide-to-using-a-blackstone-griddle-with-an-air-fryer/
+[91/100] Auditing: https://griddleking.com/easy-griddle-camping-recipes/
+[92/100] Auditing: https://griddleking.com/flat-top-grill-accessories/
+[93/100] Auditing: https://griddleking.com/vertical-smoker-vs-horizontal-smoker/
+[94/100] Auditing: https://griddleking.com/can-you-cook-on-a-rusty-griddle-solved/
+[95/100] Auditing: https://griddleking.com/is-a-griddle-healthier-than-a-grill/
+[96/100] Auditing: https://griddleking.com/5-must-do-steps-for-the-first-griddle-use/
+[97/100] Auditing: https://griddleking.com/best-outdoor-grill-griddle-combos/
+[98/100] Auditing: https://griddleking.com/keep-mice-rodents-off-griddle/
+[99/100] Auditing: https://griddleking.com/here-is-what-you-put-in-the-blackstone-bottles/
+[100/100] Auditing: https://griddleking.com/7-portable-griddles-for-the-great-outdoors/
+
+✅ Report saved to: griddleking_audit.json
+
+================================================================================
+SUMMARY
+================================================================================
+Critical Issues: 197
+Warnings: 436
+Passed: 2067
+Total URLs Checked: 100
+================================================================================

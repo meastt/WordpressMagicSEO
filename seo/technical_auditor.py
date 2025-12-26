@@ -158,10 +158,19 @@ class TechnicalSEOAuditor:
             print(f"   Limited to first {max_urls} URLs")
         
         print(f"   Found {len(urls_to_audit)} URLs to audit\n")
-        
+
         # Fetch robots.txt once
         self._fetch_robots_txt()
-        
+
+        # Check for robots.txt blocking issues (site-wide check)
+        print("🤖 Checking robots.txt for blocked URLs...")
+        robots_blocking = self._check_robots_txt_blocking(urls_to_audit)
+        if robots_blocking['blocked_count'] > 0:
+            print(f"   ⚠️  Found {robots_blocking['blocked_count']} URLs blocked by robots.txt!")
+            print(f"   Disallow patterns: {', '.join(robots_blocking['disallow_patterns'][:5])}")
+        else:
+            print(f"   ✓ No URLs blocked by robots.txt\n")
+
         # Audit each URL
         url_results = []
         total_urls = len(urls_to_audit)
@@ -183,12 +192,13 @@ class TechnicalSEOAuditor:
         
         # Generate summary
         summary = self._generate_summary(url_results)
-        
+
         return {
             "site_url": self.site_url,
             "audit_date": datetime.now().isoformat(),
             "total_urls_checked": len(url_results),
             "summary": summary,
+            "robots_txt_blocking": robots_blocking,  # Site-wide robots.txt analysis
             "urls": [self._serialize_url_result(r) for r in url_results]
         }
     
@@ -301,7 +311,68 @@ class TechnicalSEOAuditor:
         except Exception:
             self._robots_txt = None
             self._robots_parser = None
-    
+
+    def _check_robots_txt_blocking(self, sitemap_urls: List[str]) -> dict:
+        """
+        Comprehensive check for robots.txt blocking issues.
+
+        Cross-references sitemap URLs with robots.txt disallow rules to identify
+        URLs that are blocked from crawling/indexing.
+
+        Args:
+            sitemap_urls: List of URLs from sitemap to check
+
+        Returns:
+            dict with keys:
+                - status: 'critical', 'warning', or 'optimal'
+                - blocked_urls: List of URLs blocked by robots.txt
+                - disallow_patterns: List of disallow patterns found
+                - message: Human-readable summary
+        """
+        if not self._robots_txt or not self._robots_parser:
+            return {
+                'status': 'optimal',
+                'blocked_urls': [],
+                'disallow_patterns': [],
+                'message': 'No robots.txt file or unable to parse'
+            }
+
+        # Parse disallow patterns from robots.txt
+        disallow_patterns = []
+        for line in self._robots_txt.split('\n'):
+            line = line.strip()
+            if line.lower().startswith('disallow:'):
+                pattern = line.split(':', 1)[1].strip()
+                if pattern and pattern != '/':  # Ignore empty and root disallow
+                    disallow_patterns.append(pattern)
+
+        # Check which sitemap URLs are blocked
+        blocked_urls = []
+        for url in sitemap_urls:
+            try:
+                if not self._robots_parser.can_fetch('*', url):
+                    blocked_urls.append(url)
+            except Exception:
+                # If parsing fails, assume not blocked
+                pass
+
+        # Determine status
+        if len(blocked_urls) > 0:
+            status = 'critical' if len(blocked_urls) > 10 else 'warning'
+            message = f"⚠️  {len(blocked_urls)} URLs are blocked by robots.txt disallow rules"
+        else:
+            status = 'optimal'
+            message = "✓ No sitemap URLs are blocked by robots.txt"
+
+        return {
+            'status': status,
+            'blocked_urls': blocked_urls,
+            'disallow_patterns': disallow_patterns,
+            'message': message,
+            'total_checked': len(sitemap_urls),
+            'blocked_count': len(blocked_urls)
+        }
+
     def _check_technical_foundation(
         self,
         url: str,

@@ -19,22 +19,24 @@ FIXABLE_ISSUES = {
     "multiple_h1s",
     "heading_hierarchy",
     "content_length",
-    
+
     # Links
     "anchor_text",
     "internal_links",
     "external_links",
     "broken_links",
-    
+    "orphaned_pages",  # Pages with insufficient internal links
+
     # Images
     "image_alt_text",
     "image_dimensions",
-    
+
     # Technical
     "canonical_tag",
     "schema_markup",
     "open_graph",
     "noindex",  # Can remove noindex via SEO plugin meta
+    "robots_txt_blocking",  # Can fix meta tags, provides manual instructions for robots.txt file
 }
 
 # Issues that require manual intervention
@@ -65,6 +67,11 @@ NON_EDITABLE_PATTERNS = [
 # Used to prioritize which fixes to run first
 FIX_IMPACT_SCORES = {
     # Critical SEO factors (9-10)
+    "robots_txt_blocking": {
+        "score": 10,
+        "ranking_boost": "+100% visibility",
+        "why": "Robots.txt is blocking Google from crawling these URLs completely"
+    },
     "noindex": {
         "score": 10,
         "ranking_boost": "+100% visibility",
@@ -136,6 +143,11 @@ FIX_IMPACT_SCORES = {
     },
     
     # Lower impact (3-4)
+    "orphaned_pages": {
+        "score": 6,
+        "ranking_boost": "+3-5 positions",
+        "why": "Pages with no internal links are hard for Google to discover and rank"
+    },
     "internal_links": {
         "score": 4,
         "ranking_boost": "+1-2 positions",
@@ -331,11 +343,14 @@ class IssueGrouper:
         if priority_order is None:
             # Default priority: most impactful issues first
             priority_order = [
+                "robots_txt_blocking",  # CRITICAL: blocks crawling entirely
+                "noindex",  # CRITICAL: blocks indexing
                 "h1_presence",
                 "title_presence",
                 "title_length",
                 "meta_description_presence",
                 "meta_description_length",
+                "orphaned_pages",  # HIGH: pages not discoverable
                 "image_alt_text",
                 "heading_hierarchy",
                 "multiple_h1s",
@@ -436,10 +451,12 @@ class IssueGrouper:
             "internal_links": "Missing links to related pages",
             "external_links": "Missing external references",
             "broken_links": "Broken links found",
+            "orphaned_pages": "Pages with no incoming links",
             "canonical_tag": "Missing canonical tag",
             "schema_markup": "Missing structured data",
             "open_graph": "Missing social sharing info",
             "noindex": "Page hidden from Google",
+            "robots_txt_blocking": "Blocked by robots.txt",
             "ssl_https": "Security issues",
             "mixed_content": "Mixed HTTP/HTTPS content",
             "www_redirect": "WWW redirect issues",

@@ -51,3 +51,4 @@ Thumbs.db
 # Environment variables (use Vercel dashboard)
 .env
 .env.local
+.vercel
