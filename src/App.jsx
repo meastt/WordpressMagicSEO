@@ -304,6 +304,7 @@ const App = () => {
                             onSelectAll={selectAll}
                             onFixSingle={fixSingle}
                             isFixing={isFixing}
+                            pluginManager={auditResults?.urls?.[0]?.metadata?.plugin_manager}
                         />
 
                         {/* Bulk Actions */}

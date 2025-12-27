@@ -198,10 +198,13 @@ class Magic_SEO_Auditor {
             ];
         }
         
+        // Check for SEO Plugin Manager
+        $plugin_manager = $this->detect_seo_plugin($html);
+        
         // Run all checks
         $issues = [];
         
-        // On-page checks
+        // On-page checks (Passing plugin manager for smarter detection)
         $issues['onpage'] = array_merge(
             $this->check_title($html),
             $this->check_meta_description($html),
@@ -225,6 +228,10 @@ class Magic_SEO_Auditor {
             'url' => $url,
             'status_code' => $status_code,
             'issues' => $issues,
+            'metadata' => [
+                'plugin_manager' => $plugin_manager,
+                'audit_time' => current_time('mysql')
+            ]
         ];
     }
     
@@ -333,18 +340,35 @@ class Magic_SEO_Auditor {
     private function check_title($html) {
         $issues = [];
         
-        // Extract title
+        // Extract primary title
         preg_match('/<title[^>]*>([^<]*)<\/title>/i', $html, $matches);
         $title = isset($matches[1]) ? trim($matches[1]) : '';
         
+        // Extract social titles for comparison
+        preg_match('/<meta[^>]+property=[\"\\\']og:title[\"\\\'][^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]*>/i', $html, $og_matches);
+        if (empty($og_matches)) {
+            preg_match('/<meta[^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]+property=[\"\\\']og:title[\"\\\'][^>]*>/i', $html, $og_matches);
+        }
+        $og_title = isset($og_matches[1]) ? trim($og_matches[1]) : '';
+
         if (empty($title)) {
-            $issues[] = [
-                'check_name' => 'title_presence',
-                'status' => 'critical',
-                'severity' => 'critical',
-                'message' => 'Page is missing a title tag',
-                'value' => null,
-            ];
+            if (!empty($og_title)) {
+                $issues[] = [
+                    'check_name' => 'title_presence',
+                    'status' => 'warning',
+                    'severity' => 'warning',
+                    'message' => 'Primary title tag missing, but Social Title (OG) found',
+                    'value' => 'og_only',
+                ];
+            } else {
+                $issues[] = [
+                    'check_name' => 'title_presence',
+                    'status' => 'critical',
+                    'severity' => 'critical',
+                    'message' => 'Page is missing a title tag',
+                    'value' => null,
+                ];
+            }
         } else {
             $length = strlen($title);
             
@@ -383,38 +407,49 @@ class Magic_SEO_Auditor {
      */
     private function check_meta_description($html) {
         $issues = [];
-        
-        // Extract meta description
-        // Handles name before content, content before name, and varying quotes/spaces
-        preg_match('/<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']*)["\'][^>]*>/i', $html, $matches);
+
+        // Extract primary meta description
+        preg_match('/<meta[^>]+name=[\"\\\']description[\"\\\'][^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]*>/i', $html, $matches);
         if (empty($matches)) {
-            preg_match('/<meta[^>]+content=["\']([^"\']*)["\'][^>]+name=["\']description["\'][^>]*>/i', $html, $matches);
-        }
-        
-        // Fallback: matches any tag with name="description" and grabs the content attribute anywhere in the tag
-        if (empty($matches)) {
-            preg_match('/<meta\s+[^>]*name=["\']description["\'][^>]*content=["\']([^"\']*)["\'][^>]*>/is', $html, $matches);
+            preg_match('/<meta[^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]+name=[\"\\\']description[\"\\\'][^>]*>/i', $html, $matches);
         }
         if (empty($matches)) {
-            preg_match('/<meta\s+[^>]*content=["\']([^"\']*)["\'][^>]*name=["\']description["\'][^>]*>/is', $html, $matches);
+            preg_match('/<meta\\s+[^>]*name=[\"\\\']description[\"\\\'][^>]*content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]*>/is', $html, $matches);
         }
-        
+        if (empty($matches)) {
+            preg_match('/<meta\\s+[^>]*content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]*name=[\"\\\']description[\"\\\'][^>]*>/is', $html, $matches);
+        }
+
         $description = isset($matches[1]) ? trim($matches[1]) : '';
-        
-        // AIOSEO and some other plugins might output specific markers we can look for if the above fails
-        // But generally standard meta description is enough
-        
+
+        // Extract social descriptions for comparison (OpenGraph)
+        preg_match('/<meta[^>]+property=[\"\\\']og:description[\"\\\'][^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]*>/i', $html, $og_matches);
+        if (empty($og_matches)) {
+            preg_match('/<meta[^>]+content=[\"\\\']([^\"\\\']*)[\"\\\'][^>]+property=[\"\\\']og:description[\"\\\'][^>]*>/i', $html, $og_matches);
+        }
+        $og_description = isset($og_matches[1]) ? trim($og_matches[1]) : '';
+
         if (empty($description)) {
-            $issues[] = [
-                'check_name' => 'meta_description_presence',
-                'status' => 'critical',
-                'severity' => 'critical',
-                'message' => 'Page is missing a meta description',
-                'value' => null,
-            ];
+            if (!empty($og_description)) {
+                $issues[] = [
+                    'check_name' => 'meta_description_presence',
+                    'status' => 'warning',
+                    'severity' => 'warning',
+                    'message' => 'SEO meta description missing, but Social (OG) description found',
+                    'value' => 'og_only',
+                ];
+            } else {
+                $issues[] = [
+                    'check_name' => 'meta_description_presence',
+                    'status' => 'critical',
+                    'severity' => 'critical',
+                    'message' => 'Page is missing a meta description',
+                    'value' => null,
+                ];
+            }
         } else {
             $length = strlen($description);
-            
+
             if ($length < 70) {
                 $issues[] = [
                     'check_name' => 'meta_description_length',
@@ -441,7 +476,7 @@ class Magic_SEO_Auditor {
                 ];
             }
         }
-        
+
         return $issues;
     }
     
@@ -693,5 +728,24 @@ class Magic_SEO_Auditor {
         }
         
         return $issues;
+    }
+
+    /**
+     * Detect which SEO plugin is managing the page
+     */
+    private function detect_seo_plugin($html) {
+        if (strpos($html, 'All in One SEO') !== false || strpos($html, 'aioseo-') !== false) {
+            return 'All in One SEO';
+        }
+        if (strpos($html, 'Yoast SEO') !== false || strpos($html, 'yoast-schema') !== false) {
+            return 'Yoast SEO';
+        }
+        if (strpos($html, 'Rank Math') !== false || strpos($html, 'rank-math-') !== false) {
+            return 'Rank Math';
+        }
+        if (strpos($html, 'SEOPress') !== false) {
+            return 'SEOPress';
+        }
+        return 'Generic/Other';
     }
 }

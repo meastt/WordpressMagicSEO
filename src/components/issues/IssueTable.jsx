@@ -11,7 +11,8 @@ export const IssueTable = ({
     onToggleSelect,
     onSelectAll,
     onFixSingle,
-    isFixing = false
+    isFixing = false,
+    pluginManager = null
 }) => {
     const allSelected = issues.length > 0 && selectedUrls.size === issues.length;
     const someSelected = selectedUrls.size > 0 && selectedUrls.size < issues.length;
@@ -65,6 +66,11 @@ export const IssueTable = ({
                                 >
                                     {getUrlPath(issue.url)}
                                 </a>
+                                {pluginManager && (
+                                    <span className="plugin-badge" title={`Managed by ${pluginManager}`}>
+                                        {pluginManager}
+                                    </span>
+                                )}
                             </td>
                             <td className="col-issue">
                                 <span className="issue-message">{issue.message}</span>

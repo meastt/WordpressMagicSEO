@@ -87,6 +87,17 @@
     text-decoration: underline;
 }
 
+/* Plugin Badge */
+.plugin-badge {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--warm-gray-400);
+    margin-top: 4px;
+}
+
 /* Issue Message */
 .issue-message {
     color: var(--warm-gray-700);
