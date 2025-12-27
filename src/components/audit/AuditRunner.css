@@ -1,0 +1,207 @@
+/* AuditRunner Styles */
+.audit-runner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: var(--space-xl);
+}
+
+.audit-runner__card {
+    width: 100%;
+    max-width: 600px;
+    padding: var(--space-xl);
+}
+
+.audit-runner__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.audit-runner__spinner {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.audit-runner__title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-900);
+}
+
+.audit-runner__url {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--teal-600);
+    margin-top: 4px;
+}
+
+/* Progress Bar */
+.audit-runner__progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--warm-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-500), var(--teal-400));
+    border-radius: 4px;
+    transition: width 0.3s var(--ease-smooth);
+}
+
+.progress-percentage {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--teal-600);
+    min-width: 50px;
+    text-align: right;
+}
+
+/* Stats */
+.audit-runner__stats {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--space-lg) 0;
+    border-top: 1px solid var(--warm-gray-200);
+    border-bottom: 1px solid var(--warm-gray-200);
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat__value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--warm-gray-900);
+}
+
+.stat__value--issues {
+    color: var(--coral);
+}
+
+.stat__label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--warm-gray-500);
+    margin-top: 4px;
+}
+
+/* Current URL */
+.audit-runner__current {
+    margin-top: var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--warm-gray-100);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.current-label {
+    font-size: var(--text-xs);
+    color: var(--warm-gray-500);
+    flex-shrink: 0;
+}
+
+.current-url {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--warm-gray-700);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Info Message */
+.audit-runner__info-message {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: rgba(var(--teal-rgb, 20, 184, 166), 0.1);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.audit-runner__info-message p {
+    font-size: var(--text-sm);
+    color: var(--warm-gray-600);
+    margin: 0;
+}
+
+/* Error State */
+.audit-runner__error-icon {
+    font-size: 48px;
+}
+
+.audit-runner__error-message {
+    padding: var(--space-lg);
+    background: rgba(255, 100, 100, 0.1);
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.audit-runner__error-message p {
+    color: var(--coral);
+    margin-bottom: var(--space-md);
+}
+
+.audit-runner__error-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+}
+
+/* Reset Link */
+.audit-runner__reset-link {
+    margin-top: var(--space-xl);
+    text-align: center;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--warm-gray-200);
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--warm-gray-500);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    padding: var(--space-sm) var(--space-md);
+    transition: color 0.2s;
+}
+
+.btn-link:hover {
+    color: var(--coral);
+}
+
+.btn-secondary {
+    background: var(--warm-gray-200);
+    color: var(--warm-gray-700);
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--warm-gray-300);
+}

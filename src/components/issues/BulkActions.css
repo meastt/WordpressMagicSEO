@@ -1,0 +1,74 @@
+/* BulkActions Styles */
+.bulk-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--off-white);
+    border-radius: var(--radius-lg);
+    margin-top: var(--space-lg);
+}
+
+.bulk-actions__info {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--warm-gray-600);
+}
+
+.selected-count strong,
+.total-count strong {
+    color: var(--warm-gray-900);
+}
+
+.bulk-actions__buttons {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.btn-fix-all {
+    min-width: 160px;
+}
+
+/* Confirmation Modal */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 0.2s ease;
+}
+
+.confirm-modal {
+    width: 100%;
+    max-width: 400px;
+    background: var(--cream);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    animation: slideUp 0.3s var(--ease-out-expo);
+}
+
+.confirm-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-900);
+    margin-bottom: var(--space-md);
+}
+
+.confirm-desc {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--warm-gray-600);
+    line-height: 1.6;
+    margin-bottom: var(--space-xl);
+}
+
+.confirm-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+}

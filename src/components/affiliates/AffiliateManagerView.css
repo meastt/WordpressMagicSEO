@@ -1,0 +1,74 @@
+/* AffiliateManagerView Styles */
+.affiliate-manager {
+    max-width: 1200px;
+}
+
+.affiliate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-xl);
+}
+
+.affiliate-subtitle {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--warm-gray-500);
+    max-width: 500px;
+}
+
+.affiliate-stats {
+    text-align: center;
+    padding: var(--space-lg) var(--space-xl);
+}
+
+/* Grid */
+.affiliate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+/* Add Network Card */
+.add-network-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    min-height: 200px;
+    background: transparent;
+    border: 2px dashed var(--warm-gray-300);
+    border-radius: var(--radius-organic);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.add-network-card:hover {
+    border-color: var(--teal-400);
+    background: var(--teal-50);
+}
+
+.add-network-icon {
+    font-size: 48px;
+    color: var(--warm-gray-400);
+    transition: color 0.2s ease;
+}
+
+.add-network-card:hover .add-network-icon {
+    color: var(--teal-500);
+}
+
+.add-network-label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--warm-gray-500);
+}
+
+/* Actions */
+.affiliate-actions {
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--warm-gray-200);
+}

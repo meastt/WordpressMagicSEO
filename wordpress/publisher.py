@@ -263,12 +263,12 @@ class WordPressPublisher:
         # Extract slug from URL
         slug = url.rstrip('/').split('/')[-1]
         
-        # Try posts first
+        # Try posts first (include all statuses to find scheduled/draft posts)
         try:
             response = requests.get(
                 f"{self.api_base}/posts",
                 auth=self.auth,
-                params={'slug': slug},
+                params={'slug': slug, 'status': 'any'},
                 timeout=30
             )
             response.raise_for_status()
@@ -277,7 +277,7 @@ class WordPressPublisher:
             if posts:
                 result = posts[0].copy()
                 result['_wp_type'] = 'post'
-                print(f"  ✓ Found as POST: {url} (ID: {result.get('id')})")
+                print(f"  ✓ Found as POST: {url} (ID: {result.get('id')}, Status: {result.get('status')})")
                 return result
         except Exception as e:
             pass
@@ -387,6 +387,9 @@ class WordPressPublisher:
         meta_description: str = None,
         categories: List[str] = None,
         tags: List[str] = None,
+        featured_media: int = None,
+        update_date: str = None,
+        status: str = None,
         item_type: str = 'post'
     ) -> PublishResult:
         """
@@ -394,6 +397,9 @@ class WordPressPublisher:
         
         Args:
             post_id: WordPress post or page ID
+            featured_media: ID of the uploaded media file to set as featured image
+            update_date: ISO 8601 date string to update the post's published date
+            status: WordPress status (e.g., 'publish', 'draft', 'private', 'future')
             item_type: 'post' or 'page' - determines which endpoint to use
         """
         
@@ -405,6 +411,12 @@ class WordPressPublisher:
                 update_data["title"] = title
             if content:
                 update_data["content"] = content
+            if featured_media:
+                update_data["featured_media"] = featured_media
+            if update_date:
+                update_data["date"] = update_date
+            if status:
+                update_data["status"] = status
             
             # Handle categories (only for posts, not pages)
             if categories and item_type == 'post':

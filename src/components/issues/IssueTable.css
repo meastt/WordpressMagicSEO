@@ -1,0 +1,137 @@
+/* IssueTable Styles */
+.issue-table {
+    background: var(--cream);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--warm-gray-200);
+    overflow: hidden;
+}
+
+.issue-table__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Header */
+.issue-table__table thead th {
+    padding: 12px 16px;
+    background: var(--warm-gray-100);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--warm-gray-600);
+    text-align: left;
+    border-bottom: 1px solid var(--warm-gray-200);
+}
+
+/* Columns */
+.col-checkbox {
+    width: 48px;
+    text-align: center;
+}
+
+.col-url {
+    min-width: 250px;
+}
+
+.col-issue {
+    /* Flexible */
+}
+
+.col-action {
+    width: 100px;
+    text-align: right;
+}
+
+/* Rows */
+.issue-table__table tbody tr {
+    border-bottom: 1px solid var(--warm-gray-100);
+    transition: background 0.15s ease;
+}
+
+.issue-table__table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.issue-table__table tbody tr:hover {
+    background: var(--warm-gray-50);
+}
+
+.issue-table__table tbody tr.row--selected {
+    background: var(--teal-50);
+}
+
+.issue-table__table tbody td {
+    padding: 14px 16px;
+    font-size: var(--text-sm);
+    vertical-align: middle;
+}
+
+/* Checkbox */
+.issue-table__table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--teal-500);
+    cursor: pointer;
+}
+
+/* URL Link */
+.url-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--teal-600);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.url-link:hover {
+    color: var(--teal-800);
+    text-decoration: underline;
+}
+
+/* Issue Message */
+.issue-message {
+    color: var(--warm-gray-700);
+}
+
+/* Fix Button */
+.fix-btn {
+    padding: 6px 14px;
+    background: var(--teal-500);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.fix-btn:hover:not(:disabled) {
+    background: var(--teal-600);
+}
+
+.fix-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.issue-table__empty {
+    padding: var(--space-2xl);
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: var(--space-md);
+}
+
+.empty-text {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--warm-gray-500);
+}

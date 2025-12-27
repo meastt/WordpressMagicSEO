@@ -1,0 +1,97 @@
+/* LiquidToggle Styles */
+.liquid-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.liquid-toggle--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.liquid-toggle__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.liquid-toggle__track {
+    position: relative;
+    width: 56px;
+    height: 32px;
+    background: var(--warm-gray-200);
+    border-radius: 16px;
+    transition: background 0.4s var(--ease-smooth);
+}
+
+.liquid-toggle__thumb {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    left: 2px;
+    top: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.5s var(--ease-elastic);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.liquid-toggle__liquid {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, var(--teal-400), var(--teal-600));
+    border-radius: 50%;
+    transform: scale(0);
+    transition: transform 0.6s var(--ease-elastic);
+}
+
+/* Checked State */
+.liquid-toggle__input:checked+.liquid-toggle__track {
+    background: var(--teal-100);
+}
+
+.liquid-toggle__input:checked+.liquid-toggle__track .liquid-toggle__thumb {
+    transform: translateX(24px);
+}
+
+.liquid-toggle__input:checked+.liquid-toggle__track .liquid-toggle__liquid {
+    transform: scale(1);
+}
+
+/* Squish Effect on Press */
+.liquid-toggle__input:active+.liquid-toggle__track .liquid-toggle__thumb {
+    transform: scaleX(1.2) scaleY(0.9);
+}
+
+.liquid-toggle__input:checked:active+.liquid-toggle__track .liquid-toggle__thumb {
+    transform: translateX(24px) scaleX(1.2) scaleY(0.9);
+}
+
+/* Focus State */
+.liquid-toggle__input:focus-visible+.liquid-toggle__track {
+    outline: 2px solid var(--teal-400);
+    outline-offset: 2px;
+}
+
+/* Label */
+.liquid-toggle__label {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--warm-gray-700);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .liquid-toggle__thumb,
+    .liquid-toggle__liquid {
+        transition-duration: 0.1s;
+        transition-timing-function: ease;
+    }
+}

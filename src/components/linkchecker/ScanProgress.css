@@ -1,0 +1,60 @@
+/* ScanProgress Styles */
+.scan-progress {
+    margin: var(--space-xl) 0;
+}
+
+.scan-progress__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.scan-progress__spinner {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.scan-progress__info {
+    flex: 1;
+}
+
+.scan-progress__title {
+    font-family: var(--font-display);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-900);
+}
+
+.scan-progress__status {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--warm-gray-500);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.scan-progress__percentage {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--teal-500);
+}
+
+/* Progress Bar */
+.scan-progress__bar {
+    height: 8px;
+    background: var(--warm-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.scan-progress__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-500), var(--teal-400));
+    border-radius: 4px;
+    transition: width 0.5s var(--ease-out-expo);
+}

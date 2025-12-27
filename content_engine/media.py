@@ -47,6 +47,7 @@ class MediaEngine:
             f"- Focus on the delicious food and the action/result.\n"
             f"- Avoid 'perfectly staged' backgrounds (e.g., NO random raw ingredients scattered nicely, NO perfect salt piles).\n"
             f"- Make it look like a skilled home chef took it, not a commercial studio.\n"
+            f"- BRANDING: Include a subtle, clean, semi-transparent text watermark that says 'Griddle King' in the bottom-right corner. It should look like a professional stamp or signature, not distracting.\n"
             f"- Return ONLY the prompt text."
         )
         
@@ -62,10 +63,10 @@ class MediaEngine:
             self.logger.error(f"Claude Prompt Gen Error: {e}")
             return f"A delicious, cinematic outdoor photo of {title}"
 
-    def generate_featured_image(self, title: str, style_guide: str = "photorealistic", output_dir: str = "content/assets") -> str:
+    def generate_featured_image(self, title: str, style_guide: str = "photorealistic", output_dir: str = "content/assets", target_keyword: str = None) -> str:
         """
         Generates a Gemini 3 (Imagen 4) image for the post.
-        Saves into output_dir.
+        Saves into output_dir with an SEO-friendly filename.
         """
         if not self.client:
             return "mock_image.png"
@@ -87,16 +88,21 @@ class MediaEngine:
             )
             
             if response.generated_images:
-                image_data = response.generated_images[0].image.image_bytes
+                image_bytes = response.generated_images[0].image.image_bytes
                 
                 # Ensure output directory exists
                 os.makedirs(output_dir, exist_ok=True)
                 
-                safe_title = "".join(x for x in title if x.isalnum() or x in " -_").replace(" ", "_").lower()
-                filename = os.path.join(output_dir, f"{safe_title}.png")
+                # Determine SEO Filename
+                if target_keyword:
+                    base_name = target_keyword.replace(" ", "-").lower()
+                else:
+                    base_name = "".join(x for x in title if x.isalnum() or x in " -_").replace(" ", "-").lower()
+                
+                filename = os.path.join(output_dir, f"{base_name}.png")
                 
                 with open(filename, "wb") as f:
-                    f.write(image_data)
+                    f.write(image_bytes)
                     
                 return filename
             else:
@@ -107,16 +113,36 @@ class MediaEngine:
             self.logger.error(f"Gemini Image Gen Error: {e}")
             return "error_image.png"
 
-    def generate_alt_text(self, image_url: str, context: str) -> str:
+    def generate_alt_text(self, image_path: str, context: str) -> str:
         """
         Generates descriptive SEO-friendly alt text using Gemini Vision.
         """
-        if not self.client:
-            return f"Alt text for {context}"
+        if not self.client or not os.path.exists(image_path):
+            return f"Descriptive image for {context}"
 
-        # Note: image_url here usually needs to be a local path or verified URL for Gemini
-        # For this logic, we assume it handles text-only prompt if image reading fails or is complex
-        return f"Detailed view of {context} - (Vision Not Implemented in this Step)"
+        self.logger.info(f"👁️ Generating Alt-Text via Vision for: {image_path}")
+        
+        try:
+            # Load the image
+            import PIL.Image
+            img = PIL.Image.open(image_path)
+            
+            # Call Gemini Vision (using the same client)
+            response = self.client.models.generate_content(
+                model='gemini-2.0-flash-exp', # Use a vision-capable model
+                contents=[
+                    f"Write a concise, SEO-friendly alt-text for this image in the context of: '{context}'. "
+                    f"Do not use phrases like 'image of' or 'picture of'. Maximum 125 characters.",
+                    img
+                ]
+            )
+            
+            alt_text = response.text.strip()
+            return alt_text if alt_text else f"A detailed view of {context}"
+            
+        except Exception as e:
+            self.logger.error(f"Vision Alt-Text Error: {e}")
+            return f"High quality photo related to {context}"
 
     def watermark_image(self, image_path: str, logo_path: str = "assets/logo.png") -> str:
         """

@@ -1,0 +1,124 @@
+/* MorphingProgress Styles */
+.morphing-progress {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-xs);
+}
+
+.morph-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+
+/* Step Dot */
+.morph-step__dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--warm-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.5s var(--ease-spring);
+    z-index: 2;
+}
+
+.morph-step--complete .morph-step__dot {
+    background: var(--teal-500);
+    transform: scale(1);
+}
+
+.morph-step--active .morph-step__dot {
+    background: var(--teal-400);
+    transform: scale(1.15);
+    box-shadow: var(--shadow-glow-teal);
+}
+
+.morph-step--pending .morph-step__dot {
+    background: var(--warm-gray-100);
+}
+
+/* Check Icon */
+.morph-step__check {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+/* Step Number */
+.morph-step__number {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-500);
+}
+
+/* Label */
+.morph-step__label {
+    margin-top: var(--space-sm);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--warm-gray-500);
+    text-align: center;
+    max-width: 100px;
+    transition: color 0.3s ease;
+}
+
+.morph-step--active .morph-step__label {
+    color: var(--teal-600);
+    font-weight: var(--font-weight-medium);
+}
+
+.morph-step--complete .morph-step__label {
+    color: var(--warm-gray-700);
+}
+
+/* Connector Line */
+.morph-connector {
+    position: absolute;
+    top: 20px;
+    left: calc(50% + 24px);
+    right: calc(-50% + 24px);
+    height: 2px;
+    background: var(--warm-gray-200);
+    z-index: 1;
+}
+
+.morph-connector__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-500), var(--teal-400));
+    transition: width 0.8s var(--ease-smooth);
+}
+
+/* Ripple on Active */
+.morph-step--active .ripple {
+    position: absolute;
+    inset: -4px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .morphing-progress {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+    }
+
+    .morph-step {
+        flex-direction: row;
+        gap: var(--space-md);
+    }
+
+    .morph-step__label {
+        margin-top: 0;
+        text-align: left;
+    }
+
+    .morph-connector {
+        display: none;
+    }
+}

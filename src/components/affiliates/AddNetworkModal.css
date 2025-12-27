@@ -1,0 +1,142 @@
+/* AddNetworkModal Styles */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--cream);
+    animation: slideUp 0.3s var(--ease-out-expo);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--warm-gray-200);
+}
+
+.modal-title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-900);
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 24px;
+    color: var(--warm-gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--warm-gray-100);
+    color: var(--warm-gray-900);
+}
+
+.modal-body {
+    padding: var(--space-lg);
+}
+
+.modal-field {
+    margin-bottom: var(--space-lg);
+}
+
+.modal-field label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--warm-gray-700);
+    margin-bottom: var(--space-xs);
+}
+
+.modal-field small {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--text-xs);
+    color: var(--warm-gray-500);
+}
+
+/* Emoji Picker */
+.emoji-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+
+.emoji-option {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--warm-gray-100);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.emoji-option:hover {
+    background: var(--warm-gray-200);
+}
+
+.emoji-option--selected {
+    border-color: var(--teal-500);
+    background: var(--teal-50);
+}
+
+/* Actions */
+.modal-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--warm-gray-200);
+    margin-top: var(--space-lg);
+}

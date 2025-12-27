@@ -1,0 +1,81 @@
+/* UrlInputList Styles */
+.url-input-list__label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--warm-gray-700);
+    margin-bottom: var(--space-md);
+}
+
+.url-input-list__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.url-input-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.url-input-item__icon {
+    font-size: 20px;
+    opacity: 0.6;
+}
+
+.url-input-item .glass-input__field {
+    flex: 1;
+}
+
+.url-input-item__remove {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--warm-gray-300);
+    border-radius: var(--radius-md);
+    font-size: 24px;
+    color: var(--warm-gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.url-input-item__remove:hover:not(:disabled) {
+    border-color: var(--coral);
+    color: var(--coral);
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.url-input-item__remove:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.url-input-list__add {
+    margin-top: var(--space-md);
+    padding: 12px 20px;
+    background: transparent;
+    border: 2px dashed var(--warm-gray-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--warm-gray-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.url-input-list__add:hover:not(:disabled) {
+    border-color: var(--teal-400);
+    color: var(--teal-600);
+    background: var(--teal-50);
+}
+
+.url-input-list__add:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -1,0 +1,5432 @@
+{
+  "site_url": "https://griddleking.com",
+  "audit_date": "2025-12-26T16:24:20.664381",
+  "total_urls_checked": 20,
+  "summary": {
+    "critical_issues": 40,
+    "warnings": 110,
+    "passed": 390
+  },
+  "urls": [
+    {
+      "url": "https://griddleking.com/blog/",
+      "status_code": 200,
+      "fetch_time": 1.4288041591644287,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "xml_sitemap",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "XML sitemap exists with 381 URLs",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No mixed content detected",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 29 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Blog - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 19 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description is missing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 585 words (meets minimum of 300)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 89 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 4 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "No broken external links detected (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "5 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '628KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '1656KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '241KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.424s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Missing Open Graph tags: og:image",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (1 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/what-to-know-before-buying-a-pellet-grill/",
+      "status_code": 200,
+      "fetch_time": 1.5066261291503906,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 66 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "What To Know Before Buying A Pellet Grill Smoker - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 63 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Meta description length is 109 characters (slightly outside optimal 120-160 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 2172 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 50 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "No broken external links detected (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 7 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '442KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.493s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/how-to-grill-without-smoke/",
+      "status_code": 200,
+      "fetch_time": 1.4068939685821533,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 51 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "How to Grill Without Smoke: 5 Hacks To Smoke Free Grilling",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 58 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 159 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1349 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 49 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 3 potentially broken external links",
+            "value": "['https://www.pexels.com/photo/close-up-photo-of-man-cooking-meat-1482803/', 'https://www.amazon.com/dp/B07C9CFNKG?tag=griddleking01-20', 'https://www.pexels.com/photo/burning-under-black-metal-grill-983373/']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 7 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "2 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '325KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '479KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.396s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/using-a-masterbuilt-electric-smoker-extension-cord/",
+      "status_code": 200,
+      "fetch_time": 1.4855690002441406,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 75 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use an Extension Cord with a Masterbuilt Electric Smoker?",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 65 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 133 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1132 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 51 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 10 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B07CN38M23?tag=griddleking01-20', 'https://www.amazon.com/AmazonBasics-Extension-Cord-feet-Black/dp/B076KFTT5B?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=3298cab94803c9d04b90ce2625e7361d', 'https://www.amazon.com/Country-Smokers-CSGDL0590-Highland-4-Burner/dp/B088RK43CP?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=2b41f5f337617dabe31f2ac8255cf4b8', 'https://www.osha.gov/electrical/hazards/grounding/gfci', 'https://www.amazon.com/Masterbuilt-MB20070122-Digital-Electric-Smoker/dp/B09HSV4DJ4?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=4df2bdcda91937fdae03e42a36cb5fcf']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 7 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '461KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.468s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-forklift-propane-gas-grill/",
+      "status_code": 200,
+      "fetch_time": 1.365360975265503,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 63 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use a Forklift Propane Tank on a Grill? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 62 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 129 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1380 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 50 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 11 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B08XYJP6DZ?tag=griddleking01-20', 'https://www.amazon.com/dp/B08NCDN8T8?tag=griddleking01-20', 'https://www.amazon.com/Spozer-Lighter-Refill-Universal-Refined/dp/B0BL3B8F2M?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=5447c29b4dcd023ccfff7736d6872ae0', 'https://www.amazon.com/dp/B09KRPDHN3?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 10 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '479KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.349s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-grill-after-a-fire/",
+      "status_code": 200,
+      "fetch_time": 1.4709858894348145,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 55 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use a Grill After a Grease Fire? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 55 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description length is 190 characters (may be truncated in SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1146 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 49 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B09QHVN9TJ?tag=griddleking01-20', 'https://www.amazon.com/dp/B07F731D86?tag=griddleking01-20', 'https://www.dixonbros.com/putting-out-a-grease-fire-on-grill/', 'https://www.amazon.com/dp/B07B9BNN24?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1112KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.377s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-oil-drum-for-smoker-build/",
+      "status_code": 200,
+      "fetch_time": 1.3522512912750244,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 62 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use an Old Oil Drum for a Smoker? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 56 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Meta description length is 162 characters (slightly outside optimal 120-160 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1411 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 10 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B00365FI9E?tag=griddleking01-20', 'https://www.amazon.com/dp/B07NWFB2S9?tag=griddleking01-20', 'https://www.amazon.com/dp/B019SNQXYG?tag=griddleking01-20', 'https://www.princeton.edu/~timeteam/sandblasting.html']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 7 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.341s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-fig-wood-bbq-smoke/",
+      "status_code": 200,
+      "fetch_time": 1.5995137691497803,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 55 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Smoke BBQ with Fig Wood? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 47 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 140 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1340 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 49 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 12 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B01J6DX238?tag=griddleking01-20', 'https://www.amazon.com/dp/B000NV6HOE?tag=griddleking01-20', 'https://www.amazon.com/dp/B01J6DX238?tag=griddleking01-20', 'https://www.amazon.com/dp/B000NV6HOE?tag=griddleking01-20', 'https://www.amazon.com/dp/B000NV6HOE?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1110KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.577s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/should-you-flip-ribs-when-grilling/",
+      "status_code": 200,
+      "fetch_time": 1.5940163135528564,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 59 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Here\u2019s the Deal on Flipping Ribs When Grilling - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 61 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Meta description length is 177 characters (slightly outside optimal 120-160 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1356 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 48 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 8 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://girlscangrill.com/recipe/hot-and-fast-ribs/', 'https://www.epicurious.com/archive/howtocook/primers/grilling_lightingandgrilling', 'https://www.amazon.com/dp/B08NCDN8T8?tag=griddleking01-20', 'https://www.amazon.com/dp/B07H4JD85M?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "2 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '662KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '636KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.501s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/best-portable-pellet-grills-and-smokers/",
+      "status_code": 200,
+      "fetch_time": 1.730449914932251,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 64 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Best Portable Pellet Grills: 9 Winners - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 53 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 139 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 4430 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 57 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 44 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 6 potentially broken external links",
+            "value": "['https://www.amazon.com/PIT-BOSS-10538-PB206PSP2-Pellet/dp/B08F2LLDN2?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/PIT-BOSS-10538-PB206PSP2-Pellet/dp/B08F2LLDN2?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/PIT-BOSS-10538-PB206PSP2-Pellet/dp/B08F2LLDN2?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/PIT-BOSS-10538-PB206PSP2-Pellet/dp/B08F2LLDN2?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/Mountain-Controlled-Portable-Pellet-Tailgating/dp/B08WYCYBVT?tag=griddleking01-20&ref_=as_li_ss_tl']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 19 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "3 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '279KB'), ('https://griddleking.com/wp-content/uploads/2022/05', '1889KB'), ('https://griddleking.com/wp-content/uploads/2022/06', '1619KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.702s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/how-to-know-when-chicken-is-done-on-the-grill/",
+      "status_code": 200,
+      "fetch_time": 1.5384728908538818,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 70 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "How to Tell if Chicken Is Done on the Grill - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 58 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 141 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 2193 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 50 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 13 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 6 potentially broken external links",
+            "value": "['https://www.usda.gov/media/blog/2011/05/25/cooking-meat-check-new-recommended-temperatures', 'https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures', 'https://www.pexels.com/photo/barbecue-bbq-beef-chicken-262945/', 'https://www.pexels.com/photo/a-father-grilling-outdoors-with-his-son-8841157/', 'https://www.thekitchn.com/how-long-do-you-really-need-to-preheat-your-grill-23035639']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 10 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1119KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.520s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-mapp-gas-on-a-propane-grill/",
+      "status_code": 200,
+      "fetch_time": 1.656191110610962,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 64 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use Mapp Gas on a Propane Grill? (Explained)",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 52 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 137 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1087 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 48 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/Weber-51060001-Q1200-Liquid-Propane/dp/B00FGEHG6Q?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.differencebetween.com/difference-between-mapp-gas-and-map-pro/', 'https://www.amazon.com/dp/B07Q3DJQJ5?tag=griddleking01-20', 'https://www.amazon.com/dp/B00B58A0QK?tag=griddleking01-20', 'https://www.amazon.com/dp/B01KJGBC6A?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 9 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '800KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.627s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/how-far-should-a-propane-grill-be-from-a-wood-fence/",
+      "status_code": 200,
+      "fetch_time": 1.3558251857757568,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 76 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "How Far Should a Propane Grill Be from a Wood Fence? (Solved)",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "high",
+            "message": "Title length is 61 characters (slightly outside optimal 50-60 range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 137 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1063 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 8 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.cpsc.gov/', 'https://www.cityofmadison.com/news/propane-grill-in-basement-causes-high-readings-of-carbon-monoxide#:~:text=A%20common%20source%20of%20carbon,situation%20for%20those%20around%20it.', 'https://www.amazon.com/Char-Broil-463377319-Performance-Stainless-4-Burner/dp/B07JZV24HV?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/dp/B01HITNEEY?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 7 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "1 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '794KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.347s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-have-a-gas-grill-under-a-covered-patio/",
+      "status_code": 200,
+      "fetch_time": 1.395082950592041,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 71 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Have a Gas Grill Under a Covered Patio? (Explained)",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 59 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 137 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1118 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 51 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B01KJGBC6A?tag=griddleking01-20', 'https://www.amazon.com/dp/B097L9Q3BT?tag=griddleking01-20', 'https://www.amazon.com/dp/B08HMKRF9H?tag=griddleking01-20', 'https://www.amazon.com/dp/B00004RALU?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 9 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "2 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1084KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '633KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.377s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/best-grill-prep-stations/",
+      "status_code": 200,
+      "fetch_time": 1.0421502590179443,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "No mixed content detected",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 49 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Outdoor Prep Station: Best Grilling Stations - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 59 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 133 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 2758 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 48 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 26 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/Camco-Tailgating-Backyards-Convenient-57293/dp/B00192JGDU?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/Camco-Tailgating-Backyards-Convenient-57293/dp/B00192JGDU?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/Camco-Tailgating-Backyards-Convenient-57293/dp/B00192JGDU?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/Suncast-Portable-Outdoor-Garden-Station/dp/B07JJ5NTFS?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=749b8ac1fc871b51ac638b5ef1267c5d', 'https://www.amazon.com/Suncast-Portable-Outdoor-Garden-Station/dp/B07JJ5NTFS?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=749b8ac1fc871b51ac638b5ef1267c5d']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 13 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "4 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '215KB'), ('https://griddleking.com/wp-content/uploads/2022/05', '1112KB'), ('https://griddleking.com/wp-content/uploads/2022/05', '2164KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.024s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/is-wifi-worth-it-on-pellet-grills/",
+      "status_code": 200,
+      "fetch_time": 1.5168797969818115,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 58 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Is WIFI Worth It on Pellet Grills? 5 Benefits To Consider - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 72 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Meta description length is 189 characters (may be truncated in SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1067 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/PIT-BOSS-PB440D2-Pellet-Mahogany/dp/B083STDCGS?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=74b160924155654537b8b2e189ae4086', 'https://www.amazon.co.uk/dp/B07Z6F5S2M?tag=griddleking01-20', 'https://www.amazon.com/dp/B0CKJ6GZRQ?tag=griddleking01-20', 'https://www.amazon.com/dp/B08N5GRKY3?tag=griddleking01-20', 'https://www.amazon.com/dp/B0CKJ6GZRQ?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "2 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1343KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '238KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.508s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/why-does-my-propane-grill-smoke-so-much/",
+      "status_code": 200,
+      "fetch_time": 1.253044843673706,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 64 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Why Does My Propane Grill Smoke So Much? (Easy Fix) - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "high",
+            "message": "Title length is 66 characters (outside optimal range)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 141 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Exactly one H1 tag found (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Non-standard heading hierarchy detected: Skipped from H1 to H3",
+            "value": null,
+            "edge_case_detected": true
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1082 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 51 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 8 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 4 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B08NCDN8T8?tag=griddleking01-20', 'https://www.amazon.com/Giantex-Portable-Windscreen-Organizer-Backyards/dp/B087TZP5SD?tag=griddleking01-20&ref_=as_li_ss_tl', 'https://www.amazon.com/dp/B00ABYVT64?tag=griddleking01-20', 'https://www.amazon.com/dp/B0000CF66W?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.235s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-you-use-lava-rocks-in-charcoal-grill/",
+      "status_code": 200,
+      "fetch_time": 1.352963924407959,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 65 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can You Use Lava Rocks in Charcoal Grill? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 56 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 137 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1119 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 51 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 6 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 2 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B06Y5F3NGY?tag=griddleking01-20', 'https://www.amazon.com/dp/B07CSWG37H?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 9 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "2 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '812KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '490KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.340s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/can-i-add-wifi-to-my-pellet-smoker/",
+      "status_code": 200,
+      "fetch_time": 1.4565560817718506,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 59 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Can I Add WIFI to My Pellet Smoker? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title length is 50 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 140 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1112 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 47 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 9 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 5 potentially broken external links",
+            "value": "['https://www.amazon.com/dp/B0CKJ6GZRQ?tag=griddleking01-20', 'https://www.amazon.com/dp/B0CKJ6GZRQ?tag=griddleking01-20', 'https://www.amazon.com/PIT-BOSS-PB440D2-Pellet-Mahogany/dp/B083STDCGS?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=74b160924155654537b8b2e189ae4086', 'https://www.amazon.com/dp/B07H4JD85M?tag=griddleking01-20', 'https://www.amazon.com/dp/B01F6ME4F8?tag=griddleking01-20']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 9 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "3 images exceed 200KB (may slow page load)",
+            "value": "[('https://i0.wp.com/griddleking.com/wp-content/uploa', '1065KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '469KB'), ('https://i0.wp.com/griddleking.com/wp-content/uploa', '494KB')]",
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.447s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://griddleking.com/are-grilla-grills-made-in-the-usa-and-who-owns-grilla-grills/",
+      "status_code": 200,
+      "fetch_time": 1.3981518745422363,
+      "issues": {
+        "technical": [
+          {
+            "check_name": "robots_txt",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "robots.txt exists and is accessible",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "noindex",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Page is not marked as noindex",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "canonical_tag",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Canonical tag is self-referencing",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "www_redirect",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Both www and non-www versions may be accessible (could split authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "ssl_https",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Site uses HTTPS",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "mixed_content",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Found 7 HTTP resources on HTTPS page",
+            "value": "7",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "permalink_structure",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL uses pretty permalink structure",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "url_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "URL length is 85 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "onpage": [
+          {
+            "check_name": "title_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Title tag exists",
+            "value": "Are Grilla Grills Made in the USA (Who Owns Grilla Grills)? - Griddle King",
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "title_length",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "Title length is 74 characters (too short or too long for SERPs)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_presence",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description exists",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "meta_description_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Meta description length is 139 characters (optimal)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "h1_presence",
+            "status": "critical",
+            "severity": "high",
+            "confidence": "high",
+            "message": "No H1 tag found",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "heading_hierarchy",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Heading hierarchy appears correct",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "content_length",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content has 1034 words (meets minimum of 150)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "links": [
+          {
+            "check_name": "internal_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 50 internal links (good for site structure)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "anchor_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Internal links use descriptive anchor text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "external_links",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Found 5 external links (good for authority)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "broken_links",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "Found 1 potentially broken external links",
+            "value": "['https://www.amazon.com/GrillTough-Heavy-Grill-Cover-Outdoor/dp/B0BY7MF25V?tag=griddleking01-20&ref_=as_li_ss_tl&linkCode=sl1&linkId=013c7788500378f86a0b8c4be82f384a']",
+            "edge_case_detected": false
+          }
+        ],
+        "images": [
+          {
+            "check_name": "image_alt_text",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All 8 images have alt text",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_dimensions",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "All images have dimension attributes",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "image_file_size",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "medium",
+            "message": "Image file sizes appear reasonable (checked sample)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "performance": [
+          {
+            "check_name": "ttfb",
+            "status": "warning",
+            "severity": "medium",
+            "confidence": "medium",
+            "message": "TTFB is 1.386s (slow, may impact user experience)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "compression",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Content is compressed (gzip)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "minification",
+            "status": "info",
+            "severity": "none",
+            "confidence": "low",
+            "message": "CSS/JS minification check requires fetching individual files (not performed in basic audit)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ],
+        "schema": [
+          {
+            "check_name": "schema_markup",
+            "status": "warning",
+            "severity": "low",
+            "confidence": "medium",
+            "message": "Schema markup found but structure unclear",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "open_graph",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Open Graph tags present (10 tags)",
+            "value": null,
+            "edge_case_detected": false
+          },
+          {
+            "check_name": "twitter_cards",
+            "status": "optimal",
+            "severity": "none",
+            "confidence": "high",
+            "message": "Twitter Card tags present (5 tags)",
+            "value": null,
+            "edge_case_detected": false
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+/* Audit View Styles - Additional styles for the new audit dashboard */
+
+/* Audit Header */
+.audit-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--warm-gray-200);
+}
+
+.audit-header__info {
+    flex: 1;
+}
+
+.audit-site {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--teal-600);
+    margin-top: var(--space-xs);
+}
+
+.audit-header__actions {
+    display: flex;
+    gap: var(--space-md);
+}
+
+/* Audit Stats */
+.audit-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 900px) {
+    .audit-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.stat-card {
+    text-align: center;
+    padding: var(--space-lg);
+}
+
+.stat-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--warm-gray-900);
+}
+
+.stat-label {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--warm-gray-500);
+    margin-top: var(--space-xs);
+}
+
+.stat-sublabel {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--warm-gray-400);
+    margin-top: 4px;
+}
+
+.stat-card--critical .stat-value {
+    color: var(--coral);
+}
+
+.stat-card--warning .stat-value {
+    color: #f97316;
+}
+
+.stat-card--success .stat-value {
+    color: #22c55e;
+}
+
+/* Loading Screen */
+.loading-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--cream);
+}
+
+/* View Audit */
+.view-audit {
+    max-width: 1200px;
+}
+
+/* View Content */
+.view-content {
+    max-width: 800px;
+}

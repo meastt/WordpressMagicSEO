@@ -1,0 +1,83 @@
+/* SettingsView Styles */
+.settings-view {
+    max-width: 900px;
+}
+
+.settings-section {
+    margin-bottom: var(--space-xl);
+}
+
+.settings-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-lg);
+}
+
+.settings-section__title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--warm-gray-900);
+    margin-bottom: var(--space-xs);
+}
+
+.settings-section__desc {
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    color: var(--warm-gray-500);
+    max-width: 500px;
+    margin-bottom: var(--space-lg);
+}
+
+.settings-grid {
+    display: grid;
+    gap: var(--space-md);
+}
+
+/* Sites List */
+.sites-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.sites-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    background: var(--warm-gray-100);
+    border-radius: var(--radius-lg);
+    border: 2px dashed var(--warm-gray-200);
+}
+
+.sites-empty p {
+    color: var(--warm-gray-500);
+    margin-bottom: var(--space-md);
+}
+
+/* Settings Actions */
+.settings-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--warm-gray-200);
+}
+
+.settings-message {
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+.settings-message--success {
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+.settings-message--error {
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--coral);
+}

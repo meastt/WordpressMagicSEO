@@ -1,0 +1,110 @@
+/* OptimizationStation Styles */
+.optimization-station {
+    position: relative;
+    background: var(--cream);
+    border-radius: var(--radius-organic);
+    padding: clamp(32px, 5vw, 48px);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.06),
+        0 0 0 1px var(--warm-gray-200);
+    overflow: hidden;
+}
+
+/* Blob Backgrounds */
+.station-blob-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.blob-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    right: -100px;
+}
+
+.blob-2 {
+    width: 250px;
+    height: 250px;
+    bottom: -100px;
+    left: -80px;
+}
+
+/* Content Layer */
+.station-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Title */
+.station-title {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--warm-gray-900);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.station-title__icon {
+    font-size: 1.2em;
+}
+
+/* Description */
+.station-desc {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    color: var(--warm-gray-500);
+    margin-bottom: var(--space-xl);
+}
+
+/* Form Layout */
+.station-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* Input Row */
+.station-inputs {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+    .station-inputs {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Options Row */
+.station-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-lg);
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--warm-gray-100);
+    border-bottom: 1px solid var(--warm-gray-100);
+}
+
+/* Progress Section */
+.station-progress {
+    padding: var(--space-lg) 0;
+}
+
+/* Handwritten Note */
+.station-note {
+    font-family: var(--font-handwritten);
+    font-size: var(--text-lg);
+    color: var(--teal-600);
+    transform: rotate(-1deg);
+    margin-top: var(--space-md);
+    opacity: 0.8;
+}

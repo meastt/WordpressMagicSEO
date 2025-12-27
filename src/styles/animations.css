@@ -1,0 +1,279 @@
+/* ==========================================================================
+   Animations & Micro-Delights (2026)
+   Spring physics, blob morphing, liquid effects, scroll reveals
+   ========================================================================== */
+
+/* ==================== Blob Morphing Background ==================== */
+@keyframes blob-morph {
+
+    0%,
+    100% {
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        transform: rotate(0deg) scale(1);
+    }
+
+    25% {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+
+    50% {
+        border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%;
+        transform: rotate(180deg) scale(1.05);
+    }
+
+    75% {
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+}
+
+.blob {
+    position: absolute;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    filter: blur(40px);
+    opacity: 0.15;
+    animation: blob-morph 20s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.blob--teal {
+    background: var(--teal-300);
+}
+
+.blob--mint {
+    background: var(--mint);
+    animation-delay: -10s;
+}
+
+.blob--amber {
+    background: var(--amber);
+    animation-delay: -5s;
+}
+
+/* ==================== Ripple Pulse (Active Step) ==================== */
+@keyframes ripple-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+.ripple {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--teal-400);
+    animation: ripple-pulse 2s var(--ease-smooth) infinite;
+}
+
+/* ==================== Check Draw Animation ==================== */
+@keyframes check-draw {
+    0% {
+        stroke-dasharray: 0 20;
+    }
+
+    100% {
+        stroke-dasharray: 20 20;
+    }
+}
+
+.check-animated {
+    animation: check-draw 0.5s var(--ease-spring) forwards;
+}
+
+/* ==================== Fade In Up (Scroll Reveal) ==================== */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+        opacity 0.6s var(--ease-smooth),
+        transform 0.6s var(--ease-spring);
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered reveal for lists */
+.reveal-stagger>* {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.reveal-stagger.is-visible>*:nth-child(1) {
+    transition-delay: 0ms;
+}
+
+.reveal-stagger.is-visible>*:nth-child(2) {
+    transition-delay: 100ms;
+}
+
+.reveal-stagger.is-visible>*:nth-child(3) {
+    transition-delay: 200ms;
+}
+
+.reveal-stagger.is-visible>*:nth-child(4) {
+    transition-delay: 300ms;
+}
+
+.reveal-stagger.is-visible>*:nth-child(5) {
+    transition-delay: 400ms;
+}
+
+.reveal-stagger.is-visible>* {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ==================== Liquid Spinner ==================== */
+@keyframes liquid-spin {
+    0% {
+        transform: rotate(0deg);
+        border-radius: 50%;
+    }
+
+    25% {
+        border-radius: 40% 60% 60% 40%;
+    }
+
+    50% {
+        transform: rotate(180deg);
+        border-radius: 50%;
+    }
+
+    75% {
+        border-radius: 60% 40% 40% 60%;
+    }
+
+    100% {
+        transform: rotate(360deg);
+        border-radius: 50%;
+    }
+}
+
+.liquid-spinner {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--teal-400), var(--teal-600));
+    animation: liquid-spin 1.5s var(--ease-smooth) infinite;
+}
+
+/* ==================== Shimmer Loading ==================== */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--warm-gray-100) 25%,
+            var(--warm-gray-200) 50%,
+            var(--warm-gray-100) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}
+
+/* ==================== Confetti Burst ==================== */
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    animation: confetti-fall 3s ease-out forwards;
+    z-index: var(--z-toast);
+}
+
+/* ==================== Button Press (Haptic Feel) ==================== */
+.btn-haptic {
+    transition: transform 0.15s var(--ease-spring);
+}
+
+.btn-haptic:active {
+    transform: scale(0.96);
+}
+
+/* ==================== Card Lift ==================== */
+.lift {
+    transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s var(--ease-smooth);
+}
+
+.lift:hover {
+    transform: translateY(-4px);
+}
+
+/* ==================== Pulse Glow ==================== */
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 168, 150, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 12px rgba(0, 168, 150, 0);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ==================== Accessibility: Reduced Motion ==================== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .blob {
+        animation: none;
+    }
+
+    .reveal {
+        opacity: 1;
+        transform: none;
+    }
+
+    .liquid-spinner {
+        animation: none;
+        border-radius: 50%;
+    }
+}
