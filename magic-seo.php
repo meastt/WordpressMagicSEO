@@ -3,7 +3,7 @@
  * Plugin Name: Magic SEO
  * Plugin URI: https://github.com/magicseo
  * Description: AI-powered SEO content optimization with Claude, Gemini, and advanced affiliate management.
- * Version: 1.1.3
+ * Version: 1.1.4
  * Author: Magic SEO
  * Author URI: https://magicseo.com
  * License: GPL v2 or later
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('MAGIC_SEO_VERSION', '1.1.3');
+define('MAGIC_SEO_VERSION', '1.1.4');
 define('MAGIC_SEO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MAGIC_SEO_PLUGIN_URL', plugin_dir_url(__FILE__));
 

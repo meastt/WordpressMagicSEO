@@ -320,25 +320,29 @@ class Magic_SEO_Fixer {
         return defined('AIOSEO_VERSION') || class_exists('AIOSEO\Plugin\AIOSEO');
     }
     
-    /**
-     * Generate SEO-optimized title
-     */
     private function generate_seo_title($post) {
         $title = $post->post_title;
         $site_name = get_bloginfo('name');
+        $site_separator = ' - ';
         
-        // Ensure title is within optimal length (30-60 chars)
-        if (strlen($title) < 30) {
-            // Append site name if room
-            $with_site = "{$title} | {$site_name}";
-            if (strlen($with_site) <= 60) {
-                return $with_site;
-            }
+        // Total desired limit for the final <title> tag
+        $hard_limit = 60;
+        
+        // If title is already very long, truncate it aggressively
+        // We leave room for the site name (approx 15-20 chars)
+        // Most SEO plugins append site name, so we target ~45 chars for the core title
+        $safe_title_limit = 45;
+        
+        if (strlen($title) > $safe_title_limit) {
+            return substr($title, 0, $safe_title_limit - 3) . '...';
         }
         
-        if (strlen($title) > 60) {
-            // Truncate and add ellipsis
-            return substr($title, 0, 57) . '...';
+        // If title is short, we can safely append the site name ourselves
+        if (strlen($title) < 30) {
+            $with_site = "{$title}{$site_separator}{$site_name}";
+            if (strlen($with_site) <= $hard_limit) {
+                return $with_site;
+            }
         }
         
         return $title;
