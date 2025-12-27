@@ -204,7 +204,7 @@ const App = () => {
     // Loading state
     if (appState === STATES.LOADING) {
         return (
-            <div className="magic-seo-app loading-screen">
+            <div className="magic-seo-app magic-seo-app--full-width loading-screen">
                 <div className="liquid-spinner" style={{ width: 48, height: 48 }}></div>
             </div>
         );
@@ -212,13 +212,17 @@ const App = () => {
 
     // Onboarding state
     if (appState === STATES.ONBOARDING) {
-        return <OnboardingWizard onComplete={handleOnboardingComplete} />;
+        return (
+            <div className="magic-seo-app magic-seo-app--full-width onboarding-screen">
+                <OnboardingWizard onComplete={handleOnboardingComplete} />
+            </div>
+        );
     }
 
     // Auditing state
     if (appState === STATES.AUDITING) {
         return (
-            <div className="magic-seo-app">
+            <div className="magic-seo-app magic-seo-app--full-width">
                 <AuditRunner
                     siteUrl={config.siteUrl}
                     onComplete={handleAuditComplete}
