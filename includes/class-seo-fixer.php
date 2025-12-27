@@ -92,10 +92,16 @@ class Magic_SEO_Fixer {
         
         // Try AIOSEO
         if ($this->has_aioseo()) {
+            // Update custom table
+            $this->update_aioseo_data($post_id, ['title' => $new_title]);
+            // Update postmeta for compatibility
             update_post_meta($post_id, '_aioseo_title', $new_title);
+            
+            $this->clear_caches($post_id);
+            
             return [
                 'success' => true,
-                'message' => 'Title updated via AIOSEO',
+                'message' => 'Title updated via AIOSEO (Custom Table)',
                 'value' => $new_title,
             ];
         }
@@ -152,10 +158,16 @@ class Magic_SEO_Fixer {
         
         // Try AIOSEO
         if ($this->has_aioseo()) {
+            // Update custom table
+            $this->update_aioseo_data($post_id, ['description' => $description]);
+            // Update postmeta for compatibility
             update_post_meta($post_id, '_aioseo_description', $description);
+            
+            $this->clear_caches($post_id);
+            
             return [
                 'success' => true,
-                'message' => 'Meta description updated via AIOSEO',
+                'message' => 'Meta description updated via AIOSEO (Custom Table)',
                 'value' => $description,
             ];
         }
@@ -346,6 +358,63 @@ class Magic_SEO_Fixer {
         }
         
         return $title;
+    }
+    
+    /**
+     * Update AIOSEO data in its custom table
+     */
+    private function update_aioseo_data($post_id, $data) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'aioseo_posts';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            error_log("Magic SEO: AIOSEO table not found: $table_name");
+            return false;
+        }
+
+        // Try to find existing record
+        $exists = $wpdb->get_var($wpdb->prepare("SELECT id FROM $table_name WHERE post_id = %d", $post_id));
+        
+        if ($exists) {
+            return $wpdb->update($table_name, $data, ['post_id' => $post_id]);
+        } else {
+            $data['post_id'] = $post_id;
+            // Add required default columns for AIOSEO if inserting
+            if (!isset($data['created'])) $data['created'] = current_time('mysql');
+            if (!isset($data['updated'])) $data['updated'] = current_time('mysql');
+            return $wpdb->insert($table_name, $data);
+        }
+    }
+    
+    /**
+     * Clear various levels of cache
+     */
+    private function clear_caches($post_id) {
+        // WordPress Object Cache
+        wp_cache_delete($post_id, 'posts');
+        clean_post_cache($post_id);
+        
+        // Common Caching Plugins
+        if (function_exists('w3tc_flush_url')) {
+            w3tc_flush_url(get_permalink($post_id));
+        }
+        if (class_exists('WpFastestCache') && isset($GLOBALS['wp_fastest_cache'])) {
+            $GLOBALS['wp_fastest_cache']->deleteCache(false);
+        }
+        if (function_exists('wp_cache_clean_cache')) {
+            global $file_prefix;
+            wp_cache_clean_cache($file_prefix);
+        }
+        
+        // Try to clear AIOSEO internal cache if possible
+        if (class_exists('AIOSEO\Plugin\Common\Utils\Cache')) {
+            try {
+                \AIOSEO\Plugin\Common\Utils\Cache::delete('aioseo_post_' . $post_id);
+            } catch (\Exception $e) {
+                // Ignore
+            }
+        }
     }
     
     /**
