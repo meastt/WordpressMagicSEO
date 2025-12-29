@@ -55,9 +55,15 @@ class Magic_SEO_Fixer {
      */
     private function decrypt_value($encrypted) {
         if (empty($encrypted)) return '';
-        $key = wp_salt('auth');
-        $iv = substr(hash('sha256', wp_salt('secure_auth')), 0, 16);
-        return openssl_decrypt(base64_decode($encrypted), 'AES-256-CBC', $key, 0, $iv);
+        try {
+            $key = wp_salt('auth');
+            $iv = substr(hash('sha256', wp_salt('secure_auth')), 0, 16);
+            $decrypted = openssl_decrypt(base64_decode($encrypted), 'AES-256-CBC', $key, 0, $iv);
+            return $decrypted !== false ? $decrypted : '';
+        } catch (Exception $e) {
+            error_log('[Magic SEO] Decryption failed: ' . $e->getMessage());
+            return '';
+        }
     }
     
     /**
