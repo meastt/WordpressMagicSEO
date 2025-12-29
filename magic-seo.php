@@ -3,7 +3,7 @@
  * Plugin Name: Magic SEO
  * Plugin URI: https://github.com/magicseo
  * Description: AI-powered SEO content optimization with Claude, Gemini, and advanced affiliate management.
- * Version: 1.1.7
+ * Version: 1.1.14
  * Author: Magic SEO
  * Author URI: https://magicseo.com
  * License: GPL v2 or later
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('MAGIC_SEO_VERSION', '1.1.7');
+define('MAGIC_SEO_VERSION', '1.1.14');
 define('MAGIC_SEO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MAGIC_SEO_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -231,6 +231,10 @@ class MagicSEO {
             $masked['openai_key'] = $this->mask_key($masked['openai_key']);
         }
         
+        if (empty($masked['python_engine_url'])) {
+            $masked['python_engine_url'] = 'http://localhost:5000';
+        }
+        
         return rest_ensure_response($masked);
     }
     
@@ -251,7 +255,9 @@ class MagicSEO {
                     'username' => sanitize_text_field($site['username'] ?? ''),
                     'app_password' => $this->encrypt_value($site['app_password'] ?? '')
                 ];
-            }, $params['sites'] ?? [])
+            }, $params['sites'] ?? []),
+            'python_engine_url' => sanitize_url($params['python_engine_url'] ?? 'http://localhost:5000'),
+            'use_ai_fixes' => (bool) ($params['use_ai_fixes'] ?? true)
         ];
         
         update_option('magic_seo_settings', $settings);

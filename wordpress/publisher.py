@@ -440,13 +440,17 @@ class WordPressPublisher:
                     update_data["tags"] = tag_ids
                     print(f"  ✓ Updated tags: {', '.join(tags)}")
             
-            # Add Yoast SEO meta
+            # Add SEO meta for all major plugins (Yoast, RM, AIOSEO)
             if meta_title or meta_description:
-                update_data["meta"] = {}
+                update_data["meta"] = update_data.get("meta", {})
                 if meta_title:
                     update_data["meta"]["_yoast_wpseo_title"] = meta_title
+                    update_data["meta"]["rank_math_title"] = meta_title
+                    update_data["meta"]["_aioseo_title"] = meta_title
                 if meta_description:
                     update_data["meta"]["_yoast_wpseo_metadesc"] = meta_description
+                    update_data["meta"]["rank_math_description"] = meta_description
+                    update_data["meta"]["_aioseo_description"] = meta_description
             
             # Use the correct endpoint based on item type
             endpoint = f"{self.api_base}/pages/{post_id}" if item_type == 'page' else f"{self.api_base}/posts/{post_id}"
@@ -687,13 +691,20 @@ class WordPressPublisher:
             PublishResult
         """
         try:
-            update_data = {"meta": {}}
-
-            # Try to update Yoast SEO meta
-            if meta_title:
-                update_data["meta"]["_yoast_wpseo_title"] = meta_title
+            # WordPress REST API for terms only accepts 'description' field reliably
+            # SEO plugins like AIOSEO read from this native field
+            update_data = {}
             if meta_description:
-                update_data["meta"]["_yoast_wpseo_desc"] = meta_description
+                update_data["description"] = meta_description
+
+            if not update_data:
+                return PublishResult(
+                    success=False,
+                    action="update_category_meta",
+                    url="",
+                    post_id=category_id,
+                    error="No data to update"
+                )
 
             response, result_data = self._make_request_with_retry(
                 'POST',
@@ -741,13 +752,20 @@ class WordPressPublisher:
             PublishResult
         """
         try:
-            update_data = {"meta": {}}
-
-            # Try to update Yoast SEO meta
-            if meta_title:
-                update_data["meta"]["_yoast_wpseo_title"] = meta_title
+            # WordPress REST API for terms only accepts 'description' field reliably
+            # SEO plugins like AIOSEO read from this native field
+            update_data = {}
             if meta_description:
-                update_data["meta"]["_yoast_wpseo_desc"] = meta_description
+                update_data["description"] = meta_description
+
+            if not update_data:
+                return PublishResult(
+                    success=False,
+                    action="update_tag_meta",
+                    url="",
+                    post_id=tag_id,
+                    error="No data to update"
+                )
 
             response, result_data = self._make_request_with_retry(
                 'POST',

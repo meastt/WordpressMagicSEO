@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 
 from wordpress.publisher import WordPressPublisher
 from seo.fix_tracker import SEOFixTracker
+from seo.linking_engine import SmartLinkingEngine
 
 try:
     from PIL import Image
@@ -50,18 +51,6 @@ class SEOIssueFixer:
         self.use_ai = use_ai
         self.fix_tracker = SEOFixTracker(site_url=site_url)
         
-        # Error logging
-        self.error_log_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "..",
-            f"fix_errors_{urlparse(site_url).netloc.replace('.', '_')}.json"
-        )
-
-        self.backup_dir = os.path.join(os.getcwd(), 'backups', urlparse(site_url).netloc.replace('.', '_'))
-        if not os.path.exists(self.backup_dir):
-            try: os.makedirs(self.backup_dir, exist_ok=True)
-            except: pass
-        
         # Initialize AI generator if available
         self.ai_generator = None
         if use_ai:
@@ -72,7 +61,12 @@ class SEOIssueFixer:
                     self.ai_generator = ClaudeContentGenerator(api_key=api_key)
             except Exception as e:
                 print(f"Warning: Could not initialize AI generator: {e}")
-                self.ai_generator = ClaudeContentGenerator(api_key="none") if use_ai else None
+                
+        # Initialize linking engine if AI is enabled
+        if use_ai and self.ai_generator and hasattr(self.ai_generator, 'api_key'):
+            self.linking_engine = SmartLinkingEngine(self.ai_generator.api_key)
+        else:
+            self.linking_engine = None
 
     def _request(self, method: str, endpoint: str, max_retries: int = 3, **kwargs) -> Optional[requests.Response]:
         """
@@ -200,12 +194,12 @@ class SEOIssueFixer:
                     # Determine WHY we couldn't find the post
                     reason = self._categorize_missing_post(url)
                     
-                    if reason == "category_page":
+                    if reason == "author_page":
                         results["not_applicable_count"] += 1
                         results["not_applicable"].append({
                             "url": url,
-                            "reason": "Category/archive page (no editable content)",
-                            "icon": "📁"
+                            "reason": "Author page (no editable content)",
+                            "icon": "👤"
                         })
                     elif reason == "home_page":
                         results["not_applicable_count"] += 1
@@ -214,12 +208,12 @@ class SEOIssueFixer:
                             "reason": "Home page (edit in theme settings)",
                             "icon": "🏠"
                         })
-                    elif reason == "tag_page":
+                    elif reason == "pagination":
                         results["not_applicable_count"] += 1
                         results["not_applicable"].append({
                             "url": url,
-                            "reason": "Tag archive page (no editable content)",
-                            "icon": "🏷️"
+                            "reason": "Pagination page",
+                            "icon": "🔢"
                         })
                     else:
                         results["error_count"] += 1
@@ -296,15 +290,7 @@ class SEOIssueFixer:
         url_lower = url.lower()
         
         # Check for common non-post URL patterns
-        if '/category/' in url_lower:
-            return "category_page"
-        elif '/tag/' in url_lower:
-            return "tag_page"
-        elif url.rstrip('/').count('/') <= 3 and url.rstrip('/').endswith(('.com', '.net', '.org')):
-            return "home_page"
-        elif '/author/' in url_lower:
-            return "author_page"
-        elif '/page/' in url_lower:
+        if '/page/' in url_lower:
             return "pagination"
         elif url.rstrip('/') == self.site_url.rstrip('/'):
             return "home_page"
@@ -346,11 +332,29 @@ class SEOIssueFixer:
         try:
             parsed = urlparse(url)
             path = parsed.path.rstrip('/')
+            url_lower = url.lower()
             
             # Try to get post by slug
             slug = path.split('/')[-1] if path else None
             if not slug:
                 return None, None
+            
+            # Prioritize based on URL pattern
+            if '/category/' in url_lower:
+                # Try categories endpoint first
+                response = self._request('GET', f"{self.api_base}/categories", params={'slug': slug, 'per_page': 1}, timeout=30)
+                if response and response.ok:
+                    cats = response.json()
+                    if cats:
+                        return cats[0]['id'], 'category'
+            
+            if '/tag/' in url_lower:
+                # Try tags endpoint first
+                response = self._request('GET', f"{self.api_base}/tags", params={'slug': slug, 'per_page': 1}, timeout=30)
+                if response and response.ok:
+                    tags = response.json()
+                    if tags:
+                        return tags[0]['id'], 'tag'
             
             # Try posts endpoint
             response = self._request('GET', f"{self.api_base}/posts", params={'slug': slug, 'per_page': 1}, timeout=30)
@@ -365,6 +369,21 @@ class SEOIssueFixer:
                 pages = response.json()
                 if pages:
                     return pages[0]['id'], 'page'
+            
+            # Fallback for categories/tags if not already checked by pattern
+            if '/category/' not in url_lower:
+                response = self._request('GET', f"{self.api_base}/categories", params={'slug': slug, 'per_page': 1}, timeout=30)
+                if response and response.ok:
+                    cats = response.json()
+                    if cats:
+                        return cats[0]['id'], 'category'
+            
+            if '/tag/' not in url_lower:
+                response = self._request('GET', f"{self.api_base}/tags", params={'slug': slug, 'per_page': 1}, timeout=30)
+                if response and response.ok:
+                    tags = response.json()
+                    if tags:
+                        return tags[0]['id'], 'tag'
             
             # Try searching by link
             response = self._request('GET', f"{self.api_base}/posts", params={'search': slug, 'per_page': 10}, timeout=30)
@@ -381,8 +400,15 @@ class SEOIssueFixer:
             return None, None
     
     def _get_post_content(self, post_id: int, post_type: str = 'post', backup_before_fix: bool = False, issue_type: str = "") -> Dict:
-        """Get current post content from WordPress with retry logic."""
-        endpoint = f"{self.api_base}/pages/{post_id}" if post_type == 'page' else f"{self.api_base}/posts/{post_id}"
+        """Get current post/page/term data from WordPress with retry logic."""
+        if post_type == 'category':
+            endpoint = f"{self.api_base}/categories/{post_id}"
+        elif post_type == 'tag':
+            endpoint = f"{self.api_base}/tags/{post_id}"
+        elif post_type == 'page':
+            endpoint = f"{self.api_base}/pages/{post_id}"
+        else:
+            endpoint = f"{self.api_base}/posts/{post_id}"
         response = self._request('GET', endpoint, params={'context': 'edit'}, timeout=30)
         
         if response and response.ok:
@@ -633,11 +659,16 @@ Return ONLY the new title, nothing else."""
                     
                     # Validate length
                     if 45 <= len(new_title) <= 65:  # Allow slight variance
-                        result = self.wp_publisher.update_post(
-                            post_id=post_id,
-                            meta_title=new_title,
-                            item_type=post_type
-                        )
+                        if post_type == 'category':
+                            result = self.wp_publisher.update_category_meta(category_id=post_id, meta_title=new_title)
+                        elif post_type == 'tag':
+                            result = self.wp_publisher.update_tag_meta(tag_id=post_id, meta_title=new_title)
+                        else:
+                            result = self.wp_publisher.update_post(
+                                post_id=post_id,
+                                meta_title=new_title,
+                                item_type=post_type
+                            )
                         return result.success
                 except Exception as e:
                     print(f"AI title rewrite failed: {e}")
@@ -666,12 +697,12 @@ Return ONLY the new title, nothing else."""
             if not post_data:
                 return False
             
-            title = post_data.get('title', {}).get('rendered', '')
-            content = post_data.get('content', {}).get('rendered', '')
+            title = post_data.get('title', {}).get('rendered', '') or post_data.get('name', '')
+            content = post_data.get('content', {}).get('rendered', '') or post_data.get('description', '')
             
             # Get current meta description (would need to check Yoast/RankMath meta)
             # For now, generate a new one
-            soup = BeautifulSoup(content, 'html.parser')
+            soup = BeautifulSoup(content or "", 'html.parser')
             text_content = soup.get_text().strip()[:1000]
             
             if self.ai_generator:
@@ -701,11 +732,16 @@ Return ONLY the meta description, nothing else."""
                     if len(new_desc) > 160:
                         new_desc = new_desc[:157] + "..."
                     
-                    result = self.wp_publisher.update_post(
-                        post_id=post_id,
-                        meta_description=new_desc,
-                        item_type=post_type
-                    )
+                    if post_type == 'category':
+                        result = self.wp_publisher.update_category_meta(category_id=post_id, meta_description=new_desc)
+                    elif post_type == 'tag':
+                        result = self.wp_publisher.update_tag_meta(tag_id=post_id, meta_description=new_desc)
+                    else:
+                        result = self.wp_publisher.update_post(
+                            post_id=post_id,
+                            meta_description=new_desc,
+                            item_type=post_type
+                        )
                     return result.success
                 except Exception as e:
                     print(f"AI description rewrite failed: {e}")
@@ -713,11 +749,16 @@ Return ONLY the meta description, nothing else."""
             # Fallback: extract from content
             if text_content:
                 new_desc = text_content[:157] + "..." if len(text_content) > 157 else text_content
-                result = self.wp_publisher.update_post(
-                    post_id=post_id,
-                    meta_description=new_desc,
-                    item_type=post_type
-                )
+                if post_type == 'category':
+                    result = self.wp_publisher.update_category_meta(category_id=post_id, meta_description=new_desc)
+                elif post_type == 'tag':
+                    result = self.wp_publisher.update_tag_meta(tag_id=post_id, meta_description=new_desc)
+                else:
+                    result = self.wp_publisher.update_post(
+                        post_id=post_id,
+                        meta_description=new_desc,
+                        item_type=post_type
+                    )
                 return result.success
             
             return False
@@ -1484,6 +1525,193 @@ Return exactly 3 suggestions, one per line."""
             
         except Exception as e:
             print(f"Error fixing canonical tag for {url}: {e}")
+            return False
+    
+    def _fix_internal_links(self, post_id: int, post_type: str, url: str) -> bool:
+        """Intelligently optimize internal links using AI."""
+        try:
+            if not self.linking_engine or not self.ai_generator:
+                print("   ⚠️  AI/Linking Engine not configured, falling back to broken link check")
+                return self._fix_broken_links(post_id, post_type, url)
+
+            # Get post data
+            post_data = self._get_post_content(post_id, post_type)
+            if not post_data:
+                return False
+
+            content_raw = post_data.get('content', {}).get('raw', '')
+            if not content_raw:
+                content_raw = post_data.get('content', {}).get('rendered', '')
+
+            # Get some relevant pages to link to (Placeholder/Simple for now)
+            # In a real scenario, we'd fetch actual crawl data or search results
+            # For now, we'll try to get recent posts from WordPress
+            available_pages = []
+            try:
+                recent = self._request('GET', f"{self.api_base}/posts", params={'per_page': 20})
+                if recent and recent.ok:
+                    available_pages = [{
+                        'url': p['link'],
+                        'title': p['title']['rendered'],
+                        'keywords': [] # Keywords not available easily without crawl
+                    } for p in recent.json() if p['id'] != post_id]
+            except:
+                pass
+
+            if not available_pages:
+                print("   ⚠️  No target pages found for interlinking")
+                return self._fix_broken_links(post_id, post_type, url)
+
+            # Suggest links
+            print(f"   🧠 Analyzing content for internal link opportunities...")
+            suggestions = self.linking_engine.suggest_contextual_links(content_raw, available_pages)
+            
+            if not suggestions:
+                print("   ✓ No obvious new link opportunities found")
+                return self._fix_broken_links(post_id, post_type, url)
+
+            # Insert links
+            updated_content = self.linking_engine.auto_insert_links(content_raw, suggestions)
+            
+            if updated_content != content_raw:
+                print(f"   ✅ AI inserted {len(suggestions)} contextual internal links")
+                endpoint = f"{self.api_base}/pages/{post_id}" if post_type == 'page' else f"{self.api_base}/posts/{post_id}"
+                response = self._request(
+                    'POST',
+                    endpoint,
+                    json={'content': updated_content},
+                    timeout=60
+                )
+                return response and response.ok
+            
+            return self._fix_broken_links(post_id, post_type, url)
+
+        except Exception as e:
+            print(f"Error in internal link optimization: {e}")
+            return self._fix_broken_links(post_id, post_type, url)
+
+    def _fix_broken_links(self, post_id: int, post_type: str, url: str) -> bool:
+        """Original broken link resolution logic."""
+        try:
+            post_data = self._get_post_content(post_id, post_type)
+            if not post_data:
+                return False
+            
+            content_raw = post_data.get('content', {}).get('raw', '')
+            if not content_raw:
+                content_raw = post_data.get('content', {}).get('rendered', '')
+
+            soup = BeautifulSoup(content_raw, 'html.parser')
+            links = soup.find_all('a', href=True)
+
+            modified = False
+            redirects_created = 0
+
+            for link in links:
+                href = link.get('href', '')
+                if not href or href.startswith('#') or href.startswith('mailto:'):
+                    continue
+
+                # Check if link is broken
+                try:
+                    resp = requests.head(href, timeout=5, allow_redirects=True)
+                    is_broken = resp.status_code >= 400
+                except:
+                    # Can't reach - might be broken, be conservative
+                    is_broken = False
+
+                if is_broken:
+                    # Determine if internal or external link
+                    parsed_href = urlparse(href)
+                    parsed_site = urlparse(self.site_url)
+                    is_internal = parsed_href.netloc == parsed_site.netloc or not parsed_href.netloc
+
+                    if is_internal:
+                        # INTERNAL broken link - create 301 redirect
+                        print(f"   Found broken internal link: {href}")
+
+                        # Find a similar URL to redirect to
+                        redirect_target = self._suggest_redirect_target(href, url)
+
+                        if redirect_target:
+                            # Create 301 redirect via Redirection plugin
+                            redirect_result = self.wp_publisher.create_301_redirect(
+                                source_url=href,
+                                target_url=redirect_target
+                            )
+
+                            if redirect_result.success:
+                                print(f"   ✓ Created 301 redirect: {href} → {redirect_target}")
+                                # Update link in content to point to new target
+                                link['href'] = redirect_target
+                                redirects_created += 1
+                                modified = True
+                            else:
+                                print(f"   ⚠️  Could not create redirect: {redirect_result.error}")
+                                # Still update the link
+                                link['href'] = redirect_target
+                                modified = True
+                        else:
+                            # No good redirect target found - remove link but keep text
+                            print(f"   ⚠️  No redirect target found, removing link")
+                            link.unwrap()
+                            modified = True
+
+                    else:
+                        # EXTERNAL broken link
+                        print(f"   Found broken external link: {href}")
+
+                        # Try to find if it redirects somewhere
+                        try:
+                            final_resp = requests.get(href, timeout=10, allow_redirects=True)
+                            if final_resp.ok and final_resp.url != href:
+                                # It redirected to a working URL
+                                print(f"   ✓ Found redirect: {href} → {final_resp.url}")
+                                link['href'] = final_resp.url
+                                modified = True
+                                continue
+                        except:
+                            pass
+
+                        # Try archive.org as fallback
+                        archive_url = f"https://web.archive.org/web/{href}"
+                        try:
+                            archive_resp = requests.head(archive_url, timeout=5)
+                            if archive_resp.ok:
+                                print(f"   ✓ Using archive.org version")
+                                link['href'] = archive_url
+                                modified = True
+                                continue
+                        except:
+                            pass
+
+                        # If all else fails, remove the link but keep text
+                        print(f"   ⚠️  No replacement found, removing link")
+                        link.unwrap()
+                        modified = True
+
+            if not modified:
+                print(f"   No broken links found")
+                return True  # Nothing to fix
+
+            if redirects_created > 0:
+                print(f"   Created {redirects_created} 301 redirect(s)")
+
+            # Save updated content
+            new_content = str(soup)
+
+            endpoint = f"{self.api_base}/pages/{post_id}" if post_type == 'page' else f"{self.api_base}/posts/{post_id}"
+            response = self._request(
+                'POST',
+                endpoint,
+                json={'content': new_content},
+                timeout=30
+            )
+
+            return response and response.ok
+
+        except Exception as e:
+            print(f"Error fixing broken links for {url}: {e}")
             return False
     
     def _fix_schema_markup(self, post_id: int, post_type: str, url: str) -> bool:

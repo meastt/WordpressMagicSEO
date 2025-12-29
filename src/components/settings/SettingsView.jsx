@@ -11,7 +11,9 @@ export const SettingsView = () => {
     const [credentials, setCredentials] = useState({
         anthropic_key: '',
         gemini_key: '',
-        openai_key: ''
+        openai_key: '',
+        python_engine_url: 'http://localhost:5000',
+        use_ai_fixes: true
     });
 
     const [sites, setSites] = useState([]);
@@ -25,13 +27,25 @@ export const SettingsView = () => {
     }, []);
 
     const loadCredentials = async () => {
-        // TODO: Fetch from WordPress REST API
-        // For now, check localStorage for demo
-        const saved = localStorage.getItem('magic_seo_credentials');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            setCredentials(parsed.keys || {});
-            setSites(parsed.sites || []);
+        try {
+            const response = await fetch(`${window.magicSeoData.apiUrl}settings`, {
+                headers: {
+                    'X-WP-Nonce': window.magicSeoData.nonce
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setCredentials({
+                    anthropic_key: data.anthropic_key || '',
+                    gemini_key: data.gemini_key || '',
+                    openai_key: data.openai_key || '',
+                    python_engine_url: data.python_engine_url || 'http://localhost:5000',
+                    use_ai_fixes: data.use_ai_fixes !== undefined ? data.use_ai_fixes : true
+                });
+                setSites(data.sites || []);
+            }
+        } catch (error) {
+            console.error('Failed to load settings:', error);
         }
     };
 
@@ -59,12 +73,19 @@ export const SettingsView = () => {
         setSaveMessage(null);
 
         try {
-            // TODO: Save to WordPress REST API with encryption
-            // For demo, save to localStorage
-            localStorage.setItem('magic_seo_credentials', JSON.stringify({
-                keys: credentials,
-                sites: sites
-            }));
+            const response = await fetch(`${window.magicSeoData.apiUrl}settings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': window.magicSeoData.nonce
+                },
+                body: JSON.stringify({
+                    ...credentials,
+                    sites: sites
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to save');
 
             setSaveMessage({ type: 'success', text: 'Settings saved successfully!' });
         } catch (error) {
@@ -141,6 +162,47 @@ export const SettingsView = () => {
                         testConnection={() => testConnection('openai_key')}
                         connectionStatus={connectionStatus.openai_key}
                     />
+                </div>
+            </section>
+
+            {/* AI Engine Configuration */}
+            <section className="settings-section glass-panel">
+                <h2 className="settings-section__title">
+                    ⚡ Optimization Engine (Python Bridge)
+                </h2>
+                <p className="settings-section__desc">
+                    Configure the AI Engine that performs advanced SEO optimizations.
+                    The engine must be running locally or on a remote server.
+                </p>
+
+                <div className="settings-grid">
+                    <div className="input-field">
+                        <label className="input-label">AI Engine URL</label>
+                        <input
+                            type="text"
+                            className="text-input"
+                            value={credentials.python_engine_url}
+                            onChange={(e) => setCredentials({ ...credentials, python_engine_url: e.target.value })}
+                            placeholder="http://localhost:5000"
+                        />
+                        <p className="input-help">The URL of your running Flask/Python SEO API</p>
+                    </div>
+
+                    <div className="toggle-field" style={{ marginTop: '1rem' }}>
+                        <label className="toggle-label" style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={credentials.use_ai_fixes}
+                                onChange={(e) => setCredentials({ ...credentials, use_ai_fixes: e.target.checked })}
+                                style={{ width: '20px', height: '20px' }}
+                            />
+                            <span style={{ fontWeight: 500 }}>Use AI Engine for Fixes (Recommended)</span>
+                        </label>
+                        <p className="input-help" style={{ marginTop: '4px' }}>
+                            When enabled, the dashboard will use the AI Engine for high-quality rewrites.
+                            Otherwise, it uses basic truncation.
+                        </p>
+                    </div>
                 </div>
             </section>
 

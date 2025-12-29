@@ -4,7 +4,7 @@ Tags: seo, content optimization, ai, affiliate links, claude, gemini
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,6 +30,21 @@ Magic SEO is a premium WordPress plugin that uses AI to optimize your content fo
 4. Add your API keys in Settings
 
 == Changelog ==
+
+= 1.1.11 =
+* NEW: Full SEO support for Categories and Tag archive pages.
+* NEW: Robust multi-plugin meta support (Yoast, RankMath, AIOSEO).
+* FIX: Category pages now correctly mapped to Term IDs by AI engine.
+* FIX: Metadata persistence across different SEO plugin environments.
+
+= 1.1.9 =
+
+= 1.1.8 =
+* Added AI Reasoning Dashboard: View the "Why" behind every AI-powered fix.
+* Intelligent Internal Linking: Integrated SmartLinkingEngine for contextual interlinking.
+* AI Content Expansion: Expanded "thin content" support with semantically relevant paragraphs.
+* Enhanced Title/H1 Optimization: AI-powered contextual rewrites for better SEO alignment.
+* Unified Bridge: Reliable communication between WordPress and Python AI backend.
 
 = 1.0.0 =
 * Initial release

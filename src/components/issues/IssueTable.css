@@ -143,3 +143,78 @@
     font-size: var(--text-base);
     color: var(--warm-gray-500);
 }
+
+/* Reasoning Toggle */
+.issue-details-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.reasoning-toggle {
+    background: var(--warm-gray-100);
+    border: 1px solid var(--warm-gray-200);
+    color: var(--warm-gray-600);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reasoning-toggle:hover {
+    background: var(--teal-50);
+    border-color: var(--teal-200);
+    color: var(--teal-700);
+}
+
+/* Reasoning Row */
+.reasoning-row {
+    background: var(--cream);
+}
+
+.reasoning-content {
+    margin: 8px 16px 24px 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--teal-400);
+    box-shadow: var(--shadow-sm);
+    animation: slideDown 0.3s ease-out;
+}
+
+.reasoning-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: var(--text-xs);
+    color: var(--teal-800);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.reasoning-text {
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--warm-gray-700);
+    margin: 0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

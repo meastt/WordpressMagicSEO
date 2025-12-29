@@ -17,6 +17,15 @@ export const IssueTable = ({
     const allSelected = issues.length > 0 && selectedUrls.size === issues.length;
     const someSelected = selectedUrls.size > 0 && selectedUrls.size < issues.length;
 
+    const [expandedReasoning, setExpandedReasoning] = React.useState(new Set());
+
+    const toggleReasoning = (url) => {
+        const newSet = new Set(expandedReasoning);
+        if (newSet.has(url)) newSet.delete(url);
+        else newSet.add(url);
+        setExpandedReasoning(newSet);
+    };
+
     if (issues.length === 0) {
         return (
             <div className="issue-table__empty">
@@ -46,45 +55,70 @@ export const IssueTable = ({
                 </thead>
                 <tbody>
                     {issues.map((issue, idx) => (
-                        <tr
-                            key={issue.url || idx}
-                            className={selectedUrls.has(issue.url) ? 'row--selected' : ''}
-                        >
-                            <td className="col-checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedUrls.has(issue.url)}
-                                    onChange={() => onToggleSelect(issue.url)}
-                                />
-                            </td>
-                            <td className="col-url">
-                                <a
-                                    href={issue.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="url-link"
-                                >
-                                    {getUrlPath(issue.url)}
-                                </a>
-                                {pluginManager && (
-                                    <span className="plugin-badge" title={`Managed by ${pluginManager}`}>
-                                        {pluginManager}
-                                    </span>
-                                )}
-                            </td>
-                            <td className="col-issue">
-                                <span className="issue-message">{issue.message}</span>
-                            </td>
-                            <td className="col-action">
-                                <button
-                                    className="fix-btn"
-                                    onClick={() => onFixSingle(issue.url)}
-                                    disabled={isFixing}
-                                >
-                                    Fix →
-                                </button>
-                            </td>
-                        </tr>
+                        <React.Fragment key={issue.url || idx}>
+                            <tr
+                                className={selectedUrls.has(issue.url) ? 'row--selected' : ''}
+                            >
+                                <td className="col-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedUrls.has(issue.url)}
+                                        onChange={() => onToggleSelect(issue.url)}
+                                    />
+                                </td>
+                                <td className="col-url">
+                                    <a
+                                        href={issue.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="url-link"
+                                    >
+                                        {getUrlPath(issue.url)}
+                                    </a>
+                                    {pluginManager && (
+                                        <span className="plugin-badge" title={`Managed by ${pluginManager}`}>
+                                            {pluginManager}
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="col-issue">
+                                    <div className="issue-details-container">
+                                        <span className="issue-message">{issue.message}</span>
+                                        {issue.reasoning && (
+                                            <button
+                                                className="reasoning-toggle"
+                                                onClick={() => toggleReasoning(issue.url)}
+                                                title="View AI Logic"
+                                            >
+                                                🧠 {expandedReasoning.has(issue.url) ? 'Hide Logic' : 'AI Logic'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="col-action">
+                                    <button
+                                        className="fix-btn"
+                                        onClick={() => onFixSingle(issue.url)}
+                                        disabled={isFixing}
+                                    >
+                                        Fix →
+                                    </button>
+                                </td>
+                            </tr>
+                            {expandedReasoning.has(issue.url) && issue.reasoning && (
+                                <tr className="reasoning-row">
+                                    <td colSpan="4">
+                                        <div className="reasoning-content">
+                                            <div className="reasoning-header">
+                                                <span className="reasoning-icon">🤖</span>
+                                                <strong>AI Reasoning & Strategy</strong>
+                                            </div>
+                                            <p className="reasoning-text">{issue.reasoning}</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </React.Fragment>
                     ))}
                 </tbody>
             </table>

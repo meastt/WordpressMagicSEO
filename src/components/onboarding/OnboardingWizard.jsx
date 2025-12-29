@@ -52,7 +52,7 @@ export const OnboardingWizard = ({ onComplete }) => {
 
     return (
         <div className="onboarding-overlay">
-            <div className="onboarding-wizard glass-floating">
+            <div className="onboarding-wizard">
                 <div className="onboarding-header">
                     <span className="onboarding-logo">🪄</span>
                     <h1 className="onboarding-title">Welcome to Magic SEO</h1>

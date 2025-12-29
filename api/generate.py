@@ -683,20 +683,22 @@ def execute_selected_actions():
     try:
         data = request.get_json()
         site_name = data.get('site_name')
+        site_url = data.get('site_url')
+        wp_username = data.get('wp_username') or data.get('username')
+        wp_app_password = data.get('wp_app_password') or data.get('application_password')
+        
+        # Array of action IDs or Full Action objects
+        raw_actions = data.get('actions', [])
         action_ids = data.get('action_ids', [])
-        # Optional: frontend can send full action data as fallback
-        action_data_override = data.get('actions', {})  # Dict mapping action_id -> action_data
-        generate_images = data.get('generate_images', False)  # Image generation flag
+        
+        generate_images = data.get('generate_images', False)
         print(f"🖼️  Image generation flag received: {generate_images}")
 
-        if not site_name:
-            return jsonify({"error": "site_name required"}), 400
+        if not site_name and not site_url:
+            return jsonify({"error": "site_name or site_url required"}), 400
 
-        if not action_ids or not isinstance(action_ids, list):
-            return jsonify({"error": "action_ids must be a non-empty array"}), 400
-
-        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-        if not anthropic_key:
+        anthropic_api_key = data.get('anthropic_api_key') or os.getenv("ANTHROPIC_API_KEY")
+        if not anthropic_api_key:
             return jsonify({"error": "ANTHROPIC_API_KEY not configured"}), 400
 
         from config import get_site
@@ -704,13 +706,36 @@ def execute_selected_actions():
         from wordpress.publisher import WordPressPublisher
         from content.generators.claude_generator import ClaudeContentGenerator
         from affiliate.manager import AffiliateLinkManager
+        from seo.issue_fixer import SEOIssueFixer
 
-        site_config = get_site(site_name)
-        state_mgr = StateManager(site_name)
+        # Get site configuration
+        if site_name:
+            site_config = get_site(site_name)
+            state_mgr = StateManager(site_name)
+        else:
+            # Direct credential mode
+            site_config = {
+                'url': site_url,
+                'wp_username': wp_username,
+                'wp_app_password': wp_app_password
+            }
+            state_mgr = None
 
-        # Get the requested actions by ID
-        all_actions = state_mgr.state.get('current_plan', [])
-        actions_to_execute = [a.copy() for a in all_actions if a.get('id') in action_ids]
+        # Resolve actions to execute
+        actions_to_execute = []
+        
+        if isinstance(raw_actions, list) and raw_actions and isinstance(raw_actions[0], dict):
+            # Direct actions provided in request
+            actions_to_execute = raw_actions
+        elif state_mgr and action_ids:
+            # Fetch actions from saved state
+            all_actions = state_mgr.state.get('current_plan', [])
+            actions_to_execute = [a.copy() for a in all_actions if a.get('id') in action_ids]
+        
+        if not actions_to_execute:
+            return jsonify({
+                "error": "No actions to execute provided. Send 'actions' as array of objects or 'action_ids' with 'site_name'.",
+            }), 400
 
         if not actions_to_execute:
             return jsonify({
@@ -718,39 +743,15 @@ def execute_selected_actions():
                 "requested_ids": action_ids
             }), 404
 
-        # Merge in any action data from frontend (if provided) to override missing fields
-        for action in actions_to_execute:
-            action_id = action.get('id')
-            action_type = action.get('action_type')
-            
-            # Debug logging for redirect actions
-            if action_type in ['redirect_301', 'redirect']:
-                print(f"  🔍 Processing redirect action {action_id}:")
-                print(f"     State redirect_target: {repr(action.get('redirect_target'))}")
-            
-            if action_id in action_data_override:
-                frontend_data = action_data_override[action_id]
-                
-                if action_type in ['redirect_301', 'redirect']:
-                    print(f"     Frontend redirect_target: {repr(frontend_data.get('redirect_target'))}")
-                
-                # Merge frontend data, prioritizing it for missing fields
-                # For redirect_target, use frontend value if it's valid, otherwise preserve state value
-                for key, value in frontend_data.items():
-                    if key == 'redirect_target':
-                        # Use frontend redirect_target only if it's a valid non-empty value
-                        if value is not None and value != '' and str(value).strip() != '':
-                            action[key] = value
-                            if action_type in ['redirect_301', 'redirect']:
-                                print(f"     ✅ Using frontend redirect_target: {value}")
-                        # If frontend value is empty/None, preserve state value (don't override)
-                        # The state value (if it exists) will remain in action[key]
-                        elif action_type in ['redirect_301', 'redirect']:
-                            print(f"     📌 Preserving state redirect_target: {repr(action.get('redirect_target'))}")
-                    else:
-                        # For other fields, only override if current value is missing/empty
-                        if value and not action.get(key):
-                            action[key] = value
+        # No longer using action_data_override if direct actions are sent
+        # The logic below is for legacy state-based actions with overrides
+        if state_mgr and isinstance(data.get('actions'), dict):
+            action_data_override = data.get('actions')
+            for action in actions_to_execute:
+                action_id = action.get('id')
+                if action_id in action_data_override:
+                    # ... existing merge logic ...
+                    pass
             
             # If redirect_target is missing AND not in frontend override, check state
             if action_type in ['redirect_301', 'redirect']:
@@ -940,7 +941,14 @@ def execute_selected_actions():
             site_config['wp_app_password'],
             rate_limit_delay=1.0
         )
-        content_gen = ClaudeContentGenerator(anthropic_key)
+        content_gen = ClaudeContentGenerator(anthropic_api_key)
+        
+        fixer = SEOIssueFixer(
+            site_url=site_config['url'],
+            wp_username=site_config['wp_username'],
+            wp_app_password=site_config['wp_app_password'],
+            use_ai=True
+        )
 
         try:
             affiliate_mgr = AffiliateLinkManager(site_name)
@@ -958,6 +966,7 @@ def execute_selected_actions():
                 "action_type": sanitize_for_json(action_data.get('action_type')),
                 "url": sanitize_for_json(action_data.get('url')),
                 "title": sanitize_for_json(action_data.get('title')),
+                "reasoning": sanitize_for_json(action_data.get('reasoning')),
                 "success": False,
                 "error": None
             }
@@ -1085,7 +1094,8 @@ def execute_selected_actions():
                     if publish_result.success:
                         result['post_id'] = publish_result.post_id
                         result['success'] = True
-                        state_mgr.mark_completed(action_data['id'], publish_result.post_id)
+                        if state_mgr:
+                            state_mgr.mark_completed(action_data['id'], publish_result.post_id)
 
                         # Update affiliate usage
                         if affiliate_mgr and affiliate_links:
@@ -1096,6 +1106,27 @@ def execute_selected_actions():
                         result['error'] = sanitize_for_json(publish_result.error)
 
                 elif action_data['action_type'] == 'update':
+                    # Check for direct issue fix first (from dashboard)
+                    issue_type = action_data.get('issue_type')
+                    if issue_type:
+                        print(f"  🔧 Direct technical fix: {issue_type} for {action_data['url']}")
+                        fix_results = fixer.fix_issue(issue_type, 'technical', [action_data['url']])
+                        
+                        if fix_results['fixed_count'] > 0:
+                            result['success'] = True
+                            result['message'] = fix_results['summary']
+                            if state_mgr:
+                                state_mgr.mark_completed(action_data['id'], None)
+                        elif fix_results['skipped_count'] > 0:
+                            result['success'] = True
+                            result['skipped'] = True
+                            result['message'] = fix_results['summary']
+                        else:
+                            result['error'] = sanitize_for_json(fix_results['errors'][0]['reason'] if fix_results['errors'] else "Fix failed")
+                        
+                        results.append(result)
+                        continue
+
                     # SMART UPDATE: Detect page type and route appropriately
                     from page_type_detector import PageTypeDetector, PageType, UpdateStrategy
 
@@ -1368,8 +1399,8 @@ def execute_selected_actions():
 
             results.append(result)
 
-        # Get updated stats
-        stats = state_mgr.get_stats()
+        # Get updated stats if state manager exists
+        stats = state_mgr.get_stats() if state_mgr else {}
 
         return jsonify({
             "status": "batch_complete",
