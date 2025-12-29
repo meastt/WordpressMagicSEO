@@ -82,16 +82,24 @@ export const SettingsView = () => {
                 });
                 success = resp.ok;
             } else if (type.startsWith('site_')) {
-                // Test WordPress site credentials
+                // Test WordPress site credentials via Magic SEO API (avoids CORS issues)
                 const siteId = type.replace('site_', '');
                 const site = sites.find(s => s.id === siteId);
                 if (site && site.site_url && site.username && site.app_password) {
-                    const siteUrl = site.site_url.replace(/\/$/, '');
-                    const authHeader = 'Basic ' + btoa(`${site.username}:${site.app_password}`);
-                    const resp = await fetch(`${siteUrl}/wp-json/wp/v2/users/me`, {
-                        headers: { 'Authorization': authHeader }
+                    const resp = await fetch(`${window.magicSeoData.apiUrl}test-credentials`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-WP-Nonce': window.magicSeoData.nonce
+                        },
+                        body: JSON.stringify({
+                            site_url: site.site_url,
+                            username: site.username,
+                            app_password: site.app_password
+                        })
                     });
-                    success = resp.ok;
+                    const data = await resp.json();
+                    success = data.success === true;
                 }
             }
 

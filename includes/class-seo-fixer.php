@@ -38,7 +38,9 @@ class Magic_SEO_Fixer {
             foreach ($settings['sites'] as $site) {
                 if (!empty($site['site_url']) && strpos($current_site, rtrim($site['site_url'], '/')) !== false) {
                     $username = $site['username'] ?? null;
-                    $password = $site['app_password'] ?? null;
+                    // Decrypt the app_password which is stored encrypted
+                    $encrypted_pw = $site['app_password'] ?? null;
+                    $password = $this->decrypt_value($encrypted_pw);
                     break;
                 }
             }
@@ -46,6 +48,16 @@ class Magic_SEO_Fixer {
         
         $this->username = $username;
         $this->password = $password;
+    }
+    
+    /**
+     * Decrypt a value encrypted by Magic_SEO class
+     */
+    private function decrypt_value($encrypted) {
+        if (empty($encrypted)) return '';
+        $key = wp_salt('auth');
+        $iv = substr(hash('sha256', wp_salt('secure_auth')), 0, 16);
+        return openssl_decrypt(base64_decode($encrypted), 'AES-256-CBC', $key, 0, $iv);
     }
     
     /**
