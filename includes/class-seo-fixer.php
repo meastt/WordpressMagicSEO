@@ -27,12 +27,25 @@ class Magic_SEO_Fixer {
      */
     public function __construct($site_url = null, $username = null, $password = null) {
         $this->site_url = $site_url ?: home_url();
-        $this->username = $username;
-        $this->password = $password;
         
         $settings = get_option('magic_seo_settings', []);
         $this->python_engine_url = $settings['python_engine_url'] ?? 'http://localhost:5000';
         $this->use_ai = $settings['use_ai_fixes'] ?? true;
+        
+        // If credentials not passed, try to load from settings for current site
+        if (empty($username) && !empty($settings['sites'])) {
+            $current_site = $this->site_url;
+            foreach ($settings['sites'] as $site) {
+                if (!empty($site['site_url']) && strpos($current_site, rtrim($site['site_url'], '/')) !== false) {
+                    $username = $site['username'] ?? null;
+                    $password = $site['app_password'] ?? null;
+                    break;
+                }
+            }
+        }
+        
+        $this->username = $username;
+        $this->password = $password;
     }
     
     /**
