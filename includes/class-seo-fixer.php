@@ -563,27 +563,38 @@ class Magic_SEO_Fixer {
         // Prepare request to Python backend
         $endpoint = trailingslashit($this->python_engine_url) . 'api/execute-selected';
         
+        // Debug: Log what we're sending
+        error_log('[Magic SEO] apply_ai_fix called:');
+        error_log('[Magic SEO] - ID: ' . $id);
+        error_log('[Magic SEO] - URL: ' . $url);
+        error_log('[Magic SEO] - Endpoint: ' . $endpoint);
+        error_log('[Magic SEO] - Username: ' . ($this->username ?: 'EMPTY'));
+        error_log('[Magic SEO] - Password: ' . ($this->password ? 'SET (' . strlen($this->password) . ' chars)' : 'EMPTY'));
+        
+        $request_body = [
+            'actions' => [
+                [
+                    'id' => 'direct_' . $id . '_' . time(),
+                    'action_type' => 'update',
+                    'url' => $url,
+                    'issue_type' => $issue_type
+                ]
+            ],
+            'site_url' => home_url(),
+            'wp_username' => $this->username,
+            'wp_app_password' => $this->password
+        ];
+        
         $response = wp_remote_post($endpoint, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
-            'body' => json_encode([
-                'actions' => [
-                    [
-                        'id' => 'direct_' . $post_id . '_' . time(),
-                        'action_type' => 'update',
-                        'url' => $url,
-                        'issue_type' => $issue_type
-                    ]
-                ],
-                'site_url' => home_url(),
-                'wp_username' => $this->username,
-                'wp_app_password' => $this->password
-            ]),
+            'body' => json_encode($request_body),
             'timeout' => 30
         ]);
         
         if (is_wp_error($response)) {
+            error_log('[Magic SEO] API Error: ' . $response->get_error_message());
             return [
                 'success' => false,
                 'message' => 'AI Engine unreachable: ' . $response->get_error_message()
@@ -591,6 +602,7 @@ class Magic_SEO_Fixer {
         }
         
         $body = json_decode(wp_remote_retrieve_body($response), true);
+        error_log('[Magic SEO] API Response: ' . wp_remote_retrieve_body($response));
         
         if (isset($body['results'][0]) && $body['results'][0]['success']) {
             $value = $body['results'][0]['value'] ?? '';
