@@ -52,15 +52,57 @@ export const SettingsView = () => {
     const testConnection = async (type) => {
         setConnectionStatus(prev => ({ ...prev, [type]: 'testing' }));
 
-        // Simulate API test
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            let success = false;
 
-        // TODO: Actually test the API connection
-        const success = credentials[type]?.length > 10;
-        setConnectionStatus(prev => ({
-            ...prev,
-            [type]: success ? 'success' : 'error'
-        }));
+            if (type === 'anthropic_key' && credentials.anthropic_key) {
+                // Test Anthropic API
+                const resp = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': credentials.anthropic_key,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-haiku-20240307',
+                        max_tokens: 10,
+                        messages: [{ role: 'user', content: 'Hi' }]
+                    })
+                });
+                success = resp.ok || resp.status === 429; // 429 = rate limited but key is valid
+            } else if (type === 'gemini_key' && credentials.gemini_key) {
+                // Test Gemini API
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${credentials.gemini_key}`);
+                success = resp.ok;
+            } else if (type === 'openai_key' && credentials.openai_key) {
+                // Test OpenAI API
+                const resp = await fetch('https://api.openai.com/v1/models', {
+                    headers: { 'Authorization': `Bearer ${credentials.openai_key}` }
+                });
+                success = resp.ok;
+            } else if (type.startsWith('site_')) {
+                // Test WordPress site credentials
+                const siteId = type.replace('site_', '');
+                const site = sites.find(s => s.id === siteId);
+                if (site && site.site_url && site.username && site.app_password) {
+                    const siteUrl = site.site_url.replace(/\/$/, '');
+                    const authHeader = 'Basic ' + btoa(`${site.username}:${site.app_password}`);
+                    const resp = await fetch(`${siteUrl}/wp-json/wp/v2/users/me`, {
+                        headers: { 'Authorization': authHeader }
+                    });
+                    success = resp.ok;
+                }
+            }
+
+            setConnectionStatus(prev => ({
+                ...prev,
+                [type]: success ? 'success' : 'error'
+            }));
+        } catch (error) {
+            console.error('Connection test failed:', error);
+            setConnectionStatus(prev => ({ ...prev, [type]: 'error' }));
+        }
 
         // Reset after 3 seconds
         setTimeout(() => {
